@@ -1,4 +1,4 @@
-> Integrado en CampusFlow: asistente visible en dashboard y migraciones aplicadas en la BD compartida. Esta máquina aún no tiene webhook ni credenciales n8n; no hay integración real acreditada. El rol n8n_runtime/login y WhatsApp no fueron activados. La actualización de verificación al final de docs/verification.md distingue ejecución local del motor y proveedores reales. La API usa UUID del actor; no envía correo/nombre derivado del correo. Una migración adicional revalida extensiones y separa la clasificación externa de Groq.
+> Integrado en CampusFlow: asistente visible en dashboard y migraciones aplicadas en la BD compartida. Webhook local indicado: http://localhost:5678/webhook/campusflow; sus credenciales y publicación siguen pendientes; no hay integración real acreditada. El rol n8n_runtime/login y WhatsApp no fueron activados. La actualización de verificación al final de docs/verification.md distingue ejecución local del motor y proveedores reales. La API usa UUID del actor; no envía correo/nombre derivado del correo. Una migración adicional revalida extensiones y separa la clasificación externa de Groq.
 
 # Flujo n8n: orquestador de espacios
 
@@ -13,12 +13,12 @@ Implementa el contrato de [CONTRATO_N8N_FRONTEND.md](../../CONTRATO_N8N_FRONTEND
 
 ## Interfaz web: «Asistente de agenda»
 
-Pestaña **Asistente de agenda** del espacio de trabajo (solo ADMIN y OPERATOR). El navegador nunca habla con n8n: llama a `POST /api/agenda/assistant` de Express, que valida la sesión y el rol, toma el nombre del solicitante del token (no del body), reenvía al webhook con `Authorization: Bearer <N8N_WEBHOOK_SECRET>` y valida la respuesta contra el catálogo antes de devolverla.
+Pestaña **Asistente de agenda** del espacio de trabajo (solo ADMIN y OPERATOR). El navegador nunca habla con n8n: llama a `POST /api/agenda/assistant` de Express, que valida la sesión y el rol, toma el UUID del solicitante de la sesión verificada (no del body), reenvía al webhook con `Authorization: Bearer <N8N_WEBHOOK_SECRET>` y valida la respuesta contra el catálogo antes de devolverla.
 
 - El usuario escribe en lenguaje natural y, opcionalmente, fecha, sala, asistentes y horas.
 - **Solo proponer** (`modo: PROPUESTA`): n8n calcula todo y **no escribe**. **Aplicar** (`modo: EJECUCION`): exige `N8N_MODE=execute` y confirma con el usuario; el resultado solo se muestra como aplicado si n8n informa `ejecucion: APLICADA`.
 - Muestra la decisión, la interpretación de la IA, el estado de aplicación, la incidencia detectada y el tablero de salas leído de la base tras la solicitud.
-- Variables de `apps/api/.env`: `N8N_WEBHOOK_URL=<URL de producción del webhook>/webhook/campusflow`, `N8N_WEBHOOK_SECRET=<secreto, sin la palabra Bearer>` y `N8N_MODE=execute`. En n8n, la credencial del webhook del frontend es Header Auth con nombre `Authorization` y valor `Bearer <secreto>`.
+- Variables de `apps/api/.env`: `N8N_WEBHOOK_URL=<URL de producción del webhook>/webhook/campusflow`, `N8N_WEBHOOK_SECRET=<secreto, sin la palabra Bearer>` y `N8N_MODE=proposal` inicialmente. En n8n, la credencial del webhook del frontend es Header Auth con nombre `Authorization` y valor `Bearer <secreto>`.
 
 > ¿Vas a usarlo en otro equipo? Sigue [USO_EN_OTRO_EQUIPO.md](USO_EN_OTRO_EQUIPO.md): código, n8n local, credenciales propias y cómo comprobar que la IA responde.
 
@@ -50,7 +50,7 @@ WhatsApp  POST /webhook/campusflow-whatsapp ──┤ (Evolution MESSAGES_UPSERT
 2. **Sin solapes:** intervalos `[inicio, fin)`; los contiguos son válidos (exclusión GiST `Reservation_no_overlap`).
 3. **Estado del espacio:** `DISABLED` (sin habilitar) y `MAINTENANCE` no se asignan.
 4. **FIFO:** conserva el espacio quien reservó primero (`createdAt`). Una extensión que choca con una reserva posterior la reubica en la sala libre de menor aforo suficiente; si no hay, se rechaza sin cambios.
-5. **Incidencia grave** (`HIGH`/`CRITICAL` e inhabilita el espacio): pasa a `MAINTENANCE` y reubica sus reservas pendientes. La incidencia se guarda en `Incident` (`aiStatus=COMPLETE`, `triage` con prioridad y área).
+5. **Incidencia grave** (`HIGH`/`CRITICAL` e inhabilita el espacio): pasa a `MAINTENANCE` y reubica sus reservas pendientes. La incidencia se guarda en `Incident` (`aiStatus=PENDING`, clasificación externa en la descripción; el triaje Groq se mantiene separado).
 
 Cada operación escribe un `AuditEvent` en la misma transacción (`n8n.reservation.created|relocated|extended`, `n8n.space.maintenance`, `n8n.incident.created`).
 
@@ -100,3 +100,11 @@ Cada operación escribe un `AuditEvent` en la misma transacción (`n8n.reservati
 - El adaptador envía `Authorization: Bearer <secreto>`: usar una credencial Header Auth con ese formato en el webhook del frontend.
 - Horarios oficiales de salones: se cargan como reservas `IMPORT` con un script privado (no versionado: contiene nombres de docentes). Faltan datos de «Sala Nueva», la cohorte D3 Feb-26 y el aforo de Sputnik.
 - Registrar la deriva de esquema en `docs/handoff.md` cuando se integre.
+
+## JSON aportado por el equipo (16 de octubre)
+
+Se incorporaron del archivo `campusflow-orquestador-esquema-campusflow.json` las mejoras de interpretación de consultas, fechas relativas y consulta de una sala concreta. Se conservan las consultas `app_private.n8n_state()` y `app_private.n8n_apply_plan()` y las referencias de credenciales de la plantilla. El archivo aportado consultaba `campusflow.rooms/bookings/apply_plan`, esquema distinto del monorepo: no importarlo directamente contra esta base.
+
+Importar `docs/n8n/campusflow-orquestador.json`. No contiene claves; las credenciales se vinculan en n8n. Importar no publica el webhook ni demuestra ejecución de Gemini/PostgreSQL. Mantener modo propuesta hasta probar conexión y permisos.
+
+Importación local realizada en el editor n8n, workflow `rJY56x5vWNSRDOQU`, guardado sin publicar. Los 20 nodos están presentes. Faltan vincular las credenciales PostgreSQL, Gemini y Header Auth y verificar el webhook real; no se ejecutó WhatsApp.

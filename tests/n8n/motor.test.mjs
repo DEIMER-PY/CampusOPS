@@ -640,3 +640,42 @@ test("WhatsApp: responde al teléfono real si hay, o al JID completo si solo hay
   );
   assert.equal(normalizar(evo({ remoteJid: "119@lid" })).replyTo, "119@lid");
 });
+
+test("Fecha relativa mañana se aplica sin fecha explícita", () => {
+  const r = motor({
+    entrada: entrada({ reporte: "Reserva Azul mañana de 10 a 11" }),
+    estado: estado(),
+    ia: ia("RESERVA", {
+      sala: "Azul",
+      horaInicio: "10:00",
+      horaFin: "11:00",
+      asistentes: 2,
+    }),
+  });
+  assert.equal(r.plan.ops[0].inicio, "2026-10-17T15:00:00.000Z");
+});
+
+test("Consulta de sala concreta respeta su estado y no genera cambios", () => {
+  const r = motor({
+    entrada: entrada({ modo: "PROPUESTA" }),
+    estado: estado([], { Azul: "MANTENIMIENTO" }),
+    ia: ia("CONSULTA", { sala: "Azul" }),
+  });
+  assert.match(r.decisionIA.explicacion, /mantenimiento/);
+  assert.equal(r.plan.ops.length, 0);
+});
+
+test("Fecha pasada se rechaza sin escribir", () => {
+  const r = motor({
+    entrada: entrada({ fecha: "2026-10-15" }),
+    estado: estado(),
+    ia: ia("RESERVA", {
+      sala: "Azul",
+      horaInicio: "10:00",
+      horaFin: "11:00",
+      asistentes: 2,
+    }),
+  });
+  assert.equal(r.decisionIA.accionEjecutada, "SOLICITUD_RECHAZADA");
+  assert.equal(r.plan.ops.length, 0);
+});
