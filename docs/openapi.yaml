@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: CampusFlow API
+  version: 0.1.0
+  description: Contrato del bootstrap; préstamos, IA y RAG aún no disponibles.
+servers:
+  - url: http://127.0.0.1:4000
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+    ReservationInput:
+      type: object
+      additionalProperties: false
+      required: [spaceId, startAt, endAt, attendees, purpose]
+      properties:
+        spaceId: { type: string, format: uuid }
+        startAt: { type: string, format: date-time }
+        endAt: { type: string, format: date-time }
+        attendees: { type: integer, minimum: 1 }
+        purpose: { type: string, minLength: 3, maxLength: 300 }
+paths:
+  /health:
+    get:
+      summary: Liveness del proceso
+      security: []
+      responses:
+        '200': { description: Proceso activo }
+  /ready:
+    get:
+      summary: Comprueba conexión de base de datos
+      security: []
+      responses:
+        '200': { description: Base accesible }
+        '503': { description: Configuración pendiente o conexión fallida }
+  /api/me:
+    get:
+      summary: Perfil del usuario autenticado y autorizado
+      responses:
+        '200': { description: Perfil con rol }
+        '401': { description: Sesión ausente o inválida }
+        '403': { description: Perfil no habilitado }
+        '503': { description: Servicio no configurado o no disponible }
+  /api/spaces:
+    get:
+      summary: Espacios persistidos; no implica disponibilidad horaria
+      responses:
+        '200': { description: Listado ordenado por nombre }
+        '401': { description: Sesión ausente o inválida }
+        '403': { description: Perfil no habilitado }
+        '503': { description: Servicio no disponible }
+  /api/reservations:
+    get:
+      summary: Últimas 50 reservas propias; operadores y administradores consultan todas
+      responses:
+        '200': { description: Reservas persistidas }
+        '401': { description: Sesión ausente o inválida }
+        '403': { description: Perfil no habilitado }
+        '503': { description: Servicio no disponible }
+    post:
+      summary: Reserva para el usuario del token con validación transaccional
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReservationInput' }
+      responses:
+        '201': { description: Reserva y evento de auditoría persistidos }
+        '400': { description: Entrada o intervalo inválido }
+        '401': { description: Sesión ausente o inválida }
+        '403': { description: Perfil no habilitado }
+        '409': { description: Conflicto de aforo, estado u horario }
+        '503': { description: Servicio no disponible }
+  /api/admin/audit:
+    get:
+      summary: Últimos 50 eventos, solo rol ADMIN
+      responses:
+        '200': { description: Eventos auditables }
+        '401': { description: Sesión ausente o inválida }
+        '403': { description: Rol insuficiente o perfil no habilitado }
+        '503': { description: Servicio no disponible }

@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["app_private"]
+}
+
+enum Role {
+  CLIENT
+  OPERATOR
+  ADMIN
+  @@schema("app_private")
+}
+
+enum AssetStatus {
+  AVAILABLE
+  DISABLED
+  MAINTENANCE
+  @@schema("app_private")
+}
+
+model Profile {
+  id         String @id @db.Uuid
+  role       Role @default(CLIENT)
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  reservations Reservation[]
+  loans Loan[]
+  incidents Incident[]
+  @@schema("app_private")
+}
+
+model Space {
+  id String @id @default(uuid()) @db.Uuid
+  name String @unique
+  capacity Int
+  status AssetStatus @default(DISABLED)
+  source String
+  reservations Reservation[]
+  @@schema("app_private")
+}
+
+model Reservation {
+  id String @id @default(uuid()) @db.Uuid
+  spaceId String @db.Uuid
+  userId String @db.Uuid
+  startAt DateTime @db.Timestamptz
+  endAt DateTime @db.Timestamptz
+  attendees Int
+  purpose String
+  cancelledAt DateTime? @db.Timestamptz
+  createdAt DateTime @default(now()) @db.Timestamptz
+  space Space @relation(fields: [spaceId], references: [id])
+  user Profile @relation(fields: [userId], references: [id])
+  @@index([userId, createdAt])
+  @@schema("app_private")
+}
+
+model Resource {
+  id String @id @default(uuid()) @db.Uuid
+  code String @unique
+  name String
+  status AssetStatus @default(DISABLED)
+  source String
+  loans Loan[]
+  @@schema("app_private")
+}
+
+model Loan {
+  id String @id @default(uuid()) @db.Uuid
+  resourceId String @db.Uuid
+  userId String @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz
+  returnedAt DateTime? @db.Timestamptz
+  resource Resource @relation(fields: [resourceId], references: [id])
+  user Profile @relation(fields: [userId], references: [id])
+  @@index([userId, createdAt])
+  @@schema("app_private")
+}
+
+model Incident {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  description String
+  aiStatus String @default("PENDING")
+  triage Json?
+  createdAt DateTime @default(now()) @db.Timestamptz
+  user Profile @relation(fields: [userId], references: [id])
+  @@index([userId, createdAt])
+  @@schema("app_private")
+}
+
+model AuditEvent {
+  id String @id @default(uuid()) @db.Uuid
+  actorId String @db.Uuid
+  action String
+  entityId String @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz
+  @@index([createdAt])
+  @@schema("app_private")
+}

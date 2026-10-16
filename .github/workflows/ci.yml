@@ -1,0 +1,41 @@
+name: Quality
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+permissions:
+  contents: read
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: campusflow_test
+          POSTGRES_PASSWORD: campusflow_ci_only
+          POSTGRES_DB: campusflow_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U campusflow_test -d campusflow_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run db:validate
+      - run: npm run check
+      - run: npm run db:deploy
+        env:
+          DIRECT_URL: postgresql://campusflow_test:campusflow_ci_only@127.0.0.1:5432/campusflow_test
+      - run: npm run test:integration
+        env:
+          TEST_DATABASE_URL: postgresql://campusflow_test:campusflow_ci_only@127.0.0.1:5432/campusflow_test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e

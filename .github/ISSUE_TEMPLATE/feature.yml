@@ -1,0 +1,15 @@
+name: Incremento de producto
+description: Una entrega pequeña y verificable
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Resultado esperado y responsable
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de aceptación y evidencia
+    validations:
+      required: true
