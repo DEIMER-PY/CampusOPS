@@ -653,7 +653,7 @@ test("CONSULTA de una sala ocupada: dice quién la tiene, cuándo y qué hay lib
   assert.equal(r.decisionIA.titulo, "Azul está ocupada");
   assert.match(
     r.decisionIA.explicacion,
-    /reservada por Tomas de 15:00 a 17:00/,
+    /reservada hoy por Tomas de 15:00 a 17:00/,
   );
   assert.match(r.decisionIA.explicacion, /Libres en ese horario/);
   assert.equal(r.plan.ops.length, 0);
@@ -666,7 +666,7 @@ test("CONSULTA de una sala libre responde que está libre en ese horario", () =>
     ia: ia("CONSULTA", { sala: "Azul", horaInicio: "15:00", horaFin: "17:00" }),
   });
   assert.equal(r.decisionIA.titulo, "Azul está libre");
-  assert.match(r.decisionIA.explicacion, /libre entre 15:00 - 17:00/);
+  assert.match(r.decisionIA.explicacion, /libre hoy entre 15:00 - 17:00/);
 });
 
 test("CONSULTA de una sala sin horario muestra su agenda del día; en mantenimiento lo indica", () => {
@@ -690,4 +690,85 @@ test("CONSULTA de una sala sin horario muestra su agenda del día; en mantenimie
     ia: ia("CONSULTA", { sala: "Cosmos" }),
   });
   assert.match(mant.decisionIA.explicacion, /en mantenimiento/);
+});
+
+const reservarCosmos = (reporte, extra = {}, estadoBase = estado()) =>
+  motor({
+    entrada: entrada({ reporte }),
+    estado: estadoBase,
+    ia: ia("RESERVA", {
+      sala: "Cosmos",
+      horaInicio: "10:00",
+      horaFin: "11:00",
+      asistentes: 10,
+      ...extra,
+    }),
+  });
+
+test("«mañana» en el texto mueve la reserva al día siguiente y el mensaje lo dice", () => {
+  const r = reservarCosmos(
+    "Reserva Cosmos para mañana de 10 a 11 para 10 personas",
+  );
+  assert.equal(
+    r.plan.ops[0].inicio,
+    new Date("2026-10-17T10:00:00-05:00").toISOString(),
+  );
+  assert.match(r.decisionIA.explicacion, /el 17\/10/);
+  const pasado = reservarCosmos(
+    "Reserva Cosmos pasado mañana de 10 a 11 para 10 personas",
+  );
+  assert.equal(
+    pasado.plan.ops[0].inicio,
+    new Date("2026-10-18T10:00:00-05:00").toISOString(),
+  );
+});
+
+test("«de la mañana» es am, no el día siguiente", () => {
+  const r = reservarCosmos(
+    "Reserva Cosmos hoy de 6 a 8 de la mañana para 10 personas",
+    {
+      horaInicio: "06:00",
+      horaFin: "08:00",
+    },
+  );
+  assert.equal(r.plan.ops[0].inicio, iso("06:00"));
+  assert.match(r.decisionIA.explicacion, /hoy/);
+});
+
+test("usa la fecha interpretada por la IA y rechaza fechas pasadas", () => {
+  const futura = reservarCosmos(
+    "Reserva Cosmos el lunes de 10 a 11 para 10 personas",
+    {
+      fecha: "2026-10-19",
+    },
+  );
+  assert.equal(
+    futura.plan.ops[0].inicio,
+    new Date("2026-10-19T10:00:00-05:00").toISOString(),
+  );
+  const pasada = reservarCosmos(
+    "Reserva Cosmos el 10 de octubre de 10 a 11 para 10",
+    {
+      fecha: "2026-10-10",
+    },
+  );
+  assert.equal(pasada.decisionIA.titulo, "Fecha pasada");
+  assert.equal(pasada.plan.ops.length, 0);
+  const rota = reservarCosmos("Reserva Cosmos", { fecha: "20/10" });
+  assert.equal(rota.httpStatus, 503);
+});
+
+test("consultar «mañana» no usa las reservas de hoy", () => {
+  const hoyOcupado = estado([
+    reserva("a", "Azul", "Tomas", "15:00", "17:00", 2, "07:00"),
+  ]);
+  const r = motor({
+    entrada: entrada({
+      reporte: "mira si la sala azul está libre mañana de 3 a 5",
+    }),
+    estado: hoyOcupado,
+    ia: ia("CONSULTA", { sala: "Azul", horaInicio: "15:00", horaFin: "17:00" }),
+  });
+  assert.equal(r.decisionIA.titulo, "Azul está libre");
+  assert.match(r.decisionIA.explicacion, /el 17\/10/);
 });
