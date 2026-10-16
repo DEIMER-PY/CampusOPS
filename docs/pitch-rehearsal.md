@@ -1,65 +1,33 @@
-> El usuario canceló las diapositivas. Este guion sirve para práctica oral y recorrido de la web; la explicación del RAG está en /#rag. No hay PPTX entregado.
+# Neural Routing presenta CampusFlow
 
-# Pitch de práctica de CampusFlow
+Guion oral de aproximadamente 3 minutos, 45 segundos por integrante. Mostrar la web; no se requiere deck. Confirmar duración oficial y ensayar con cronómetro. No afirmar RAG, n8n, visión o correo completos sin evidencia.
 
-Formato de ensayo: seis momentos principales en aproximadamente 3 minutos 20 segundos, más dos anexos. La guía no fija duración de pitch; confirmar la oficial. Hablar del estado comprobado el 16 de octubre, sin afirmar n8n conectado, login E2E o RAG listo mientras falte evidencia.
+## Samuel — problema y experiencia
 
-## 1. El problema — Samuel, 25 s
+«Somos Neural Routing. Cuando una sala está ocupada, un computador falla o un equipo está prestado, necesitamos saberlo antes de organizar una actividad. CampusFlow reúne espacios, recursos e incidencias en una plataforma para Campuslands. Diseñamos una experiencia para consultar disponibilidad, solicitar recursos y reportar problemas con seguimiento. El dashboard presenta lo que necesita atención y ayuda a entender el estado de cada solicitud. Nuestro objetivo es reducir la incertidumbre en la operación del campus».
 
-«Cuando un equipo falla o dos actividades necesitan el mismo recurso, el problema no es solamente registrar una solicitud. Necesitamos conocer el estado actual y conservar una decisión consistente. CampusFlow reúne la operación del campus y da seguimiento a cada incidencia desde el reporte hasta la atención».
+Mostrar portada, login y resumen. No inventar ahorro porcentual ni volumen de usuarios.
 
-Mostrar portada. No inventar ahorro de tiempo ni cifras de usuarios.
+## Tomas — agenda y reglas
 
-## 2. Un recorrido integrado — Tomas, 35 s
+«Nuestra regla central es no asignar espacios o recursos inhabilitados ni permitir operaciones en conflicto. En reservas validamos aforo y cruces de horario. En préstamos comprobamos disponibilidad e impedimos dos préstamos activos del mismo equipo. Incorporamos un tablero de horarios que conserva la fuente y señala lo que requiere revisión. Desarrollo los flujos de n8n para proponer ajustes de agenda: su integración real sigue pendiente y deberá respetar las mismas validaciones del servidor».
 
-«Nuestro flujo empieza con una persona autenticada. Para los recursos, comprobamos que el equipo esté operativo y que no tenga otro préstamo activo. Una incidencia se guarda antes de analizarla. Los flujos de n8n de agenda se integran por un contrato validado y deben confirmar la operación a través de las mismas reglas transaccionales».
+Mostrar horarios y un caso de rechazo autorizado. Actualizar el texto solo cuando el webhook se pruebe de verdad.
 
-Aclaración actual: adaptador n8n listo, webhook y ejecución conjunta pendientes. No decir «reubicamos automáticamente» si no se demuestra persistencia.
+## Deimer — IA con propósito
 
-## 3. IA con una función concreta — Deimer, 40 s
+«La IA convierte una descripción del problema en una propuesta de atención. Primero guardamos la incidencia. Después Groq propone categoría, prioridad y área responsable con una explicación. Validamos la respuesta antes de mostrarla; si el proveedor falla, el reporte permanece guardado. Comprobamos este recorrido desde una sesión ADMIN: un reporte ficticio fue clasificado por Groq y su resultado quedó persistido en Supabase. La IA orienta al equipo y las reglas del servidor protegen las operaciones».
 
-«Groq recibe el reporte y contexto operativo acotado, sin propietarios ni datos personales de terceros. Propone categoría, prioridad y cola de atención con una explicación. Validamos la respuesta contra un esquema y guardamos el modelo y la fecha. Si el proveedor falla, el reporte sigue guardado y se puede reintentar. La IA no decide si una operación inválida debe aceptarse».
+Mostrar resultado real y trazabilidad; distinguir un fixture identificado de un incidente real.
 
-Mostrar una clasificación real guardada cuando la cuenta esté preparada. Una captura de revisión del dashboard no reemplaza la demostración.
+## Leonardo — arquitectura y cierre
 
-## 4. Reglas que resisten concurrencia — Leonardo, 40 s
+«Usamos Next y React para la interfaz, Express para la API y PostgreSQL en Supabase, con Prisma para acceder a los datos. El servidor comprueba identidad, permisos y reglas. Las transacciones y restricciones protegen la consistencia ante solicitudes simultáneas. Probamos concurrencia, permisos y persistencia, además de la interfaz desktop y móvil. Los siguientes pasos son cerrar n8n, validar el inventario completo y completar el RAG documental. CampusFlow busca que cada solicitud tenga un recorrido claro y cada decisión pueda explicarse».
 
-«Probamos tres condiciones observables: un recurso inhabilitado no se presta, dos solicitudes simultáneas no reciben el mismo equipo y la devolución requiere un perfil operativo. La base añade una restricción para un solo préstamo activo. En reservas, validamos aforo y solapes. La auditoría se guarda con la operación en la misma transacción».
+Mostrar arquitectura y repositorio, sin leer toda la lista de dependencias.
 
-Mostrar prueba válida y rechazo. Explicar bloqueo e índice sin leer todo el código.
+## Demo y preguntas
 
-## 5. Arquitectura — Deimer y Leonardo, 35 s
+Demo autorizada: préstamo válido → duplicado rechazado → devolución operativa → mantenimiento rechazado → reporte ficticio → clasificación real → seguimiento. No alterar recursos de terceros. No mostrar un HTTP 200 de n8n como reserva confirmada.
 
-«Next y React presentan la experiencia. Express verifica la identidad con Supabase y toma el rol de PostgreSQL. Prisma ejecuta las transacciones. Groq analiza fuera de ellas para no bloquear conexiones. n8n recibe una petición del servidor y devuelve una propuesta validada. Cada límite tiene un responsable y una comprobación».
-
-Distinguir snapshot de realtime y propuesta de ejecución. No atribuir optimización matemática global a un LLM.
-
-## 6. Evidencia y siguiente paso — Samuel, 25 s
-
-«Tenemos pruebas de concurrencia y del triaje real persistido, además de una interfaz responsive. Antes de defender la entrega completa debemos cerrar el acceso de la cuenta, integrar el webhook de Tomas y ejecutar la demo con el inventario oficial. El siguiente paso es demostrar ese recorrido sin sustituir fallos por respuestas de ejemplo».
-
-Cerrar con el producto y abrir preguntas. Ajustar esta frase cuando los pendientes se resuelvan con evidencia real.
-
-## Demo en vivo preparada
-
-1. Operador registra un equipo ficticio autorizado para evaluación y lo habilita. Identificarlo como demostración.
-2. Cliente obtiene préstamo. Segunda solicitud del mismo equipo devuelve conflicto.
-3. Operador registra devolución y cambia a mantenimiento. Nueva solicitud devuelve rechazo.
-4. Cliente reporta un problema; mostrar persistencia, triaje real, explicación, prioridad y seguimiento.
-5. Solo con n8n conectado: solicitar propuesta de agenda y comprobar reglas al confirmar. Nunca presentar HTTP 200 como evidencia de asignación.
-
-## Anexos
-
-La matriz de auditoría contiene pesos oficiales y estado de evidencia, sin una nota autocalculada. El documento live-challenge prepara el cambio de regla de aforo; ensayo real en docs/live-challenge.md.
-
-## Preguntas para practicar
-
-- ¿Por qué la IA no reemplaza las restricciones de PostgreSQL?
-- ¿Qué ocurre cuando Groq o n8n no responden?
-- ¿Cómo impiden que un cliente cambie el rol o vea reportes ajenos?
-- ¿Qué parte es dato oficial y qué parte es fixture de prueba?
-- ¿Cómo recuperan un análisis interrumpido sin duplicar inferencias terminadas?
-- ¿Dónde vive la fuente de verdad cuando n8n interviene?
-- ¿Qué no está implementado todavía y cómo lo comprobarían?
-
-Para practicar, recorrer la web con el guion hablado y las fuentes de la matriz. La sección /#rag explica el futuro flujo documental sin simular un chatbot activo.
+Preguntas: ¿por qué IA no reemplaza PostgreSQL?, ¿qué pasa si Groq falla?, ¿cómo se protege un reporte ajeno?, ¿qué datos son oficiales?, ¿qué sigue pendiente? Practicar el cambio de regla con docs/live-challenge.md. Ningún documento acredita por sí solo el ensayo humano en menos de tres minutos.

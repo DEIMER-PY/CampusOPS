@@ -1,11 +1,13 @@
-# Equipo y flujo Git
+# Neural Routing — equipo y flujo Git
 
 | Integrante | GitHub | Responsabilidad | Primer incremento |
 |---|---|---|---|
 | Deimer Jose Caro Silvera | DEIMER-PY | Integración, Auth, IA y documentación | Conectar Auth y perfiles, verificar roles; probar proveedor IA |
-| Leonardo | Leonardo4516 | Datos, Prisma, SQL y concurrencia | Configurar BD, verificar migración e importar fuente oficial |
+| Leonardo | Leonardo4516 | Frontend, planos e integraciones; coordinación de datos/concurrencia | Continuar prototipo y conectar contratos compartidos |
 | Samuel Pallares | SamuelJoseMantilla | Diseño, React/Next y Tailwind | Formularios de reserva y vistas responsive con estados reales |
 | Tomas Gonzalez | TEstebanGQ | Módulo 1, espacios/reservas e integración | Conectar su módulo con contratos compartidos |
+
+Somos cuatro desarrolladores construyendo CampusFlow: una operación de campus comprensible, consistente y asistida por IA. La IA propone, las reglas validan y el equipo decide. Ver presentación e imagen del grupo en el README principal.
 
 ## Ramas
 

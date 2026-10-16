@@ -106,7 +106,12 @@ export async function requestAgenda(
     throw new WorkflowUnavailable("N8N_NOT_CONFIGURED");
   if (input.modo === "EJECUCION" && configured !== "execute")
     throw new WorkflowUnavailable("N8N_EXECUTION_DISABLED");
-  const url = new URL(webhook);
+  let url: URL;
+  try {
+    url = new URL(webhook);
+  } catch {
+    throw new WorkflowUnavailable("N8N_INVALID_CONFIG");
+  }
   if (
     url.protocol !== "https:" &&
     !(
@@ -193,6 +198,9 @@ export async function requestCalendarProposal(
   catalog: { name: string; capacity: number; status: string }[],
   request: typeof fetch = fetch,
 ) {
+  // /api/calendar/proposals sigue siendo solo-propuesta: exige N8N_MODE=proposal exacto (contrato de Deimer).
+  if (process.env.N8N_MODE !== "proposal")
+    throw new WorkflowUnavailable("N8N_NOT_CONFIGURED");
   return requestAgenda(
     { ...input, modo: "PROPUESTA" },
     { actorId, requestId, catalog, request },

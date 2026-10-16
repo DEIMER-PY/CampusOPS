@@ -103,3 +103,103 @@ test("adaptador mantiene identidad del servidor y nunca afirma ejecutar una prop
       e instanceof WorkflowUnavailable && e.code === "N8N_INVALID_RESPONSE",
   );
 });
+
+test("n8n: configuración ausente o inválida falla sin llamar al proveedor", async () => {
+  const before = {
+    url: process.env.N8N_WEBHOOK_URL,
+    mode: process.env.N8N_MODE,
+    node: process.env.NODE_ENV,
+  };
+  let calls = 0;
+  const provider = (async () => {
+    calls++;
+    return new Response(JSON.stringify(valid));
+  }) as typeof fetch;
+  const catalog = [{ name: "Cosmos", capacity: 25, status: "AVAILABLE" }];
+  const check = (code: string) =>
+    assert.rejects(
+      () => requestCalendarProposal(input, "actor", "id", catalog, provider),
+      (error: unknown) =>
+        error instanceof WorkflowUnavailable && error.code === code,
+    );
+  try {
+    delete process.env.N8N_WEBHOOK_URL;
+    process.env.N8N_MODE = "proposal";
+    await check("N8N_NOT_CONFIGURED");
+    process.env.N8N_WEBHOOK_URL = "https://workflow.example.test/webhook";
+    process.env.N8N_MODE = "execute";
+    await check("N8N_NOT_CONFIGURED");
+    process.env.N8N_MODE = "proposal";
+    process.env.N8N_WEBHOOK_URL = "invalid url";
+    await check("N8N_INVALID_CONFIG");
+    process.env.NODE_ENV = "production";
+    process.env.N8N_WEBHOOK_URL = "http://127.0.0.1/webhook";
+    await check("N8N_INVALID_CONFIG");
+    assert.equal(calls, 0);
+  } finally {
+    for (const [name, value] of [
+      ["N8N_WEBHOOK_URL", before.url],
+      ["N8N_MODE", before.mode],
+      ["NODE_ENV", before.node],
+    ] as const) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
+  }
+});
+
+test("n8n: errores de red, HTTP, JSON y catálogo nunca se presentan como ejecución", async () => {
+  process.env.N8N_WEBHOOK_URL = "https://workflow.example.test/webhook";
+  process.env.N8N_MODE = "proposal";
+  const catalog = [{ name: "Cosmos", capacity: 25, status: "AVAILABLE" }];
+  const cases: [typeof fetch, string][] = [
+    [
+      (async () => {
+        throw new Error("timeout");
+      }) as typeof fetch,
+      "N8N_UNAVAILABLE",
+    ],
+    [
+      (async () =>
+        new Response("unavailable", { status: 503 })) as typeof fetch,
+      "N8N_PROVIDER_ERROR",
+    ],
+    [
+      (async () => new Response("<html>error</html>")) as typeof fetch,
+      "N8N_INVALID_RESPONSE",
+    ],
+    [
+      (async () =>
+        new Response(
+          JSON.stringify({
+            ...valid,
+            salas: [{ ...valid.salas[0], nombre: "Sala desconocida" }],
+          }),
+        )) as typeof fetch,
+      "N8N_INVALID_RESPONSE",
+    ],
+    [
+      (async () =>
+        new Response(JSON.stringify({ ...valid, salas: [] }))) as typeof fetch,
+      "N8N_INVALID_RESPONSE",
+    ],
+  ];
+  for (const [provider, code] of cases)
+    await assert.rejects(
+      () => requestCalendarProposal(input, "actor", "id", catalog, provider),
+      (error: unknown) =>
+        error instanceof WorkflowUnavailable && error.code === code,
+    );
+  assert.equal(
+    calendarRequest.safeParse({
+      ...input,
+      usuario: "forged",
+      authorization: "ADMIN",
+    }).success,
+    false,
+  );
+  assert.equal(
+    calendarRequest.safeParse({ ...input, fecha: "2026-02-30" }).success,
+    false,
+  );
+});

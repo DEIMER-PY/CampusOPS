@@ -2,7 +2,7 @@
 
 **Tu campus. Todo en su lugar.** Espacios, recursos tecnológicos e incidencias en un mismo flujo, con decisiones verificadas por el servidor y asistencia de IA.
 
-[Probar despliegue](https://campusflow-prototype.vercel.app) · [Relevo para Leonardo](docs/LEONARDO_HANDOFF.md) · [Rúbrica y aceptación](docs/rubric-audit.md) · [Verificación](docs/verification.md) · [Contrato API base](docs/openapi.yaml)
+[Documentación](docs/README.md) · [Clonar y configurar](docs/GETTING_STARTED.md) · [Pruebas por OS](docs/TESTING.md) · [Probar despliegue](https://campusflow-prototype.vercel.app) · [Relevo para Leonardo](docs/LEONARDO_HANDOFF.md) · [Rúbrica y aceptación](docs/rubric-audit.md) · [Verificación](docs/verification.md) · [Contrato API base](docs/openapi.yaml)
 
 > Prototipo de hackatón en evolución. Esta rama incorpora horarios, planos, seguimiento y evidencia visual. No representa una entrega completa de RAG ni de automatización n8n. Las capturas muestran datos de prueba y estados observados, no indicadores de impacto institucional.
 
@@ -220,7 +220,7 @@ npm run test:integration
 npm run test:e2e
 ```
 
-`TEST_DATABASE_URL` debe apuntar a una base de pruebas separada. Las integraciones usan dobles de identidad y proveedores: acreditan reglas/API/persistencia, no una entrega real de correo o una inferencia visual real. En este incremento pasaron build, typecheck, seis archivos unitarios y dos suites de integración con PostgreSQL; lint sin errores conserva avisos de especificidad CSS. No se afirma que se haya repetido toda la suite E2E del incremento.
+`TEST_DATABASE_URL` debe apuntar a una base de pruebas separada. Las integraciones usan dobles de identidad y proveedores: acreditan reglas/API/persistencia, no una entrega real de correo o una inferencia visual real. En la comprobación más reciente pasaron `npm run check` (incluye 16 pruebas unitarias), dos pruebas de integración con PostgreSQL y 10 pruebas Playwright en escritorio/móvil; 2 casos sin configuración se omitieron localmente. Lint informa 100 avisos, sin errores: no equivale a ausencia de deuda técnica. Windows/macOS tienen jobs de CI añadidos, pendientes de resultado. Ver [plan de pruebas](docs/TESTING.md).
 
 Capturas públicas reproducibles con Playwright CLI (primero iniciar la web):
 
@@ -243,7 +243,17 @@ No guardar estado de sesión ni introducir contraseñas en comandos versionados.
 
 La configuración conserva `outputDirectory: "."` en Express para evitar un fallo de empaquetado ESM observado con Services. Las variables sensibles se gestionan en Vercel, no en Git. El proyecto se publicó desde la copia local; no se presupone autodeploy por cada push. Validar build y entorno antes de promover otra versión.
 
-## Equipo y trabajo en GitHub
+## Neural Routing — nuestro equipo
+
+![Neural Routing, imagen de presentación aportada por el equipo](docs/assets/neural-routing.webp)
+
+Somos **Neural Routing**, un equipo de cuatro desarrolladores que construye CampusFlow para conectar solicitudes, disponibilidad y atención dentro de Campuslands. Combinamos experiencia de usuario, reglas de negocio e inteligencia artificial para que cada decisión tenga contexto y pueda seguirse hasta su resultado.
+
+Nuestro principio de trabajo: **la IA propone, las reglas validan y el equipo decide**. Trabajamos con responsabilidades claras, contratos compartidos y evidencia de pruebas; cada integrante debe poder explicar y defender el funcionamiento del producto.
+
+La imagen es una pieza de presentación aportada por el usuario. Su lema sobre redes y machine learning es conceptual: CampusFlow no implementa entrenamiento propio ni optimización de redes de telecomunicaciones. El alcance técnico vigente se describe en este README.
+
+### Integrantes y trabajo en GitHub
 
 | Integrante | Usuario | Responsabilidad acordada |
 |---|---|---|
