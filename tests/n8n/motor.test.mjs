@@ -790,3 +790,26 @@ test("consultar otro día sin hora: pide el horario en vez de usar la hora actua
   });
   assert.equal(hoy.decisionIA.titulo, "Salas disponibles");
 });
+
+test("la lista de salas libres dice también cuáles están ocupadas y aclara Azul frente a Azules", () => {
+  const e = estado(
+    [
+      reserva("a", "Azul", "Tomas", "14:00", "15:00", 3, "07:00"),
+      reserva("b", "Apolo", "Software", "14:00", "17:00", 34, "06:00"),
+    ],
+    { Verdes: "MANTENIMIENTO" },
+  );
+  const r = motor({
+    entrada: entrada({
+      reporte: "dime que salones estan disponibles de las 2 a las 3",
+    }),
+    estado: e,
+    ia: ia("CONSULTA", { horaInicio: "14:00", horaFin: "15:00" }),
+  });
+  const texto = r.decisionIA.explicacion;
+  assert.doesNotMatch(texto.split("Ocupadas")[0], /Azul \(10\)/);
+  assert.match(texto, /Azules \(6\)/);
+  assert.match(texto, /Ocupadas en ese horario: Apolo, Azul\./);
+  assert.match(texto, /Fuera de servicio: Verdes\./);
+  assert.match(texto, /Azul y Azules son salas distintas/);
+});
