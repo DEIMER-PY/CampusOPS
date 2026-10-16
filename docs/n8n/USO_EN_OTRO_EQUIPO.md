@@ -11,7 +11,7 @@ Requisitos: Git, Node 24.22.0 y npm 11 (ver `.nvmrc`). En Windows, PowerShell.
 ```bash
 git clone https://github.com/DEIMER-PY/campusflow.git
 cd campusflow
-git switch feature/3-n8n-prisma-agenda
+git switch develop
 npm ci
 ```
 
@@ -61,7 +61,7 @@ En `apps/api/.env` (archivo ignorado por Git):
 ```text
 N8N_WEBHOOK_URL=http://localhost:5678/webhook/campusflow
 N8N_WEBHOOK_SECRET=<el secreto del paso 4, sin la palabra Bearer>
-N8N_MODE=execute
+N8N_MODE=proposal
 ```
 
 ## 7. Arrancar y probar
@@ -93,3 +93,8 @@ Si un modelo falla durante mucho tiempo, cambiar el modelo en la URL de los nodo
 ## Qué no se comparte nunca
 
 Contraseña de n8n, clave de Gemini, contraseña de `postgres` o de los roles de runtime, clave de Groq o de Evolution, ni los valores de los archivos `.env`. Para un n8n compartido entre varias personas hace falta alojarlo en un servidor con HTTPS (decisión de infraestructura del equipo) y un secreto de webhook propio para esa instancia, entregado por mensaje privado y rotado al terminar.
+
+
+## Estado de esta máquina
+
+El 16/10/2026, healthz de localhost:5678 responde 200; localhost:5679 no responde. POST /webhook/campusflow devuelve 404 (workflow no registrado) y la interfaz abre /setup. Falta completar la cuenta propietaria, importar el workflow, asignar credenciales y activarlo. La API local queda apuntando al puerto 5678 en modo propuesta. No afirmar IA n8n ni persistencia remota verificadas. No usar localhost desde Vercel: hace falta un endpoint HTTPS accesible desde el despliegue.

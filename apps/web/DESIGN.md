@@ -252,3 +252,8 @@ Dos secciones desplegables mantienen evidencia y conversación dentro de cada re
 - Don't convertir las etiquetas auxiliares muy pequeñas observadas en una escala obligatoria para nuevas superficies.
 
 No canonizado ni reparado en este registro: tamaños auxiliares de 9–10px, que requieren evaluación por contexto antes de reutilizarse; ausencia histórica de spec/gates comp-led, que es una limitación de evidencia y no un token. Los avisos de especificidad CSS son deuda existente, no una regla visual. El detector actual también informa valores de color y tipo fuera del frontmatter; se registran como advisories sin convertir cada excepción en token normativo. Este pase modifica documentación y no regenera el sidecar: sus muestras previas de tarjeta, profundidad y breakpoints requieren sincronización con este refinamiento.
+
+
+## Refinamiento del robot del login
+
+La imagen original permanece como fuente. El login utiliza campus-robot-login.webp, edición de la referencia con image_gen: fondo transparente real, torso completo y luz azul contenida. No colocarla dentro de un bloque con fondo propio ni simular el recorte con máscaras geométricas. Next Image conserva proporción y alpha, con preload y sizes; el busto tiene presencia amplia en escritorio y se compacta a 128 px junto a la marca bajo 640 px. Formulario y comportamiento Auth permanecen iguales. Capturas verificadas a 1033×900 y 390×844; build, typecheck y cuatro pruebas Playwright aprobados. Procedencia: docs/robot-image-provenance.json.

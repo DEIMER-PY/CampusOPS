@@ -98,7 +98,7 @@ export type AgendaExecution =
 // las funciones auditadas de la base; el cambio solo se confirma si n8n informa ejecucion=APLICADA.
 export async function requestAgenda(
   input: z.infer<typeof agendaRequest>,
-  { actorId, displayName, requestId, catalog, request = fetch }: AgendaContext,
+  { actorId, requestId, catalog, request = fetch }: AgendaContext,
 ) {
   const webhook = process.env.N8N_WEBHOOK_URL;
   const configured = process.env.N8N_MODE;
@@ -137,7 +137,7 @@ export async function requestAgenda(
       redirect: "error",
       body: JSON.stringify({
         ...input,
-        usuario: displayName || actorId,
+        usuario: actorId,
         zonaHoraria: "America/Bogota",
       }),
     });

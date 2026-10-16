@@ -85,7 +85,7 @@ test("EJECUCION exige N8N_MODE=execute; en proposal se rechaza sin llamar a n8n"
   assert.equal(called, false);
 });
 
-test("en execute el resultado solo es APPLIED si n8n lo informa; el nombre viene del servidor", async () => {
+test("en execute el resultado solo es APPLIED si n8n lo informa; la identidad es el UUID del servidor", async () => {
   setup("execute");
   let payload: Record<string, unknown> = {};
   let headers: Record<string, string> = {};
@@ -110,7 +110,7 @@ test("en execute el resultado solo es APPLIED si n8n lo informa; el nombre viene
       },
     );
   assert.equal((await call("APLICADA")).execution, "APPLIED");
-  assert.equal(payload.usuario, "tomas");
+  assert.equal(payload.usuario, "uuid-del-token");
   assert.equal(payload.modo, "EJECUCION");
   assert.equal(headers["X-CampusFlow-Mode"], "execute");
   assert.equal((await call("SIN_CAMBIOS")).execution, "NO_CHANGES");

@@ -45,3 +45,6 @@ Relevo actual: docs/LEONARDO_HANDOFF.md es el punto de entrada de Leonardo; matr
 ## Incremento de prototipo publicado
 
 Rama `feature/prototype-plans-vision`: leer docs/prototype-status.md y la actualización final de docs/LEONARDO_HANDOFF.md. Nuevo tablero ScheduleBoard es plantilla sin fecha, no reserva; 24 bloques de imagen aportada con ambigüedades explícitas. Nuevas rutas evidence/vision/messages/notify conservan permisos, normalizan fotos y auditan. No afirmar visión real, entrega de correo, realtime o RAG completo sin evidencia. Vercel Services aloja frontend/API; push no equivale a deploy. Secretos permanecen ignorados/en hosting. Usuario autorizó publicar esta rama; no mezclar automáticamente develop ni cambios de Leonardo.
+
+
+Integración de Tomas: rama feature/3-n8n-prisma-agenda incorporada con asistente, workflow y migraciones 150000/190000 (ya aplicadas en Supabase). /agenda/status expone solo flags a roles operativos; no garantiza salud del webhook. No activar N8N_MODE=execute, rol de login ni WhatsApp sin configuración y pruebas autorizadas. Identidad hacia n8n es UUID, no correo. SQL de extensiones revalida espacio; incidentes externos permanecen PENDING para Groq. Ver actualización final de docs/verification.md.

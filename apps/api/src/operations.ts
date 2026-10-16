@@ -425,6 +425,27 @@ operations.post("/calendar/proposals", aiLimit, async (req, res) => {
 
 // Asistente de agenda: n8n interpreta el texto (IA) y las reglas deterministas deciden. PROPUESTA no escribe;
 // EJECUCION aplica por las funciones auditadas de la base y exige N8N_MODE=execute. Solo ADMIN/OPERATOR.
+operations.get("/agenda/status", (_req, res) => {
+  if (!privileged(res.locals.actor.role)) {
+    res.status(403).json(forbidden);
+    return;
+  }
+  const mode = process.env.N8N_MODE;
+  let validUrl = false;
+  try {
+    const url = new URL(process.env.N8N_WEBHOOK_URL || "");
+    validUrl =
+      url.protocol === "https:" ||
+      (process.env.NODE_ENV !== "production" &&
+        ["localhost", "127.0.0.1"].includes(url.hostname));
+  } catch {
+    /* No secrets or URLs are returned to the browser. */
+  }
+  const configured = validUrl && ["proposal", "execute"].includes(mode || "");
+  res.json({
+    data: { configured, executionEnabled: configured && mode === "execute" },
+  });
+});
 operations.post("/agenda/assistant", aiLimit, async (req, res) => {
   if (!privileged(res.locals.actor.role)) {
     res.status(403).json(forbidden);
@@ -437,7 +458,6 @@ operations.post("/agenda/assistant", aiLimit, async (req, res) => {
   try {
     const result = await requestAgenda(input, {
       actorId: res.locals.actor.id,
-      displayName: res.locals.displayName,
       requestId: res.locals.requestId,
       catalog,
     });

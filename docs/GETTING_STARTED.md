@@ -42,7 +42,7 @@ Completar los archivos en un editor. Nunca introducir secretos en comandos que q
 | `apps/api/.env` | DATABASE_SSL_CA_FILE o DATABASE_SSL_CA_CERT | CA pública verificada para PostgreSQL cloud |
 | `apps/api/.env` | GROQ_API_KEY y modelos | Solo servidor; sin clave el reporte se conserva pero el análisis no puede completarse |
 | `apps/api/.env` | RESEND_API_KEY, EMAIL_FROM, NOTIFICATION_RECIPIENT | Opcional; sin configuración se muestra pendiente, no se inventa envío |
-| `apps/api/.env` | N8N_WEBHOOK_URL, N8N_WEBHOOK_SECRET, N8N_MODE | Mantener sin configurar hasta acordar webhook y modo propuesta |
+| `apps/api/.env` | N8N_WEBHOOK_URL, N8N_WEBHOOK_SECRET, N8N_MODE | Mantener sin configurar hasta acordar webhook y modo propuesta; asistente de Tomas integrado en el menú |
 | `apps/web/.env.local` | NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY | Datos públicos de Auth, nunca service_role |
 | `apps/web/.env.local` | API_URL y NEXT_PUBLIC_API_URL | Ejemplo local: http://127.0.0.1:4000 |
 

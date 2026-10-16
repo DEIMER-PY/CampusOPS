@@ -10,7 +10,7 @@ import {
   Sparkles,
   TriangleAlert,
 } from "lucide-react";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
 type Space = { id: string; name: string; capacity: number; status: string };
 type Booking = {
@@ -66,7 +66,10 @@ const intents: Record<string, string> = {
   CONSULTA: "Consulta de disponibilidad",
 };
 const executionText: Record<Result["execution"], [string, string]> = {
-  APPLIED: ["Aplicado en la base de datos", "applied"],
+  APPLIED: [
+    "Aplicación informada por n8n; revisa la agenda actualizada",
+    "applied",
+  ],
   NOT_APPLIED: ["Solo propuesta: no se aplicó ningún cambio", "proposal"],
   NO_CHANGES: ["Sin cambios en la base de datos", "none"],
   NOT_REPORTED: ["n8n no confirmó la aplicación del cambio", "warning"],
@@ -84,9 +87,6 @@ const priorityText: Record<string, string> = {
   HIGH: "Alta",
   CRITICAL: "Crítica",
 };
-const bogota = new Intl.DateTimeFormat("en-CA", {
-  timeZone: "America/Bogota",
-});
 const clock = new Intl.DateTimeFormat("es-CO", {
   timeZone: "America/Bogota",
   hour: "2-digit",
@@ -162,6 +162,25 @@ export function AgendaAssistant({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<Result | null>(null);
+  const [availability, setAvailability] = useState<{
+    configured: boolean;
+    executionEnabled: boolean;
+  } | null>(null);
+  const [statusError, setStatusError] = useState(false);
+  useEffect(() => {
+    if (!operator) return;
+    let active = true;
+    api<{ configured: boolean; executionEnabled: boolean }>("/agenda/status")
+      .then((value) => {
+        if (active) setAvailability(value);
+      })
+      .catch(() => {
+        if (active) setStatusError(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [api, operator]);
   const board = useMemo(
     () => (result ? result.proposal.salas : currentBoard(spaces, reservations)),
     [result, spaces, reservations],
@@ -233,6 +252,15 @@ export function AgendaAssistant({
             Disponible para operadores y administradores.
           </p>
         )}
+        {operator && !availability?.configured && (
+          <p className="agenda-note" role="status">
+            {statusError
+              ? "No pudimos comprobar la conexión de n8n. Actualiza la página para reintentar."
+              : availability
+                ? "Conexión pendiente: configura el webhook de Tomas en el servidor. Puedes consultar el tablero; aún no se envían solicitudes a n8n."
+                : "Comprobando configuración de n8n…"}
+          </p>
+        )}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -270,12 +298,7 @@ export function AgendaAssistant({
             </legend>
             <div>
               <label htmlFor={`${id}-date`}>Fecha</label>
-              <input
-                id={`${id}-date`}
-                name="fecha"
-                type="date"
-                defaultValue={bogota.format(new Date())}
-              />
+              <input id={`${id}-date`} name="fecha" type="date" />
             </div>
             <div>
               <label htmlFor={`${id}-space`}>Sala</label>
@@ -338,6 +361,7 @@ export function AgendaAssistant({
                 type="radio"
                 name="mode"
                 checked={mode === "EJECUCION"}
+                disabled={!availability?.executionEnabled}
                 onChange={() => setMode("EJECUCION")}
               />
               <span>
@@ -348,7 +372,9 @@ export function AgendaAssistant({
           <button
             className="button button-primary"
             type="submit"
-            disabled={locked || text.trim().length < 5}
+            disabled={
+              locked || !availability?.configured || text.trim().length < 5
+            }
           >
             {busy ? (
               <>

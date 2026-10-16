@@ -140,7 +140,7 @@ Una foto por incidencia, JPEG/PNG/WebP hasta 1 MB y 12 MP; se elimina EXIF y se 
 | Horarios | 24 bloques y 9 columnas importados a Supabase; tablero, filtros y edición con revisión optimista |
 | Agenda fuente | Sin fecha/recurrencia confirmada ni equivalencias de salas; no genera reservas automáticamente |
 | Correo | Resend conectado a Vercel; falta verificar dominio propio y entrega real. No se compró ni verificó campusflow.com |
-| n8n | Contrato/adaptador preparados; webhook, persistencia compartida y prueba real pendientes con Tomas |
+| n8n | Rama de Tomas integrada: asistente, workflow y SQL sobre app_private. Migraciones aplicadas; webhook/credenciales aún pendientes. Ejecución externa real no acreditada |
 | RAG PDF/Excel | Explicación visual en portada y plan técnico. Ingesta, embeddings, recuperación y chatbot pendientes |
 | Escalado | Faltan paginación completa, rate limit distribuido, outbox durable, carga y métricas de piloto |
 
@@ -284,6 +284,9 @@ PR revisado hacia `develop`, sin force push ni mezclas automáticas. Commits con
 
 Esta tabla no asigna una calificación. [Auditoría detallada](docs/rubric-audit.md), [flujo de decisiones](docs/decision-flow.md), [contrato n8n](docs/n8n-integration.md), [plan RAG PDF/Excel](docs/rag-ingestion-plan.md) y [relevo actualizado](docs/LEONARDO_HANDOFF.md).
 
-Prioridades: revisar agenda y datos con el equipo; conectar webhook de Tomas en modo propuesta; probar evidencia visual y correo reales; cerrar ingesta RAG con fuentes/permisos si el alcance lo permite; ensayar demo y cambio en vivo.
+Prioridades: revisar agenda y datos con el equipo; configurar y probar el webhook de Tomas en modo propuesta; probar evidencia visual y correo reales; cerrar ingesta RAG con fuentes/permisos si el alcance lo permite; ensayar demo y cambio en vivo.
 
-Los activos Campuslands y el plano fueron aportados como referencias por el usuario. No implican afiliación o autorización de marca adicional. El SVG del stack es una composición tipográfica propia con nombres de tecnologías, sin logos oficiales. La imagen RAG generada tiene [procedencia documentada](docs/rag-image-provenance.json).
+Los activos Campuslands y el plano fueron aportados como referencias por el usuario. No implican afiliación o autorización de marca adicional. El SVG del stack incorpora iconos de Simple Icons con revisión y procedencia guardadas en docs/assets/technologies/logos/provenance.json; Groq, Lenis y Playwright conservan representación tipográfica porque no estaban disponibles en esa fuente. Las marcas pertenecen a sus respectivos titulares. La imagen RAG generada tiene [procedencia documentada](docs/rag-image-provenance.json).
+
+
+La integración de Tomas incluye [asistente y workflow](docs/n8n/README.md) y [puesta en marcha en otro equipo](docs/n8n/USO_EN_OTRO_EQUIPO.md). La configuración del webhook es solo servidor; no enviar secretos al navegador. El tablero del asistente se basa en las reservas cargadas: no acredita una consulta exhaustiva si hay más de 50 registros visibles.

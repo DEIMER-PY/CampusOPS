@@ -18,7 +18,6 @@ import {
   LogOut,
   RefreshCw,
   Search,
-  Send,
   ShieldCheck,
   Sparkles,
   Users,
@@ -27,15 +26,16 @@ import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
 import { parseParticipants } from "@/lib/participants";
 import { AgendaAssistant } from "./agenda-assistant";
-import { BookingCalendar } from "./booking-calendar";
 import { Brand } from "./brand";
 import { CampusPlan } from "./campus-plan";
+import { IncidentComposer } from "./incident-composer";
 import { IncidentFollowUp } from "./incident-follow-up";
+import { ReservationComposer } from "./reservation-composer";
 import { ScheduleView } from "./schedule-view";
 
 type Tab =
-  | "schedule"
   | "agenda"
+  | "schedule"
   | "plans"
   | "summary"
   | "spaces"
@@ -145,7 +145,7 @@ const titles: Record<Tab, [string, string]> = {
   reservations: ["Reservas", "Cada horario confirmado, en un mismo lugar."],
   agenda: [
     "Pide lo que necesitas, con tus palabras.",
-    "La IA interpreta; las reglas del campus deciden y quedan auditadas.",
+    "La IA interpreta; las reglas del campus validan la propuesta.",
   ],
   resources: [
     "Recursos y préstamos",
@@ -461,9 +461,7 @@ export function Workspace({
               >
                 <Icon size={18} />
                 {label}
-                {(key === "incidents" || key === "agenda") && (
-                  <span className="ai-label">IA</span>
-                )}
+                {key === "incidents" && <span className="ai-label">IA</span>}
               </button>
             ))}
         </nav>
@@ -560,7 +558,16 @@ export function Workspace({
               <LoaderCircle size={17} className="spin" /> Actualizando datos…
             </p>
           )}
-          {tab === "plans" && <CampusPlan />}
+          {tab === "plans" && (
+            <CampusPlan
+              spaces={spaces}
+              ready={Boolean(moduleReady.spaces)}
+              onReserve={(id) => {
+                setSelectedSpace(id);
+                setTab("reservations");
+              }}
+            />
+          )}
           {tab === "agenda" && (
             <AgendaAssistant
               api={api}
@@ -583,64 +590,11 @@ export function Workspace({
           )}
           {tab === "incidents" && (
             <div className="incident-layout">
-              <section className="report-composer">
-                <div className="panel-heading">
-                  <Sparkles size={22} />
-                  <h2>Nueva incidencia</h2>
-                </div>
-                <p>
-                  Cuéntanos qué ocurre, dónde y a quién afecta. No incluyas
-                  contraseñas ni datos sensibles.
-                </p>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void report(e.currentTarget);
-                  }}
-                >
-                  <label htmlFor={`${formId}-description`}>
-                    Descripción del problema
-                  </label>
-                  <textarea
-                    id={`${formId}-description`}
-                    name="description"
-                    rows={7}
-                    minLength={15}
-                    maxLength={4000}
-                    required
-                    placeholder="Por ejemplo: el proyector de Apolo no enciende y no podemos continuar la presentación…"
-                    disabled={disabled}
-                  />
-                  <p className="field-help">
-                    El reporte se guarda antes del análisis. Se envían a Groq la
-                    descripción y el estado del catálogo, sin datos de otros
-                    usuarios.
-                  </p>
-                  <button
-                    className="button button-primary"
-                    type="submit"
-                    disabled={disabled}
-                  >
-                    {busy === "report" ? (
-                      <>
-                        <LoaderCircle size={17} className="spin" /> Guardando y
-                        analizando…
-                      </>
-                    ) : (
-                      <>
-                        <Send size={17} /> Reportar y analizar
-                      </>
-                    )}
-                  </button>
-                </form>
-                <div className="ai-policy">
-                  <ShieldCheck size={18} />
-                  <p>
-                    La IA propone; el equipo decide. Las áreas sugeridas son
-                    colas de trabajo configuradas para CampusFlow.
-                  </p>
-                </div>
-              </section>
+              <IncidentComposer
+                disabled={disabled}
+                busy={busy === "report"}
+                onReport={report}
+              />
               <section className="incident-feed">
                 <section
                   className="queue-overview"
@@ -918,147 +872,47 @@ export function Workspace({
             </>
           )}
           {tab === "reservations" && (
-            <div className="operations-layout">
-              <section className="operation-form">
-                <h2>Solicitar una reserva</h2>
-                <form
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    const f = e.currentTarget;
-                    const d = new FormData(f);
-                    const start = new Date(
-                      `${d.get("day")}T${d.get("start")}:00-05:00`,
+            <div className="operations-layout reservations-layout">
+              <ReservationComposer
+                spaces={spaces}
+                selectedSpace={selectedSpace}
+                onSpaceChange={setSelectedSpace}
+                disabled={disabled}
+                busy={busy === "reservation"}
+                resetKey={bookingReset}
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const f = e.currentTarget;
+                  const d = new FormData(f);
+                  const start = new Date(
+                    `${d.get("day")}T${d.get("start")}:00-05:00`,
+                  );
+                  const end = new Date(
+                    `${d.get("day")}T${d.get("end")}:00-05:00`,
+                  );
+                  if (!Number.isFinite(start.getTime()) || end <= start) {
+                    setError(
+                      "Selecciona un horario cuyo fin sea posterior al inicio.",
                     );
-                    const end = new Date(
-                      `${d.get("day")}T${d.get("end")}:00-05:00`,
-                    );
-                    if (!Number.isFinite(start.getTime()) || end <= start) {
-                      setError(
-                        "Selecciona un horario cuyo fin sea posterior al inicio.",
-                      );
-                      return;
-                    }
-                    if (
-                      await mutate("reservation", "/reservations", "POST", {
-                        spaceId: d.get("space"),
-                        startAt: start.toISOString(),
-                        endAt: end.toISOString(),
-                        attendees: Number(d.get("attendees")),
-                        purpose: d.get("purpose"),
-                        participants: parseParticipants(
-                          String(d.get("participants") || ""),
-                        ),
-                      })
-                    ) {
-                      f.reset();
-                      setBookingReset((value) => value + 1);
-                    }
-                  }}
-                >
-                  <label htmlFor={`${formId}-space`}>Espacio</label>
-                  <select
-                    id={`${formId}-space`}
-                    name="space"
-                    value={selectedSpace}
-                    onChange={(e) => setSelectedSpace(e.target.value)}
-                    required
-                    disabled={disabled}
-                  >
-                    <option value="">Selecciona un espacio</option>
-                    {spaces
-                      .filter((s) => s.status === "AVAILABLE")
-                      .map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name} · {s.capacity} personas
-                        </option>
-                      ))}
-                  </select>
-                  <label htmlFor={`${formId}-day`}>Fecha</label>
-                  <BookingCalendar
-                    key={bookingReset}
-                    id={`${formId}-day`}
-                    disabled={disabled}
-                  />
-                  <div className="form-pair">
-                    <label>
-                      Desde
-                      <input
-                        name="start"
-                        type="time"
-                        required
-                        disabled={disabled}
-                      />
-                    </label>
-                    <label>
-                      Hasta
-                      <input
-                        name="end"
-                        type="time"
-                        required
-                        disabled={disabled}
-                      />
-                    </label>
-                  </div>
-                  <label htmlFor={`${formId}-attendees`}>
-                    Número de personas
-                  </label>
-                  <input
-                    id={`${formId}-attendees`}
-                    name="attendees"
-                    type="number"
-                    min="1"
-                    max={
-                      spaces.find((s) => s.id === selectedSpace)?.capacity ??
-                      100
-                    }
-                    placeholder="Incluye a quien organiza"
-                    required
-                    disabled={disabled}
-                  />
-                  {selectedSpace && (
-                    <p className="capacity-note">
-                      <Users size={15} /> Aforo máximo:{" "}
-                      {spaces.find((s) => s.id === selectedSpace)?.capacity}{" "}
-                      personas. Se verifica de nuevo al confirmar.
-                    </p>
-                  )}
-                  <label htmlFor={`${formId}-participants`}>
-                    Participantes (opcional)
-                  </label>
-                  <textarea
-                    id={`${formId}-participants`}
-                    name="participants"
-                    rows={2}
-                    maxLength={8000}
-                    placeholder="Nombres separados por coma o por línea"
-                    disabled={disabled}
-                  />
-                  <p className="field-help">
-                    Incluye a todas las personas en el aforo, aunque no escribas
-                    sus nombres. Esta lista no envía invitaciones.
-                  </p>
-                  <label htmlFor={`${formId}-purpose`}>Motivo</label>
-                  <input
-                    id={`${formId}-purpose`}
-                    name="purpose"
-                    minLength={3}
-                    maxLength={300}
-                    required
-                    disabled={disabled}
-                  />
-                  <button
-                    className="button button-primary"
-                    disabled={disabled}
-                    type="submit"
-                  >
-                    Confirmar reserva <CalendarDays size={17} />
-                  </button>
-                  <p className="field-help">
-                    La API valida aforo y cruces al confirmar. Horario de
-                    Colombia.
-                  </p>
-                </form>
-              </section>
+                    return;
+                  }
+                  if (
+                    await mutate("reservation", "/reservations", "POST", {
+                      spaceId: d.get("space"),
+                      startAt: start.toISOString(),
+                      endAt: end.toISOString(),
+                      attendees: Number(d.get("attendees")),
+                      purpose: d.get("purpose"),
+                      participants: parseParticipants(
+                        String(d.get("participants") || ""),
+                      ),
+                    })
+                  ) {
+                    f.reset();
+                    setBookingReset((value) => value + 1);
+                  }
+                }}
+              />
               <section>
                 <h2>{operator ? "Agenda del campus" : "Mis reservas"}</h2>
                 {!reservations.length && (

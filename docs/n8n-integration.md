@@ -1,3 +1,5 @@
+> Actualización: la rama feature/3-n8n-prisma-agenda de Tomas ya está integrada. Existe asistente en dashboard, /api/agenda/assistant y SQL de persistencia; la conexión real sigue sin webhook/configuración. Los apartados siguientes describen el contrato estricto /calendar/proposals. Para el asistente ampliado ver docs/n8n/README.md. La guía no activa por sí misma ejecución ni WhatsApp.
+
 # Integración de Tomas con n8n
 
 Fuente: CONTRATO_N8N_FRONTEND.md suministrado por el usuario. Se conserva como formato de intercambio, no como prueba de que el webhook exista o haya ejecutado cambios.
@@ -23,7 +25,7 @@ Salida esperada: status, decisionIA, salas e incidenciaDetectada del documento. 
 5. n8n nunca recibe claves Supabase/Groq del navegador. Error/timeout o esquema inválido no alteran operaciones existentes.
 6. Demostrar con webhook real al menos una propuesta válida, aforo excedido, sala en mantenimiento, choque de horarios y respuesta inválida. Las pruebas del adaptador con dobles no cuentan como ejecución real de n8n.
 
-Estado actual: adaptador y validación preparados y probados con fixtures. Faltan webhook, confirmar propuesta sin efectos, persistencia compartida, UI de agenda n8n y prueba extremo a extremo con Tomas. Groq del módulo 3 funciona independientemente; evitar clasificar el mismo reporte dos veces sin definir dueño de cada decisión.
+Estado actual: adaptador y validación preparados y probados con fixtures. Faltan webhook, confirmar propuesta sin efectos, persistencia compartida, conexión del asistente y prueba extremo a extremo con Tomas. Groq del módulo 3 funciona independientemente; evitar clasificar el mismo reporte dos veces sin definir dueño de cada decisión.
 
 
 ## Recorrido acordado y activación

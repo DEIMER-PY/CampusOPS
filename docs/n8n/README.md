@@ -1,3 +1,5 @@
+> Integrado en CampusFlow: asistente visible en dashboard y migraciones aplicadas en la BD compartida. Esta máquina aún no tiene webhook ni credenciales n8n; no hay integración real acreditada. El rol n8n_runtime/login y WhatsApp no fueron activados. La actualización de verificación al final de docs/verification.md distingue ejecución local del motor y proveedores reales. La API usa UUID del actor; no envía correo/nombre derivado del correo. Una migración adicional revalida extensiones y separa la clasificación externa de Groq.
+
 # Flujo n8n: orquestador de espacios
 
 Implementa el contrato de [CONTRATO_N8N_FRONTEND.md](../../CONTRATO_N8N_FRONTEND.md) y añade WhatsApp (Evolution API) como segundo canal. **La fuente de verdad es PostgreSQL de CampusFlow (`app_private`, Prisma)**: n8n no guarda estado propio.
