@@ -64,6 +64,8 @@ const intents: Record<string, string> = {
   EXTENSION: "Extensión de horario",
   INCIDENCIA: "Incidencia",
   CONSULTA: "Consulta de disponibilidad",
+  CONVERSACION: "Conversación",
+  FUERA_DE_ALCANCE: "Fuera de alcance",
 };
 const executionText: Record<Result["execution"], [string, string]> = {
   APPLIED: [
