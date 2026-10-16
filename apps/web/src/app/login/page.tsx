@@ -1,4 +1,5 @@
 import { ArrowLeft, ShieldCheck } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { Brand } from "@/components/brand";
 import { LoginForm } from "@/components/login-form";
@@ -7,7 +8,7 @@ export default function Login() {
     <main id="contenido" className="auth-page">
       <div className="auth-aside">
         <Brand />
-        <div>
+        <div className="auth-copy">
           <h1>
             Todo empieza
             <br />
@@ -20,13 +21,17 @@ export default function Login() {
             <br />y seguir avanzando.
           </p>
         </div>
-        <img
-          className="auth-robot"
-          src="/brand/campus-robot.webp"
-          width={913}
-          height={857}
-          alt="Robot astronauta con una sonrisa azul, referencia de Campuslands"
-        />
+        <figure className="auth-art">
+          <Image
+            className="auth-robot"
+            src="/brand/campus-robot-login.webp"
+            width={840}
+            height={840}
+            sizes="(max-width: 640px) 128px, (max-width: 1150px) 400px, 460px"
+            preload
+            alt="Robot astronauta con una sonrisa azul, referencia de Campuslands"
+          />
+        </figure>
         <p className="auth-trust">
           <ShieldCheck size={18} /> Acceso seguro para tu comunidad.
         </p>

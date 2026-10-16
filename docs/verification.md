@@ -43,3 +43,8 @@ Documentación reproducible: docs/GETTING_STARTED.md y docs/TESTING.md. Neural R
 ### Ajuste tras CI sin credenciales
 
 CI detectó que /portal, sin configurar Supabase, mostraba el shell desconectado en vez de redirigir. Se unificó el acceso: sin cliente Auth o sin sesión, redirige a /login, donde el estado sin configuración ya deshabilita credenciales. No se omitió ni relajó el test de protección del portal. Requiere consultar el siguiente resultado remoto de CI.
+
+
+### Robot integrado en login
+
+Imagen editada mediante image_gen a alpha real; WebP de 840×840 conserva cuatro canales. Nueva composición responsiva verificada a 1033×900 y 390×844. Build web, typecheck y cuatro Playwright enfocados (login y navegación desktop/móvil) aprobados. Revisión independiente acotada: ship, sin defectos materiales. Solo cambia presentación; no se modifican credenciales, Auth ni reglas.
