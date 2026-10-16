@@ -113,3 +113,7 @@ No enviar reportes ficticios como incidentes reales ni modificar reservas/equipo
 Workflow `.github/workflows/ci.yml`: Linux con PostgreSQL; Windows/macOS para compatibilidad. Se dispara en features, develop/main y PR hacia develop/main. No necesita credenciales de producción. CI no sustituye la demo real con servicios autorizados.
 
 Ante un fallo guardar comando, commit, OS/arquitectura, versiones y mensaje redactado sin secretos. Trazas y capturas pueden contener datos: revisar antes de compartir. No publicar storage state, cookies, enlaces de confirmación ni tokens.
+
+### Corrección detectada por CI Windows
+
+El primer job Windows falló en formato por conversión automática a CRLF. `.gitattributes` fija LF para fuentes y conserva activos binarios; volver a ejecutar CI sobre el commit que añade esa corrección. El fallo no se oculta desactivando lint.
