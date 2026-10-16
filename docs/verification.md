@@ -14,3 +14,11 @@
 - Usuario canceló diapositivas: se conserva guion hablado y se integró explicación RAG con imagen generada, texto accesible y aviso de implementación pendiente. Ensayo grupal y modificación en menos de tres minutos aún pendientes.
 
 Antes de merge: CI remota del PR final y revisión por otro integrante. Antes de la demo: cuenta registrada y confirmada, inventario privado recibido y webhook/persistencia de Tomas acordados.
+
+## Incremento de planos, evidencia y horarios — 16/10/2026
+
+Compilación completa API/Next, typecheck y seis archivos unitarios aprobados. Dos suites de integración pasaron con Express/Prisma/PostgreSQL aislado: concurrencia, permisos, evidencia normalizada/inmutable, conversación, caché de visión, correo con destinatario fijo e idempotencia y horarios con revisión/solapes. Identidad, Groq y Resend usan dobles en esas integraciones; no acreditan entrega real ni inferencia visual real. Lint sin errores con avisos CSS existentes.
+
+ScheduleBoard verificado en Supabase: 24 bloques, 9 columnas, fecha nula y revisión inicial 1. /ready del despliegue Vercel respondió ready. La suite completa Playwright Test no se repitió para todo el incremento. Playwright CLI sí capturó portada y login desktop/móvil sobre compilación local 3100, sin sesión ni credenciales. Capturas privadas de revisión anterior se identifican por separado en docs/assets/README.md.
+
+Siguen pendientes: webhook n8n real, RAG documental, mapeo de plano, fecha/equivalencias del horario, visión real y entrega de correo. No asignar calificación de rúbrica a partir de estas pruebas.

@@ -79,3 +79,21 @@ Nueve unit tests, dos integraciones Express/Prisma/PostgreSQL y Groq real con co
 Matriz: docs/rubric-audit.md. Evidencia: docs/verification.md. Flujo mejorado: docs/decision-flow.md. Estado general: docs/handoff.md. Guion hablado: docs/pitch-rehearsal.md; el usuario canceló las diapositivas y priorizó explicación en web. Borradores privados de PPTX no son una entrega.
 
 La guía contiene bloque de telemetría sin especificación/corroboración. Usuario indicó no incorporarlo si no hace falta; queda identificado en la auditoría, sin marcadores/rechazos arbitrarios. No ocultar asistencia de IA en desarrollo ni atribuir historial/autoría falsos.
+
+## Actualización de relevo — prototipo publicado el 16/10/2026
+
+La rama de continuación ahora es **feature/prototype-plans-vision**, publicada por petición expresa del usuario; no está fusionada con develop. El estado anterior de este documento se conserva como historial, pero esta sección y docs/prototype-status.md prevalecen para el incremento.
+
+- Auth: propietario pudo ingresar y su cuenta ADMIN fue comprobada. No repetir promoción ni abrir registro administrativo.
+- Nuevos componentes: booking-calendar, campus-plan, incident-follow-up y schedule-view. Workspace conserva el shell y las reglas por rol.
+- Calendario: foco al cerrar/seleccionar y reset después de reservar. Participantes se separan por coma o salto de línea, sin romper nombres con letra n.
+- Dashboard: resumen de registros cargados, filtros de incidencias y auditoría legible; no inventar métricas ni llamar realtime a refresco manual.
+- Planos: PDF Torre Zenith nivel 6 y vista WebP fiel. Faltan coordenadas verificadas; no dibujar posiciones supuestas.
+- Horarios: 24 bloques / 9 columnas en ScheduleBoard; sin fecha y sin vincular espacios. Revisar advertencias antes de convertir en reservas. Edición protegida por revisión y solapes; fuente en data/imports.
+- Evidencia: foto privada normalizada, código de recurso, adaptador de visión Groq, conversación y estado de correo. Ver límites y pruebas en docs/prototype-status.md.
+- Tres migraciones aditivas nuevas ya aplicadas a CampusFlow; no resetear ni duplicar SQL de roles.
+- Vercel: https://campusflow-prototype.vercel.app, Next y Express mediante Services. El push no implica autodeploy. Mantener outputDirectory del backend y verificación TLS.
+- Resend: integración gratuita conectada; clave sensible en Vercel. Falta dominio verificado y entrega real. No extraer ni copiar la clave a docs/capturas.
+- n8n y RAG siguen pendientes. No confundir triaje/visión con recuperación documental.
+
+Para comenzar: git fetch origin y crear una feature desde origin/feature/prototype-plans-vision. Coordinar el lockfile y contratos con Deimer antes de integrar cambios paralelos. README actualizado reúne diagramas, capturas reales, instalación y matriz de estado.
