@@ -640,3 +640,54 @@ test("WhatsApp: responde al teléfono real si hay, o al JID completo si solo hay
   );
   assert.equal(normalizar(evo({ remoteJid: "119@lid" })).replyTo, "119@lid");
 });
+
+test("CONSULTA de una sala ocupada: dice quién la tiene, cuándo y qué hay libre", () => {
+  const e = estado([
+    reserva("a", "Azul", "Tomas", "15:00", "17:00", 2, "07:00"),
+  ]);
+  const r = motor({
+    entrada: entrada(),
+    estado: e,
+    ia: ia("CONSULTA", { sala: "Azul", horaInicio: "15:00", horaFin: "17:00" }),
+  });
+  assert.equal(r.decisionIA.titulo, "Azul está ocupada");
+  assert.match(
+    r.decisionIA.explicacion,
+    /reservada por Tomas de 15:00 a 17:00/,
+  );
+  assert.match(r.decisionIA.explicacion, /Libres en ese horario/);
+  assert.equal(r.plan.ops.length, 0);
+});
+
+test("CONSULTA de una sala libre responde que está libre en ese horario", () => {
+  const r = motor({
+    entrada: entrada(),
+    estado: estado(),
+    ia: ia("CONSULTA", { sala: "Azul", horaInicio: "15:00", horaFin: "17:00" }),
+  });
+  assert.equal(r.decisionIA.titulo, "Azul está libre");
+  assert.match(r.decisionIA.explicacion, /libre entre 15:00 - 17:00/);
+});
+
+test("CONSULTA de una sala sin horario muestra su agenda del día; en mantenimiento lo indica", () => {
+  const e = estado([
+    reserva("a", "Cosmos", "Ana", "10:00", "11:00", 10, "07:00"),
+    reserva("b", "Cosmos", "Beto", "12:00", "13:00", 10, "07:30"),
+  ]);
+  const agenda = motor({
+    entrada: entrada(),
+    estado: e,
+    ia: ia("CONSULTA", { sala: "Cosmos" }),
+  });
+  assert.equal(agenda.decisionIA.titulo, "Agenda de Cosmos");
+  assert.match(
+    agenda.decisionIA.explicacion,
+    /10:00-11:00 Ana; 12:00-13:00 Beto/,
+  );
+  const mant = motor({
+    entrada: entrada(),
+    estado: estado([], { Cosmos: "MANTENIMIENTO" }),
+    ia: ia("CONSULTA", { sala: "Cosmos" }),
+  });
+  assert.match(mant.decisionIA.explicacion, /en mantenimiento/);
+});
