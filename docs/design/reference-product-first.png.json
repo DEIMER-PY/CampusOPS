@@ -1,0 +1,9 @@
+{
+  "prompt": "Edit this CampusFlow dark landing-page mockup to align it with the CURRENT Campuslands identity, while preserving its exact composition, Spanish wording, product-preview layout, left navigation, room rows, capacities, and “Vista conceptual” label. Keep the Cal.com-inspired clarity and density.\nCampuslands palette observed in public CSS: page backdrop #111111, panel #1A1A1A, subtle structure #222222, primary text #E9E9E9, secondary text #CFCFCF, action blue #0076B7 and luminous blue #56B4FF. Use Poppins typography with disciplined weights and precise spacing. Replace the all-monochrome primary buttons with blue #0076B7 and white text, and use blue for the selected “Espacios” navigation treatment. Give only “en orden.” in the headline a restrained bright-blue emphasis. Preserve neutral button borders and calm white-space hierarchy. The website should feel like a Campuslands-family product, not a separate purple or orange brand; no glows, starfields or extra decoration.\nKeep “Estado por verificar” neutral and explicit; replace yellow status dots with a neutral outline indicator so color does not imply unverified availability or urgency. Do not add metrics, real bookings, people, amenities, photography or unsupported claims. No changes to control positions or composition: this is palette/type alignment only. Crisp high-fidelity website screenshot, no browser/device frame.",
+  "tool": "image_gen",
+  "approved": true,
+  "proposalOnly": true,
+  "brandSource": "https://campuslands.com/",
+  "reference": "Propuesta C de CampusFlow basada en la referencia de Cal.com proporcionada por el usuario.",
+  "approvalEvidence": "Usuario pidió comenzar implementación y adjuntó esta composición el 2026-10-16"
+}

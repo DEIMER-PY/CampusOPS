@@ -1,16 +1,13 @@
-import { ArrowLeft, Command, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { Brand } from "@/components/brand";
 import { LoginForm } from "@/components/login-form";
 export default function Login() {
   return (
     <main id="contenido" className="auth-page">
       <div className="auth-aside">
-        <Link href="/" className="brand">
-          <Command size={28} />
-          campus<span>flow</span>
-        </Link>
+        <Brand />
         <div>
-          <p className="eyebrow">BIENVENIDO A TU CAMPUS</p>
           <h1>
             Todo empieza
             <br />
@@ -23,6 +20,13 @@ export default function Login() {
             <br />y seguir avanzando.
           </p>
         </div>
+        <img
+          className="auth-robot"
+          src="/brand/campus-robot.webp"
+          width={913}
+          height={857}
+          alt="Robot astronauta con una sonrisa azul, referencia de Campuslands"
+        />
         <p className="auth-trust">
           <ShieldCheck size={18} /> Acceso seguro para tu comunidad.
         </p>
@@ -32,7 +36,6 @@ export default function Login() {
           <ArrowLeft size={16} /> Volver al inicio
         </Link>
         <div className="auth-box">
-          <p className="eyebrow">TU CUENTA CAMPUSFLOW</p>
           <h2>Qué bueno verte.</h2>
           <p>
             Ingresa con tu cuenta habilitada para consultar tus solicitudes.

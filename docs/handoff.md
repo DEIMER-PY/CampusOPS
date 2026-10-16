@@ -1,33 +1,42 @@
-# Estado para continuar
+# Estado vigente — incremento módulos 2 y 3
 
-Última actualización: 16 octubre 2026. Bootstrap preparado por solicitud de Deimer; no confundir con entrega completa de hackatón.
+## Implementado
 
-## Terminado y comprobado localmente
+Portada oscura azul Campuslands con Poppins autoalojada, logo oficial y Lenis solo landing. Dashboard responsive con formularios/listas para inventario, estados, préstamos, devoluciones, incidencias y propuesta de IA; espacios/reservas integran el contrato de Tomas. Estado/carga/error/vacíos explícitos; sin métricas ni operaciones ficticias. Cierre de sesión móvil y cargas parciales independientes.
 
-- Monorepo npm con dependencias exactas y lockfile; Node 24.22.0.
-- Portada responsive, identidad visual, acceso y estructura de portal/admin. Ilustración conceptual CSS; no hay datos ficticios ni fotografías generadas presentadas como reales.
-- Express: health/readiness, validación Supabase Auth y perfil, lectura de espacios/reservas, creación transaccional de reserva y consulta ADMIN de auditoría.
-- Prisma 7.10.1 con esquema app_private; migración inicial con CHECK, GiST anti-solapes e índice parcial para préstamos activos.
-- `npm run check`: lint limpio, TypeScript, dos pruebas de reglas y builds Express/Next correctos.
-- `npm run db:validate`: esquema válido.
-- Migración aplicada sobre PostgreSQL 18 temporal, puerto 55439, base campusflow_test. Prueba real con dos conexiones concurrentes: exactamente una reserva solapada y un préstamo activo aceptados. Intervalo contiguo aceptado; intervalo inválido rechazado. Datos sintéticos solo en esa BD aislada y eliminados por la prueba.
-- `npm run test:e2e`: 6/6 smoke tests desktop/móvil correctos. Verifican render/navegación, no desbordamiento, estado sin configuración y rechazo de auditoría sin sesión.
-- Playwright CLI usado para inspección y capturas desktop/móvil en artifacts/ (ignorado). Detectó favicon faltante; se añadió icon.svg.
-- Context7 CLI instalado y consultado; resultados genéricos contrastados con documentación oficial y build instalado. Configuración MCP de ejemplo, sin claves ni cambios globales.
-- Instalación npm reportó cero vulnerabilidades conocidas; es un resultado puntual, no garantía de seguridad.
+Express implementa recursos (alta y cambio de estado), préstamos y devolución operativa, incidencias (alta, lectura por propietario, análisis y seguimiento), cancelación de reserva y auditoría ADMIN. Mutaciones auditadas; bloqueo de recursos e índice parcial para concurrencia. Triaje real Groq configurable openai/gpt-oss-20b con JSON Schema estricto, Zod, lease recuperable, timeout y reintentos explícitos. COMPLETE no vuelve a invocar proveedor.
 
-## Pendientes reales
+Supabase campusflow creado por autorización del usuario: qysefuxctqvcfcyggzoi, us-east-2. Verbarena pausado con datos conservados. Cuatro migraciones de Prisma aplicadas vía MCP y baselined con checksums; runtime restringido, TLS con CA oficial, esquema privado, perfiles CLIENT por trigger Auth. Secretos solo .env ignorados con permisos 0600. Catálogo 11 espacios del contrato n8n importado como DISABLED, pendiente de validar guía original. Inventario tecnológico vacío hasta registro real.
 
-1. Proyecto Supabase, variables y acceso a datos oficiales. No se creó ni modificó infraestructura cloud.
-2. Verificar Auth real, expiración, perfiles y separación de usuarios/roles. No hay cuentas sembradas ni promoción automática de administrador.
-3. Formularios funcionales sobre API, préstamos/devoluciones, cancelaciones/cambios de estado, paginación e idempotencia.
-4. Incidencias y triaje con proveedor IA real. Modelo de Incident existe, endpoints/servicio IA pendientes.
-5. RAG/documentos oficiales, realtime/chat y reuniones, según fases de roadmap. No instalados ni simulados.
-6. Revisar guía oficial original, inventario de equipos y cierre del evento; capacidades CSV deben contrastarse. Los estados desconocidos se mantienen deshabilitados en datos propuestos.
-7. CI remota debe ejecutar antes de considerar el repositorio verificado en GitHub. Revisar resultado, no confundir checks locales con remotos.
+## Verificación de este incremento
 
-## Continuación por responsable
+- Groq /models validó modelo; inferencia real clasificó prueba de proyector como TECHNICAL/HIGH/SOPORTE_TECNICO en aproximadamente 0.9s (medición puntual, no SLA).
+- Nueve unit tests de reglas y adaptación IA pasaron; check incluye lint, TypeScript y builds. Lint conserva avisos de especificidad CSS, sin errores.
+- PostgreSQL aislado campusflow_test: restricciones de reservas y préstamos concurrentes verificadas. Integración HTTP con Express+Prisma: préstamo único, rechazo por mantenimiento, devolución solo operador, privacidad por propietario y auditoría. Auth en esa prueba usa servidor doble local; no certifica Supabase Auth.
+- RUN_LIVE_AI=1 también pasó integración HTTP → PostgreSQL → Groq → resultado persistido; fixtures eliminados de la BD aislada.
+- Playwright: cuatro smoke desktop/móvil pasaron; dos casos sin configuración omitidos localmente al usar servicios configurados, deben correr en CI sin secretos. Capturas CLI desktop y móvil de portada, sin overflow ni errores JS.
+- Advisors Supabase: movida btree_gist fuera de public. Solo INFO de RLS sin políticas en _prisma_migrations, intencional para denegar acceso público; anon/authenticated sin permisos.
 
-Leonardo: conexión/migración/datos; Tomas: servicios y contratos; Samuel: formularios/vistas sobre datos; Deimer: Auth/IA/integración. Flujo develop → feature/* → PR a develop. No desarrollar cuatro soluciones divergentes.
+## Pendiente antes de declarar entrega operativa completa
 
-Los archivos AGENTS.md raíz y apps/web/AGENTS.md (generado por Next) aportan reglas complementarias. Antes de cambiar APIs de Next, leer sus docs instaladas en node_modules/next/dist/docs/.
+Cuenta humana administradora: usuario debe registrarse y confirmar email; aún no se verificó login real ni se asignó ADMIN. No versionar su correo/contraseña ni incluir claves en salida. Configurar Site URL, allowlist /auth/callback y SMTP del proveedor si la entrega de correo lo requiere. No omitir verificación para completar una demo.
+
+Revisar CI remota del PR actual, aprobación por integrante y merge a develop. No desactivar protección. Historial inicial PR #5 corrige accesibilidad de icono; esta rama incluye ese ancestro. No hay despliegue público de la app todavía.
+
+RAG, chat realtime, reuniones, paginación y claves de idempotencia de creación no están implementados. Rate limit en memoria sirve una instancia; revisar almacenamiento compartido antes de múltiples réplicas. Áreas IA son colas configuradas, no organigrama oficial; no se asignan personas automáticamente. Consultar docs/implementation-modules-2-3.md y OpenAPI.
+
+## Equipo y Git
+
+Última instrucción: nuestro alcance módulos 2 y 3; Tomas lo demás (módulo 1/espacios). Leonardo datos/SQL, Samuel experiencia, Deimer integración/Auth/IA. Repo https://github.com/DEIMER-PY/campusflow , default develop protegido con aprobación y quality. Ramas feature y commits convencionales con emoji. Invitaciones write previamente enviadas a Leonardo4516, SamuelJoseMantilla, TEstebanGQ.
+
+Antes de continuar leer AGENTS.md, apps/web/AGENTS.md, PRODUCT.md y DESIGN.md. Contrato visual y límites de gates comp-led en docs/design-review.md; no afirmar pixel-perfect. La primera composición verde/marfil fue descartada.
+
+## Última ampliación del usuario: contrato n8n, rúbrica y RAG
+
+Guía oficial y contrato recibidos y revisados. Matriz completa en docs/rubric-audit.md, sin puntuación inventada. Bloque de telemetría no confirmado/no incorporado por indicación del usuario. Catálogo corregido con Azules/6, ahora 11 espacios. Importador transaccional valida archivo completo y no altera estados/aforos existentes.
+
+Triaje v2 envía snapshot acotado aprobado por usuario a Groq, excluyendo propietarios y reservas de terceros; fecha/límites trazables. Groq real + snapshot probado en BD aislada. Adaptador n8n POST /api/calendar/proposals validado y solo para ADMIN/OPERATOR, sin webhook configurado: requiere modo propuesta confirmado por Tomas; no ejecuta reubicación ni sustituye estados de PostgreSQL. No hay interfaz n8n activa todavía.
+
+Leonardo continúa frontend e integraciones/planos según última indicación. Tomas desarrolla n8n/módulo 1. Guion hablado en docs/pitch-rehearsal.md; el usuario canceló diapositivas y priorizó explicación RAG en web; demo con cuenta real y ensayo grupal pendientes. Plan RAG PDF/Excel/datos simulados etiquetados en docs/rag-ingestion-plan.md: no afirmar ingesta o RAG implementados.
+
+Relevo final completo para Leonardo: docs/LEONARDO_HANDOFF.md. Explicación RAG en /#rag implementada con WebP generado, procedencia y prompt en docs/rag-image-provenance.json, texto accesible y límite de estado previsto. Ingesta/chat RAG no implementados.

@@ -1,0 +1,9 @@
+# Consistent source checkout for Biome on Windows, macOS and Linux.
+* text=auto eol=lf
+*.png -text
+*.jpg -text
+*.jpeg -text
+*.webp -text
+*.pdf -text
+*.woff -text
+*.woff2 -text
