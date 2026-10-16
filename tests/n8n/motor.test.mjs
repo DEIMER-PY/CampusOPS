@@ -452,3 +452,43 @@ test("Construir Respuesta: devuelve las 11 salas con REUBICADO_IA", () => {
   );
   assert.equal(r.httpStatus, 200);
 });
+
+test("Gemini con cercas de código sigue siendo válido (se extrae el JSON)", () => {
+  const cuerpo = JSON.stringify({
+    intencion: "CONSULTA",
+    sala: null,
+    horaInicio: null,
+    horaFin: null,
+    asistentes: null,
+    incidencia: sinIncidencia,
+  });
+  const r = motor({
+    entrada: entrada(),
+    estado: estado(),
+    ia: {
+      candidates: [
+        { content: { parts: [{ text: "```json\n" + cuerpo + "\n```" }] } },
+      ],
+    },
+  });
+  assert.equal(r.httpStatus, 200);
+  assert.equal(r.decisionIA.titulo, "Salas disponibles");
+});
+
+test("Gemini truncado: error explícito con finishReason y sin cambios", () => {
+  const r = motor({
+    entrada: entrada(),
+    estado: estado(),
+    ia: {
+      candidates: [
+        {
+          finishReason: "MAX_TOKENS",
+          content: { parts: [{ text: '{"intencion":"RESER' }] },
+        },
+      ],
+    },
+  });
+  assert.equal(r.httpStatus, 503);
+  assert.match(r.decisionIA.explicacion, /MAX_TOKENS/);
+  assert.equal(r.plan.ops.length, 0);
+});
