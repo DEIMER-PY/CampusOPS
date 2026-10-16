@@ -18,6 +18,8 @@ Pestaña **Asistente de agenda** del espacio de trabajo (solo ADMIN y OPERATOR).
 - Muestra la decisión, la interpretación de la IA, el estado de aplicación, la incidencia detectada y el tablero de salas leído de la base tras la solicitud.
 - Variables de `apps/api/.env`: `N8N_WEBHOOK_URL=<URL de producción del webhook>/webhook/campusflow`, `N8N_WEBHOOK_SECRET=<secreto, sin la palabra Bearer>` y `N8N_MODE=execute`. En n8n, la credencial del webhook del frontend es Header Auth con nombre `Authorization` y valor `Bearer <secreto>`.
 
+> ¿Vas a usarlo en otro equipo? Sigue [USO_EN_OTRO_EQUIPO.md](USO_EN_OTRO_EQUIPO.md): código, n8n local, credenciales propias y cómo comprobar que la IA responde.
+
 ## Arquitectura
 
 ```text
