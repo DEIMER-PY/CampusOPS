@@ -1211,3 +1211,126 @@ test("la respuesta de Groq (formato OpenAI) se entiende igual que la de Gemini; 
   assert.equal(mala.httpStatus, 503);
   assert.match(mala.decisionIA.explicacion, /finishReason: length/);
 });
+
+const porWhatsapp = (reporte, iaResp, estadoBase = estado()) =>
+  motor({
+    entrada: entrada({
+      canal: "whatsapp",
+      replyTo: "57300",
+      reporte,
+      usuario: "Tomas Esteban Gonzalez",
+    }),
+    estado: estadoBase,
+    ia: iaResp,
+  });
+
+test("por WhatsApp, tras una gestión terminada se ofrece otra actividad con el menú", () => {
+  const incidencia = porWhatsapp(
+    "El proyector de Skilab no funciona",
+    ia("INCIDENCIA", {
+      sala: "Skilab",
+      incidencia: {
+        existe: true,
+        descripcion: "El proyector de Skilab no funciona",
+        prioridad: "MEDIUM",
+        areaResponsable: "TECNOLOGIA",
+        inhabilitaSala: false,
+      },
+    }),
+  );
+  assert.match(
+    incidencia.decisionIA.explicacion,
+    /Una persona del equipo lo revisará\./,
+  );
+  assert.match(
+    incidencia.decisionIA.explicacion,
+    /¿Quieres hacer otra actividad\? Responde con un número:\n1️⃣ Reservar una sala\n2️⃣ Reportar una incidencia/,
+  );
+  const reservaOk = porWhatsapp(
+    "reserva la sala Azul hoy de 3 a 5 pm para 2 personas",
+    ia("RESERVA", {
+      sala: "Azul",
+      horaInicio: "15:00",
+      horaFin: "17:00",
+      asistentes: 2,
+    }),
+  );
+  assert.equal(reservaOk.decisionIA.accionEjecutada, "RESERVA_CREADA");
+  assert.match(
+    reservaOk.decisionIA.explicacion,
+    /¿Quieres hacer otra actividad\?/,
+  );
+  const ocupada = porWhatsapp(
+    "mira si azul está libre de 3 a 5",
+    ia("CONSULTA", { sala: "Azul", horaInicio: "15:00", horaFin: "17:00" }),
+    estado([reserva("x", "Azul", "Ana", "15:00", "16:00", 3, "07:00")]),
+  );
+  assert.match(ocupada.decisionIA.explicacion, /está reservada hoy por Ana/);
+  assert.match(
+    ocupada.decisionIA.explicacion,
+    /¿Quieres hacer otra actividad\?/,
+  );
+  const fuera = porWhatsapp(
+    "cuéntame un chiste de gatos",
+    ia("FUERA_DE_ALCANCE"),
+  );
+  assert.match(fuera.decisionIA.explicacion, /no corresponde a este chat/);
+  assert.match(fuera.decisionIA.explicacion, /¿Quieres hacer otra actividad\?/);
+});
+
+test("no se ofrece el menú cuando faltan datos, en emergencias ni en la interfaz web", () => {
+  assert.doesNotMatch(
+    porWhatsapp("reserva la sala Azul", ia("RESERVA", { sala: "Azul" }))
+      .decisionIA.explicacion,
+    /otra actividad/,
+  );
+  const emergencia = porWhatsapp(
+    "el profe mató a un compañero",
+    ia("CONSULTA"),
+  );
+  assert.equal(emergencia.decisionIA.titulo, "Aviso de seguridad registrado");
+  assert.doesNotMatch(emergencia.decisionIA.explicacion, /otra actividad/);
+  const web = motor({
+    entrada: entrada({
+      canal: "frontend",
+      reporte: "reserva la sala Azul hoy de 3 a 5 pm para 2 personas",
+    }),
+    estado: estado(),
+    ia: ia("RESERVA", {
+      sala: "Azul",
+      horaInicio: "15:00",
+      horaFin: "17:00",
+      asistentes: 2,
+    }),
+  });
+  assert.doesNotMatch(web.decisionIA.explicacion, /otra actividad/);
+});
+
+test("si la IA falla, por WhatsApp se responde con un mensaje claro y el menú (que no necesita IA)", () => {
+  const r = porWhatsapp("necesito una sala para hacer algo", {
+    error: { message: "The connection was aborted" },
+  });
+  assert.equal(r.httpStatus, 503);
+  assert.match(
+    r.decisionIA.explicacion,
+    /No pude interpretar tu mensaje en este momento/,
+  );
+  assert.match(r.decisionIA.explicacion, /1️⃣ Reservar una sala/);
+  assert.doesNotMatch(r.decisionIA.explicacion, /connection was aborted/);
+  assert.equal(r.plan.ops.length, 0);
+});
+
+test("el texto de las opciones del menú escrito a mano también funciona sin IA, y «0» vuelve al menú", () => {
+  for (const [texto, titulo] of [
+    ["Ver qué salas hay libres", "Ver salas libres"],
+    ["Reservar una sala", "Reservar una sala"],
+    ["Reportar una incidencia", "Reportar una incidencia"],
+    ["Ver mis reservas", "Mis reservas"],
+    ["0", "Menú"],
+    ["menú", "Menú"],
+  ]) {
+    const r = porWhatsapp(texto, { error: { message: "IA caída" } });
+    assert.equal(r.decisionIA.titulo, titulo, texto);
+    assert.equal(r.httpStatus, 200, texto);
+  }
+});
