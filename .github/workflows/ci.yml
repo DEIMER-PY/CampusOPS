@@ -31,6 +31,7 @@ jobs:
       - run: npm run db:generate
       - run: npm run db:validate
       - run: npm run check
+      - run: node --test tests/n8n/motor.test.mjs
       - run: npm run db:deploy
         env:
           DIRECT_URL: postgresql://campusflow_test:campusflow_ci_only@127.0.0.1:5432/campusflow_test
@@ -57,5 +58,6 @@ jobs:
       - run: npm run db:generate
       - run: npm run db:validate
       - run: npm run check
+      - run: node --test tests/n8n/motor.test.mjs
       - run: npx playwright install chromium
       - run: npm run test:e2e

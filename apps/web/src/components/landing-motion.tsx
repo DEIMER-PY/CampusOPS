@@ -15,7 +15,7 @@ export function LandingMotion() {
     };
     configure();
     media.addEventListener("change", configure);
-    const stage = document.querySelector<HTMLElement>(".product-preview");
+    const stage = document.querySelector<HTMLElement>(".dashboard-preview");
     const onScroll = () => {
       if (!stage || media.matches) return;
       const progress = Math.min(1, Math.max(0, window.scrollY / 600));

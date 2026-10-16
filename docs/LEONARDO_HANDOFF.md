@@ -101,3 +101,13 @@ Para comenzar: git fetch origin y crear una feature desde origin/feature/prototy
 ### Actualización de pruebas y clonación
 
 Equipo: Neural Routing. Inicio reproducible en docs/GETTING_STARTED.md; matriz por sistema operativo en docs/TESTING.md; índice en docs/README.md. npm run check completo aprobado (16 unitarias), 2 integraciones aprobadas y Playwright 10 aprobadas/2 omitidas. Reporte ficticio desde ADMIN con Groq real persistido comprobado. No repetir la afirmación histórica de que falta todo acceso autenticado. Siguen faltando ensayo multirrol, visión y correo reales y webhook n8n. URL n8n inválida ahora produce error controlado. CI Windows/macOS añadida: consultar resultado, no presumir éxito.
+
+### Integración de Tomas y UI compacta
+
+Ahora existe Asistente de agenda en el menú, procedente de feature/3-n8n-prisma-agenda (99d05a6). Su workflow y guía viven en docs/n8n. Las migraciones 20261016150000 y 20261016190000 ya están aplicadas en Supabase y baselined; no volver a ejecutar SQL manual ni crear credenciales sin coordinación. N8N_WEBHOOK_URL/MODE siguen sin configurar en esta máquina. No se provisionó n8n_runtime ni se habilitaron envíos WhatsApp. GET /agenda/status permite distinguir configuración pendiente; no significa salud real del webhook. El asistente protege Aplicar según configuración del servidor; propuestas no modifican datos.
+
+Guardas nuevas: extensión revalida estado/aforo en SQL; clasificación externa de n8n se conserva como texto y el reporte queda PENDING para el esquema Groq; UUID de sesión enviado a n8n sin correo. Falta la identidad delegada por operación, recibo verificable e idempotencia durable para cerrar ejecución externa.
+
+UI: IncidentComposer y ReservationComposer separados de Workspace; CampusPlan integrado con zoom y catálogo sin posiciones supuestas. Portada usa dashboard-overview.webp, captura de prueba estática; actualizar imagen si cambia la navegación y no publicarla con datos sensibles. SVG de tecnologías usa fuentes fijadas en docs/assets/technologies/logos/provenance.json.
+
+URL recibida: local5678 producción configurada en .env ignorado, modo proposal. Healthz 200 pero webhook404; n8n abre setup sin propietario. 5679 no responde. Falta cuenta humana, importación/credenciales/activación. En Vercel requiere HTTPS público; nunca localhost. No habilitar execute ni WhatsApp por tener una URL.

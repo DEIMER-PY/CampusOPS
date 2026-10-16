@@ -14,6 +14,10 @@
   --teal: #54c6aa;
   --danger: #ffb0a7;
   --radius: 12px;
+  --field-background: #141414;
+  --field-border: #444444;
+  --nav-selected-background: #12344c;
+  --nav-selected-text: #89cdff;
   color-scheme: dark;
 }
 @theme inline {
@@ -1208,13 +1212,14 @@ form > .button {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 50px;
-  border-right: 1px solid var(--border);
+  gap: 28px;
+  border-left: 1px solid var(--border);
 }
 .auth-aside h1 {
-  font-size: 54px;
-  line-height: 1.2;
-  margin-bottom: 25px;
+  font-size: clamp(38px, 3.6vw, 52px);
+  line-height: 1.16;
+  margin-bottom: 18px;
+  letter-spacing: -0.03em;
 }
 .auth-aside h1 span {
   color: var(--accent);
@@ -2381,43 +2386,29 @@ form > .button {
     flex-wrap: wrap;
   }
 }
+.auth-art {
+  display: grid;
+  place-items: center;
+  flex: 1;
+  min-height: 250px;
+  margin: -12px -16px;
+}
 .auth-robot {
-  width: min(100%, 470px);
-  height: auto;
-  object-fit: contain;
   display: block;
-  margin: -40px auto -60px;
+  width: min(100%, 460px);
+  height: auto;
+  max-height: 43dvh;
+  object-fit: contain;
 }
 .auth-aside {
   order: 2;
   overflow: hidden;
 }
+.auth-copy {
+  margin-top: 24px;
+}
 .auth-main {
   order: 1;
-}
-.plan-controls {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 24px 0 16px;
-}
-.plan-viewport {
-  height: 580px;
-  overflow: auto;
-  border-radius: 12px;
-  background: #f3f3f3;
-}
-.plan-viewport > div {
-  display: grid;
-  place-items: center;
-}
-.plan-viewport img {
-  display: block;
-  width: auto;
-  max-width: 100%;
-  height: 580px;
-  object-fit: contain;
 }
 .integration-pending {
   display: flex;
@@ -2458,9 +2449,23 @@ form > .button {
     flex-direction: column;
     gap: 16px;
   }
+}
+@media (max-width: 640px) {
+  .auth-aside {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 128px;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 24px;
+    border-left: 0;
+  }
+  .auth-art {
+    min-height: 0;
+    margin: 0;
+  }
   .auth-robot {
-    margin: 0 auto;
-    max-width: 260px;
+    width: 128px;
+    max-height: 128px;
   }
 }
 .incident-follow-up {
@@ -2902,5 +2907,854 @@ form > .button {
   }
   .schedule-scroll {
     max-height: 620px;
+  }
+}
+
+/* Composers share the dashboard's compact operational language. */
+.composer-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.composer-symbol {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--nav-selected-background);
+  color: var(--accent);
+}
+.composer-heading h2 {
+  font-size: 18px;
+  margin: 0 0 5px;
+}
+.composer-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.report-composer {
+  background: var(--panel);
+  padding: 24px;
+  border-color: var(--border);
+}
+.composer-writing {
+  background: var(--field-background);
+  border: 1px solid var(--field-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.composer-writing:focus-within {
+  border-color: var(--accent);
+}
+.field-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+.field-heading label {
+  margin: 0;
+}
+.field-heading > span {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.composer-writing textarea {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 16px 0 0;
+  margin: 0;
+  min-height: 150px;
+  font-size: 14px;
+  line-height: 1.75;
+  resize: vertical;
+}
+.composer-writing textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.composer-hint {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 10px 0 0;
+}
+.composer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+.composer-actions > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.composer-actions > .button {
+  width: auto;
+  margin: 0;
+}
+.composer-explanation {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  margin-top: 20px;
+}
+.composer-explanation summary {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--accent);
+}
+.composer-explanation summary::after {
+  content: "+";
+  margin-left: auto;
+}
+.composer-explanation[open] summary::after {
+  content: "−";
+}
+.composer-explanation p {
+  font-size: 12px;
+  color: var(--secondary);
+  line-height: 1.8;
+  margin: 14px 0 0;
+}
+.reservation-composer {
+  min-width: 0;
+  background: var(--panel);
+  padding: 24px;
+}
+.reservation-composer fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 22px;
+  min-width: 0;
+}
+.reservation-composer fieldset + fieldset {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.reservation-composer legend {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--secondary);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  float: left;
+  width: 100%;
+}
+.reservation-composer legend svg {
+  color: var(--accent);
+}
+.reservation-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  clear: both;
+}
+.reservation-fields > * {
+  min-width: 0;
+}
+.reservation-composer input,
+.reservation-composer select,
+.reservation-composer textarea {
+  width: 100%;
+  min-width: 0;
+}
+.reservation-composer label > input,
+.reservation-composer label > select,
+.reservation-participants textarea {
+  margin-top: 8px;
+}
+.reservation-time-fields {
+  grid-template-columns: 1fr 1fr 0.85fr;
+}
+.reservation-composer .date-shortcuts {
+  flex-wrap: wrap;
+}
+.reservation-selection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  background: var(--nav-selected-background);
+  color: var(--nav-selected-text);
+  margin: 12px 0 0;
+  font-size: 12px;
+}
+.reservation-selection > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 11px;
+}
+.reservation-participants {
+  margin-top: 16px;
+  clear: both;
+}
+.reservation-participants summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: space-between;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--accent);
+}
+.reservation-participants summary > span {
+  color: var(--muted);
+  font-size: 11px;
+}
+.reservation-participants label {
+  margin-top: 16px;
+}
+.reservation-composer form > fieldset > label {
+  clear: both;
+}
+.reservation-composer .composer-actions {
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+}
+@media (max-width: 1199px) {
+  .incident-layout,
+  .reservations-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+  .report-composer {
+    position: static;
+  }
+}
+@media (min-width: 1200px) {
+  .incident-layout {
+    grid-template-columns: minmax(340px, 0.95fr) minmax(0, 1.3fr);
+    gap: 24px;
+  }
+  .reservations-layout {
+    grid-template-columns: minmax(460px, 1.15fr) minmax(0, 1fr);
+    gap: 28px;
+  }
+  .report-composer .composer-actions > .button {
+    width: 100%;
+  }
+}
+@media (max-width: 640px) {
+  .report-composer,
+  .reservation-composer {
+    padding: 18px;
+  }
+  .composer-heading {
+    gap: 10px;
+  }
+  .composer-heading h2 {
+    font-size: 17px;
+  }
+  .composer-actions > .button {
+    width: 100%;
+  }
+  .reservation-fields {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .reservation-time-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+  .reservation-time-fields > label:last-child {
+    grid-column: 1 / -1;
+  }
+}
+/* The floor plan is a crop of the supplied drawing, never invented geometry. */
+.plan-shell {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--panel);
+}
+.plan-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+}
+.plan-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.plan-identity h2 {
+  font-size: 18px;
+  margin: 0 0 3px;
+}
+.plan-identity p {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0;
+}
+.plan-header > a {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.plan-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-block: 1px solid var(--border);
+}
+.plan-view-switch,
+.plan-zoom {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.plan-view-switch button,
+.plan-zoom button {
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: var(--secondary);
+  border: 0;
+  border-radius: 5px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+.plan-view-switch button {
+  font-size: 12px;
+}
+.plan-view-switch button[aria-pressed="true"] {
+  background: var(--nav-selected-background);
+  color: var(--nav-selected-text);
+}
+.plan-zoom button:hover,
+.plan-view-switch button:hover {
+  background: var(--panel-raised);
+}
+.plan-zoom button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.plan-zoom output {
+  min-width: 46px;
+  text-align: center;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.plan-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+}
+.plan-map-area {
+  min-width: 0;
+}
+.plan-viewport {
+  height: 380px;
+  overflow: auto;
+  border-radius: 0;
+  background: #14181c;
+  padding: 16px;
+}
+.plan-viewport.plan-expanded {
+  height: 620px;
+}
+.plan-drawing {
+  height: 100%;
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+}
+.plan-blueprint {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 2.07;
+  filter: grayscale(1) invert(1);
+  mix-blend-mode: screen;
+}
+.plan-original {
+  background: #f3f3f3;
+}
+.plan-original .plan-blueprint {
+  filter: none;
+  mix-blend-mode: normal;
+}
+.plan-caption {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--muted);
+}
+.plan-caption > span:first-child {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.plan-directory {
+  border-left: 1px solid var(--border);
+  padding: 16px;
+  min-width: 0;
+}
+.plan-directory h3 {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  margin: 0 0 14px;
+  font-size: 13px;
+}
+.plan-directory h3 > span {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.plan-directory .search-field {
+  width: 100%;
+  padding: 0 10px;
+}
+.plan-directory .search-field input {
+  min-width: 0;
+  width: 100%;
+  padding: 10px 0;
+  font-size: 11px;
+}
+.plan-directory > p,
+.plan-room-selection p,
+.plan-room-list > p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 12px 0;
+}
+.plan-room-list {
+  max-height: 280px;
+  overflow-y: auto;
+  margin-top: 12px;
+}
+.plan-room-list button {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  border-radius: 6px;
+  padding: 10px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.plan-room-list button:hover,
+.plan-room-list button[aria-pressed="true"] {
+  background: var(--nav-selected-background);
+}
+.plan-room-list small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.plan-room-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+}
+.plan-room-dot.available {
+  background: #58cab4;
+}
+.plan-room-selection {
+  border-top: 1px solid var(--border);
+  margin-top: 12px;
+  padding-top: 12px;
+  font-size: 13px;
+}
+.plan-room-selection .button {
+  width: 100%;
+}
+.campus-plan .integration-pending {
+  margin-top: 18px;
+  padding: 18px;
+  gap: 12px;
+}
+.campus-plan .integration-pending h3 {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+@media (max-width: 1100px) {
+  .plan-layout {
+    grid-template-columns: 1fr;
+  }
+  .plan-directory {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+  .plan-room-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-height: 180px;
+  }
+  .plan-directory > p {
+    margin-block: 10px;
+  }
+  .plan-viewport {
+    height: 340px;
+  }
+}
+@media (max-width: 640px) {
+  .plan-header {
+    padding: 16px;
+    align-items: start;
+    flex-wrap: wrap;
+  }
+  .plan-toolbar {
+    padding: 10px 12px;
+  }
+  .plan-room-list {
+    grid-template-columns: 1fr 1fr;
+  }
+  .plan-viewport {
+    height: 250px;
+    padding: 10px;
+  }
+  .plan-viewport.plan-expanded {
+    height: 440px;
+  }
+}
+.plan-view-switch {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.dashboard-preview {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transform: perspective(1800px) rotateX(var(--preview-tilt, 0deg));
+  transform-origin: center top;
+}
+.dashboard-preview > a {
+  display: block;
+}
+.dashboard-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.dashboard-preview figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--panel);
+  padding: 14px 20px;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: left;
+}
+.dashboard-preview figcaption a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .dashboard-preview figcaption {
+    flex-direction: column;
+    align-items: start;
+    gap: 8px;
+    padding: 12px;
+    font-size: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-preview {
+    transform: none;
+  }
+}
+
+/* Asistente de agenda (n8n + IA) */
+.agenda-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.agenda-composer form {
+  display: grid;
+  gap: 12px;
+}
+.agenda-composer textarea,
+.agenda-fields input,
+.agenda-fields select {
+  width: 100%;
+  background: var(--panel-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+}
+.agenda-composer textarea:focus-visible,
+.agenda-fields input:focus-visible,
+.agenda-fields select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.agenda-examples {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.agenda-examples button {
+  background: transparent;
+  color: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-align: left;
+}
+.agenda-examples button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.agenda-fields,
+.agenda-mode {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+.agenda-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.agenda-fields legend,
+.agenda-mode legend {
+  color: var(--muted);
+  font-size: 0.8rem;
+  padding: 0 6px;
+}
+.agenda-fields > div {
+  display: grid;
+  gap: 4px;
+}
+.agenda-fields label {
+  font-size: 0.8rem;
+  color: var(--secondary);
+}
+.agenda-mode label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--secondary);
+  font-size: 0.9rem;
+}
+.agenda-note {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.agenda-result {
+  display: grid;
+  gap: 16px;
+}
+.agenda-alert {
+  display: flex;
+  gap: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  padding: 16px;
+}
+.agenda-alert h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+.agenda-alert p {
+  margin: 4px 0;
+  color: var(--secondary);
+}
+.agenda-alert-success {
+  border-color: var(--teal);
+}
+.agenda-alert-success > svg {
+  color: var(--teal);
+}
+.agenda-alert-warning {
+  border-color: #e0b04a;
+}
+.agenda-alert-warning > svg {
+  color: #e0b04a;
+}
+.agenda-alert-error {
+  border-color: var(--danger);
+}
+.agenda-alert-error > svg {
+  color: var(--danger);
+}
+.agenda-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.agenda-exec {
+  border-radius: 999px;
+  padding: 2px 10px;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.agenda-exec-applied {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+.agenda-exec-proposal {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.agenda-exec-warning {
+  border-color: #e0b04a;
+  color: #e0b04a;
+}
+.agenda-warning {
+  color: #e0b04a;
+  font-size: 0.85rem;
+}
+.agenda-incident {
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: var(--panel);
+}
+.agenda-incident h3 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+}
+.agenda-incident p {
+  margin: 4px 0;
+  color: var(--secondary);
+}
+.agenda-board-head h3 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  font-size: 1rem;
+}
+.agenda-board-head p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.agenda-board {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+}
+.agenda-room {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+.agenda-room header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text);
+}
+.agenda-room header span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.agenda-room p {
+  margin: 0;
+  color: var(--secondary);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.agenda-room-time {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.agenda-room-note {
+  color: var(--muted);
+}
+.agenda-room-state {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--teal);
+}
+.agenda-room-ocupado .agenda-room-state {
+  color: #e0b04a;
+}
+.agenda-room-reubicado_ia {
+  border-color: var(--accent);
+}
+.agenda-room-reubicado_ia .agenda-room-state {
+  color: var(--accent);
+}
+.agenda-room-mantenimiento .agenda-room-state,
+.agenda-room-sin_habilitar .agenda-room-state {
+  color: var(--danger);
+}
+@media (max-width: 960px) {
+  .agenda-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .agenda-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 1199px) {
+  .agenda-layout {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -73,6 +73,15 @@ test("API integrada: permisos, préstamos concurrentes, devoluciones e incidenci
         'INSERT INTO app_private."Profile" (id,role) VALUES ($1,$2)',
         [uid, role === "admin" ? "ADMIN" : "CLIENT"],
       );
+    const agendaStatus = await request("admin", "/agenda/status");
+    assert.equal(agendaStatus.status, 200);
+    assert.deepEqual(Object.keys(agendaStatus.payload.data).sort(), [
+      "configured",
+      "executionEnabled",
+    ]);
+    assert.equal(typeof agendaStatus.payload.data.configured, "boolean");
+    assert.equal((await request("client", "/agenda/status")).status, 403);
+
     assert.equal((await request("invalid", "/resources")).status, 401);
     assert.equal((await request("client", "/admin/audit")).status, 403);
     assert.equal(

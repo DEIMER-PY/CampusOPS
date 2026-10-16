@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-16",
+  "tool": "image_gen built-in edit",
+  "source": "User-supplied Campuslands robot screenshot, preserved in public/brand/campus-robot.webp",
+  "asset": "apps/web/public/brand/campus-robot-login.webp",
+  "purpose": "Login mascot integration",
+  "prompt": "Preserve smiling cyan LED astronaut robot identity; remove starfield and rectangular background with actual alpha transparency; improve detail and restrained blue rim lighting; reconstruct complete upper-torso bust with shoulders and rounded base; no text, logos, UI or scenery.",
+  "processing": "Resize to 840x840 maximum and encode WebP with alpha preserved using Sharp",
+  "limitations": "AI-edited illustration based on user reference; not an official new Campuslands brand asset."
+}

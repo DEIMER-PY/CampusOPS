@@ -1,0 +1,80 @@
+{
+  "source": "Simple Icons",
+  "revision": "4d29a35c954699b389a834aacc97dd6e7e74143c",
+  "license": "CC0-1.0 for icon assets; brands retain trademark rights",
+  "licenseUrl": "https://github.com/simple-icons/simple-icons/blob/4d29a35c954699b389a834aacc97dd6e7e74143c/LICENSE.md",
+  "icons": [
+    {
+      "slug": "nextdotjs",
+      "status": 200,
+      "url": "https://raw.githubusercontent.com/simple-icons/simple-icons/4d29a35c954699b389a834aacc97dd6e7e74143c/icons/nextdotjs.svg"
+    },
+    {
+      "slug": "react",
+      "status": 200,
+      "url": "https://raw.githubusercontent.com/simple-icons/simple-icons/4d29a35c954699b389a834aacc97dd6e7e74143c/icons/react.svg"
+    },
+    {
+      "slug": "typescript",
+      "status": 200,
+      "url": "https://raw.githubusercontent.com/simple-icons/simple-icons/4d29a35c954699b389a834aacc97dd6e7e74143c/icons/typescript.svg"
+    },
+    {
+      "slug": "tailwindcss",
+      "status": 200,
+      "url": "https://raw.githubusercontent.com/simple-icons/simple-icons/4d29a35c954699b389a834aacc97dd6e7e74143c/icons/tailwindcss.svg"
+    },
+    {
+      "slug": "nodedotjs",
+      "status": 200,
+      "url": "https://raw.githubusercontent.com/simple-icons/simple-icons/4d29a35c954699b389a834aacc97dd6e7e74143c/icons/nodedotjs.svg"
+    },
+    {
+      "slug": "express",
+      "status": 200,
+      "url": "https://raw.githubusercontent.com/simple-icons/simple-icons/4d29a35c954699b389a834aacc97dd6e7e74143c/icons/express.svg"
+    },
+    {
+      "slug": "prisma",
+      "status": 200,
+      "url": "https://raw.githubusercontent.com/simple-icons/simple-icons/4d29a35c954699b389a834aacc97dd6e7e74143c/icons/prisma.svg"
+    },
+    {
+      "slug": "postgresql",
+      "status": 200,
+      "url": "https://raw.githubusercontent.com/simple-icons/simple-icons/4d29a35c954699b389a834aacc97dd6e7e74143c/icons/postgresql.svg"
+    },
+    {
+      "slug": "supabase",
+      "status": 200,
+      "url": "https://raw.githubusercontent.com/simple-icons/simple-icons/4d29a35c954699b389a834aacc97dd6e7e74143c/icons/supabase.svg"
+    },
+    {
+      "slug": "groq",
+      "status": 404
+    },
+    {
+      "slug": "vercel",
+      "status": 200,
+      "url": "https://raw.githubusercontent.com/simple-icons/simple-icons/4d29a35c954699b389a834aacc97dd6e7e74143c/icons/vercel.svg"
+    },
+    {
+      "slug": "lenis",
+      "status": 404
+    },
+    {
+      "slug": "sharp",
+      "status": 200,
+      "url": "https://raw.githubusercontent.com/simple-icons/simple-icons/4d29a35c954699b389a834aacc97dd6e7e74143c/icons/sharp.svg"
+    },
+    {
+      "slug": "playwright",
+      "status": 404
+    },
+    {
+      "slug": "resend",
+      "status": 200,
+      "url": "https://raw.githubusercontent.com/simple-icons/simple-icons/4d29a35c954699b389a834aacc97dd6e7e74143c/icons/resend.svg"
+    }
+  ]
+}
