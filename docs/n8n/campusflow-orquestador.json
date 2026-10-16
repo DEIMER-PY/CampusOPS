@@ -164,7 +164,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT json_build_object(\n  'now', now(),\n  'rooms', (SELECT json_agg(json_build_object('nombre', nombre, 'capacidad', capacidad, 'estado', estado) ORDER BY capacidad DESC, nombre) FROM campusflow.rooms),\n  'bookings', COALESCE((SELECT json_agg(b ORDER BY inicio) FROM campusflow.bookings b\n      WHERE NOT cancelada AND fin > (date_trunc('day', now() AT TIME ZONE 'America/Bogota') AT TIME ZONE 'America/Bogota')), '[]'::json)\n) AS estado;",
+        "query": "SELECT app_private.n8n_state() AS estado;",
         "options": {}
       },
       "credentials": {
@@ -260,7 +260,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT campusflow.apply_plan($1::jsonb) AS resultado;",
+        "query": "SELECT app_private.n8n_apply_plan($1::jsonb) AS resultado;",
         "options": {
           "queryReplacement": "={{ JSON.stringify($json.plan) }}"
         }
@@ -281,7 +281,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT json_build_object(\n  'now', now(),\n  'rooms', (SELECT json_agg(json_build_object('nombre', nombre, 'capacidad', capacidad, 'estado', estado) ORDER BY capacidad DESC, nombre) FROM campusflow.rooms),\n  'bookings', COALESCE((SELECT json_agg(b ORDER BY inicio) FROM campusflow.bookings b\n      WHERE NOT cancelada AND fin > (date_trunc('day', now() AT TIME ZONE 'America/Bogota') AT TIME ZONE 'America/Bogota')), '[]'::json)\n) AS estado;",
+        "query": "SELECT app_private.n8n_state() AS estado;",
         "options": {}
       },
       "credentials": {
@@ -298,7 +298,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Construye la respuesta del contrato con el estado REAL leído de la base tras aplicar el plan.\nconst m = $('Motor de Reglas').first().json;\nconst estado = $('Leer Estado Final').first().json.estado;\nlet fallo = null;\ntry { const a = $('Aplicar Plan').first().json; if (a && a.error) fallo = a.error; } catch (e) { fallo = null; }\n\nconst BOGOTA = 5 * 3600e3;\nconst hhmm = (iso) => new Date(new Date(iso).getTime() - BOGOTA).toISOString().slice(11, 16);\nconst ref = new Date(m.refInicio || estado.now);\nconst reservas = estado.bookings || [];\nconst salas = estado.rooms.map((s) => {\n  const propias = reservas.filter((b) => b.sala === s.nombre);\n  const tocada = propias.find((b) => m.tocadas.some((t) => t.sala === s.nombre && t.ocupante === b.ocupante));\n  const activa = propias.find((b) => new Date(b.inicio) <= ref && ref < new Date(b.fin));\n  const b = tocada || activa;\n  const base = { nombre: s.nombre, capacidad: s.capacidad };\n  if (s.estado === 'MANTENIMIENTO') return { ...base, estado: 'MANTENIMIENTO', ocupanteActual: null, horario: null, nota: 'Inhabilitada por incidencia' };\n  if (!b) return { ...base, estado: 'DISPONIBLE', ocupanteActual: null, horario: null, nota: null };\n  return { ...base, estado: b.reubicado_desde ? 'REUBICADO_IA' : 'OCUPADO', ocupanteActual: b.ocupante, horario: `${hhmm(b.inicio)} - ${hhmm(b.fin)}`, nota: b.nota || null };\n});\n\nlet decisionIA = m.decisionIA;\nlet httpStatus = m.httpStatus;\nlet status = m.status;\nif (fallo) {\n  decisionIA = { titulo: 'No se pudo aplicar el cambio', explicacion: 'Otra solicitud ocupó el espacio al mismo tiempo; no se modificó nada. Vuelve a intentarlo.', tipoAlerta: 'ERROR', accionEjecutada: 'SOLICITUD_RECHAZADA' };\n  httpStatus = 409;\n  status = 'error';\n}\nconst respuesta = { status, decisionIA, interpretacionIA: m.interpretacionIA, salas, incidenciaDetectada: m.incidenciaDetectada };\nconst texto = `*${decisionIA.titulo}*\\n${decisionIA.explicacion}`;\nreturn [{ json: { canal: m.canal, replyTo: m.replyTo, httpStatus, respuesta, texto } }];\n"
+        "jsCode": "// Construye la respuesta del contrato con el estado REAL leído de la base tras aplicar el plan.\nconst m = $('Motor de Reglas').first().json;\nconst estado = $('Leer Estado Final').first().json.estado;\nlet fallo = null;\ntry { const a = $('Aplicar Plan').first().json; if (a && a.error) fallo = a.error; } catch (e) { fallo = null; }\n\nconst BOGOTA = 5 * 3600e3;\nconst hhmm = (iso) => new Date(new Date(iso).getTime() - BOGOTA).toISOString().slice(11, 16);\nconst ref = new Date(m.refInicio || estado.now);\nconst reservas = estado.bookings || [];\nconst salas = estado.rooms.map((s) => {\n  const propias = reservas.filter((b) => b.sala === s.nombre);\n  const tocada = propias.find((b) => m.tocadas.some((t) => t.sala === s.nombre && t.ocupante === b.ocupante));\n  const activa = propias.find((b) => new Date(b.inicio) <= ref && ref < new Date(b.fin));\n  const b = tocada || activa;\n  const base = { nombre: s.nombre, capacidad: s.capacidad };\n  if (s.estado === 'MANTENIMIENTO') return { ...base, estado: 'MANTENIMIENTO', ocupanteActual: null, horario: null, nota: 'Inhabilitada por incidencia' };\n  if (s.estado === 'DESHABILITADA') return { ...base, estado: 'MANTENIMIENTO', ocupanteActual: null, horario: null, nota: 'Sin habilitar por el operador' };\n  if (!b) return { ...base, estado: 'DISPONIBLE', ocupanteActual: null, horario: null, nota: null };\n  return { ...base, estado: b.reubicado_desde ? 'REUBICADO_IA' : 'OCUPADO', ocupanteActual: b.ocupante, horario: `${hhmm(b.inicio)} - ${hhmm(b.fin)}`, nota: b.nota || null };\n});\n\nlet decisionIA = m.decisionIA;\nlet httpStatus = m.httpStatus;\nlet status = m.status;\nif (fallo) {\n  decisionIA = { titulo: 'No se pudo aplicar el cambio', explicacion: 'Otra solicitud ocupó el espacio al mismo tiempo; no se modificó nada. Vuelve a intentarlo.', tipoAlerta: 'ERROR', accionEjecutada: 'SOLICITUD_RECHAZADA' };\n  httpStatus = 409;\n  status = 'error';\n}\nconst respuesta = { status, decisionIA, interpretacionIA: m.interpretacionIA, salas, incidenciaDetectada: m.incidenciaDetectada };\nconst texto = `*${decisionIA.titulo}*\\n${decisionIA.explicacion}`;\nreturn [{ json: { canal: m.canal, replyTo: m.replyTo, httpStatus, respuesta, texto } }];\n"
       },
       "id": "c-resp",
       "name": "Construir Respuesta",

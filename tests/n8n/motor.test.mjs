@@ -452,3 +452,30 @@ test("Construir Respuesta: devuelve las 11 salas con REUBICADO_IA", () => {
   );
   assert.equal(r.httpStatus, 200);
 });
+
+test("sala sin habilitar (DESHABILITADA) no se reserva y se muestra como MANTENIMIENTO", () => {
+  const e = estado([], { Cosmos: "DESHABILITADA" });
+  const r = motor({
+    entrada: entrada(),
+    estado: e,
+    ia: ia("RESERVA", {
+      sala: "Cosmos",
+      horaInicio: "10:00",
+      horaFin: "11:00",
+      asistentes: 10,
+    }),
+  });
+  assert.equal(r.decisionIA.accionEjecutada, "SOLICITUD_RECHAZADA");
+  assert.equal(r.plan.ops.length, 0);
+  const nodos = { "Motor de Reglas": r, "Leer Estado Final": { estado: e } };
+  const $ = (n) => ({
+    first: () => {
+      if (!nodos[n]) throw new Error("no ejecutado");
+      return { json: nodos[n] };
+    },
+  });
+  const resp = new Function("$", codigo("Construir Respuesta"))($)[0].json;
+  const cosmos = resp.respuesta.salas.find((s) => s.nombre === "Cosmos");
+  assert.equal(cosmos.estado, "MANTENIMIENTO");
+  assert.equal(cosmos.nota, "Sin habilitar por el operador");
+});
