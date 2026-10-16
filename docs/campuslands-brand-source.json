@@ -1,0 +1,24 @@
+{
+  "source": "https://campuslands.com/",
+  "stylesheet": "https://campuslands.com/_next/static/chunks/1jgdip2zij10d.css",
+  "checkedOn": "2026-10-16",
+  "status": "Observed website styles, not an official brand manual",
+  "font": "Poppins",
+  "tokens": {
+    "--color-bg-deep": "#111",
+    "--color-surface-panel": "#1a1a1a",
+    "--color-neutrals-gray-800": "#222",
+    "--color-brand-white": "#e9e9e9",
+    "--color-text-secondary": "#cfcfcf",
+    "--color-brand-gray": "#a6a6a6",
+    "--color-icon-blue": "#0076b7",
+    "--color-accent-blue": "#56b4ff",
+    "--color-text-dark-blue": "#57bbff",
+    "--color-brand-teal": "#54c6aa",
+    "--color-brand-purple": "#5e39da",
+    "--color-btn-primary-rest": "var(--color-primitive-blue-500)",
+    "--color-btn-primary-hover": "var(--color-primitive-blue-600)",
+    "--color-btn-primary-pressed": "var(--color-primitive-blue-700)",
+    "--radius-button": "4px"
+  }
+}

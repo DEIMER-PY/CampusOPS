@@ -1,0 +1,395 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-16T14:47:10.830696+00:00",
+  "title": "Design System: CampusFlow",
+  "extensions": {
+    "colorMeta": {
+      "background": {
+        "role": "neutral",
+        "displayName": "Background",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "panel-raised": {
+        "role": "neutral",
+        "displayName": "Panel raised",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Border",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "secondary": {
+        "role": "neutral",
+        "displayName": "Secondary",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "blue": {
+        "role": "primary",
+        "displayName": "Blue",
+        "tonalRamp": [
+          "oklch(15.00% 0.13341 243.67)",
+          "oklch(26.43% 0.13341 243.67)",
+          "oklch(37.86% 0.13341 243.67)",
+          "oklch(49.29% 0.13341 243.67)",
+          "oklch(60.71% 0.13341 243.67)",
+          "oklch(72.14% 0.13341 243.67)",
+          "oklch(83.57% 0.13341 243.67)",
+          "oklch(95.00% 0.13341 243.67)"
+        ]
+      },
+      "blue-hover": {
+        "role": "primary",
+        "displayName": "Blue hover",
+        "tonalRamp": [
+          "oklch(15.00% 0.12494 243.84)",
+          "oklch(26.43% 0.12494 243.84)",
+          "oklch(37.86% 0.12494 243.84)",
+          "oklch(49.29% 0.12494 243.84)",
+          "oklch(60.71% 0.12494 243.84)",
+          "oklch(72.14% 0.12494 243.84)",
+          "oklch(83.57% 0.12494 243.84)",
+          "oklch(95.00% 0.12494 243.84)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Accent",
+        "tonalRamp": [
+          "oklch(15.00% 0.14055 245.42)",
+          "oklch(26.43% 0.14055 245.42)",
+          "oklch(37.86% 0.14055 245.42)",
+          "oklch(49.29% 0.14055 245.42)",
+          "oklch(60.71% 0.14055 245.42)",
+          "oklch(72.14% 0.14055 245.42)",
+          "oklch(83.57% 0.14055 245.42)",
+          "oklch(95.00% 0.14055 245.42)"
+        ]
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "White",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "field-background": {
+        "role": "neutral",
+        "displayName": "Field background",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "field-border": {
+        "role": "neutral",
+        "displayName": "Field border",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "badge-background": {
+        "role": "neutral",
+        "displayName": "Badge background",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "nav-selected-background": {
+        "role": "neutral",
+        "displayName": "Nav selected background",
+        "tonalRamp": [
+          "oklch(15.00% 0.05828 242.67)",
+          "oklch(26.43% 0.05828 242.67)",
+          "oklch(37.86% 0.05828 242.67)",
+          "oklch(49.29% 0.05828 242.67)",
+          "oklch(60.71% 0.05828 242.67)",
+          "oklch(72.14% 0.05828 242.67)",
+          "oklch(83.57% 0.05828 242.67)",
+          "oklch(95.00% 0.05828 242.67)"
+        ]
+      },
+      "nav-selected-text": {
+        "role": "neutral",
+        "displayName": "Nav selected text",
+        "tonalRamp": [
+          "oklch(15.00% 0.09866 241.33)",
+          "oklch(26.43% 0.09866 241.33)",
+          "oklch(37.86% 0.09866 241.33)",
+          "oklch(49.29% 0.09866 241.33)",
+          "oklch(60.71% 0.09866 241.33)",
+          "oklch(72.14% 0.09866 241.33)",
+          "oklch(83.57% 0.09866 241.33)",
+          "oklch(95.00% 0.09866 241.33)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Titular de portada."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Título del recorrido."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Encabezados operativos."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Lectura global."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Etiquetas de formulario."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "button-transition",
+        "value": "background 0.2s, border-color 0.2s",
+        "purpose": "Respuesta del botón; desactivada por reducción de movimiento."
+      },
+      {
+        "name": "loading-spin",
+        "value": "spin 1s linear infinite",
+        "purpose": "Carga pendiente; desactivada por reducción de movimiento."
+      },
+      {
+        "name": "landing-scroll",
+        "value": "1.05s",
+        "purpose": "Duración Lenis solo landing; no se monta con reducción de movimiento."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "mobile-max",
+        "value": "640px"
+      },
+      {
+        "name": "compact-max",
+        "value": "900px"
+      },
+      {
+        "name": "desktop-compact-max",
+        "value": "1150px"
+      },
+      {
+        "name": "wide-min",
+        "value": "1600px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botón Principal",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Variante vigente del botón base; valores heredados del CSS.",
+      "html": "<button class=\"ds-button-primary\">Principal</button>",
+      "css": ".ds-button-primary{font-family:Poppins,sans-serif;font-size:14px;display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: 12px;\n  border: 1px solid transparent;\n  border-radius: 6px;\n  padding: 13px 23px;\n  font-weight: 500;\n  min-height: 46px;\n  transition:\n    background 0.2s,\n    border-color 0.2s;\n  line-height: 1.4;\n  white-space: normal;background: var(--blue);\n  color: #fff;}.ds-button-primary:hover:not(:disabled){background: var(--blue-hover);}.ds-button-primary:focus-visible{outline:2px solid var(--accent);outline-offset:4px;}.ds-button-primary:disabled{opacity:.5;cursor:not-allowed;}@media(prefers-reduced-motion:reduce){.ds-button-primary{transition:none;}}"
+    },
+    {
+      "name": "Botón Claro",
+      "kind": "button",
+      "refersTo": "button-light",
+      "description": "Variante vigente del botón base; valores heredados del CSS.",
+      "html": "<button class=\"ds-button-light\">Claro</button>",
+      "css": ".ds-button-light{font-family:Poppins,sans-serif;font-size:14px;display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: 12px;\n  border: 1px solid transparent;\n  border-radius: 6px;\n  padding: 13px 23px;\n  font-weight: 500;\n  min-height: 46px;\n  transition:\n    background 0.2s,\n    border-color 0.2s;\n  line-height: 1.4;\n  white-space: normal;background: #e9e9e9;\n  color: #111;}.ds-button-light:hover:not(:disabled){background: white;}.ds-button-light:focus-visible{outline:2px solid var(--accent);outline-offset:4px;}.ds-button-light:disabled{opacity:.5;cursor:not-allowed;}@media(prefers-reduced-motion:reduce){.ds-button-light{transition:none;}}"
+    },
+    {
+      "name": "Botón Contorno",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Variante vigente del botón base; valores heredados del CSS.",
+      "html": "<button class=\"ds-button-outline\">Contorno</button>",
+      "css": ".ds-button-outline{font-family:Poppins,sans-serif;font-size:14px;display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: 12px;\n  border: 1px solid transparent;\n  border-radius: 6px;\n  padding: 13px 23px;\n  font-weight: 500;\n  min-height: 46px;\n  transition:\n    background 0.2s,\n    border-color 0.2s;\n  line-height: 1.4;\n  white-space: normal;border-color: #484848;\n  background: transparent;\n  color: var(--text);}.ds-button-outline:hover:not(:disabled){background: #252525;\n  border-color: #777;}.ds-button-outline:focus-visible{outline:2px solid var(--accent);outline-offset:4px;}.ds-button-outline:disabled{opacity:.5;cursor:not-allowed;}@media(prefers-reduced-motion:reduce){.ds-button-outline{transition:none;}}"
+    },
+    {
+      "name": "Botón Acceso",
+      "kind": "button",
+      "refersTo": "button-dark",
+      "description": "Variante vigente del botón base; valores heredados del CSS.",
+      "html": "<button class=\"ds-button-dark\">Acceso</button>",
+      "css": ".ds-button-dark{font-family:Poppins,sans-serif;font-size:14px;display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: 12px;\n  border: 1px solid transparent;\n  border-radius: 6px;\n  padding: 13px 23px;\n  font-weight: 500;\n  min-height: 46px;\n  transition:\n    background 0.2s,\n    border-color 0.2s;\n  line-height: 1.4;\n  white-space: normal;background: var(--blue);\n  color: white;}.ds-button-dark:focus-visible{outline:2px solid var(--accent);outline-offset:4px;}.ds-button-dark:disabled{opacity:.5;cursor:not-allowed;}@media(prefers-reduced-motion:reduce){.ds-button-dark{transition:none;}}"
+    },
+    {
+      "name": "Campo",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Campo etiquetado persistente con foco y placeholder.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-description\">Descripción</label><input class=\"ds-field\" id=\"ds-description\" placeholder=\"Describe la solicitud\">",
+      "css": ".ds-field-label{font-family:Poppins,sans-serif;display: block;\n  font-size: 12px;\n  font-weight: 500;\n  color: var(--secondary);\n  margin: 0 0 8px;}.ds-field{font-family:Poppins,sans-serif;font-size:14px;font: inherit;}.ds-field::placeholder{color:var(--muted)}.ds-field:focus-visible{outline:2px solid var(--accent);outline-offset:4px;}.ds-field:disabled{opacity:.5}"
+    },
+    {
+      "name": "Navegación operativa",
+      "kind": "nav",
+      "refersTo": "navigation-item",
+      "description": "Sección actual seleccionada y respuesta a hover/foco.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Secciones\"><button aria-current=\"page\">Incidencias e IA</button><button>Recursos y préstamos</button></nav>",
+      "css": ".ds-nav{display:grid;gap:5px}.ds-nav>button{font-family:Poppins,sans-serif;display: flex;\n  align-items: center;\n  gap: 11px;\n  text-align: left;\n  border: 0;\n  color: var(--secondary);\n  background: transparent;\n  padding: 11px 12px;\n  border-radius: 6px;\n  font-size: 12px;\n  min-height: 42px;}.ds-nav>button:hover{background: #202020;}.ds-nav>button[aria-current]{background: #12344c;\n  color: #89cdff;}.ds-nav>button:focus-visible{outline:2px solid var(--accent);outline-offset:4px;}"
+    },
+    {
+      "name": "Estado",
+      "kind": "chip",
+      "refersTo": "status-badge",
+      "description": "Estado neutral explícito; no comunica disponibilidad inventada.",
+      "html": "<span class=\"ds-status\">Sin habilitar</span>",
+      "css": ".ds-status{font-family:Poppins,sans-serif;margin-right: 18px;}"
+    },
+    {
+      "name": "Incidencia",
+      "kind": "card",
+      "refersTo": "incident-card",
+      "description": "Contenedor de incidencia sin datos de usuario ni respuesta IA prefabricada.",
+      "html": "<article class=\"ds-incident\"><h3>Incidencia</h3><p>La información de la solicitud aparece aquí.</p></article>",
+      "css": ".ds-incident{font-family:Poppins,sans-serif;color:var(--text);border: 1px solid var(--border);\n  border-radius: 12px;\n  padding: 23px;\n  margin-bottom: 20px;\n  background: #191919;}.ds-incident h3{font-size: 17px;\n  margin: 0 0 12px;\n  overflow-wrap: anywhere;font-weight:600;line-height:1.2;letter-spacing:-.015em}.ds-incident p{font-size: 12px;\n  white-space: pre-wrap;\n  overflow-wrap: anywhere;\n  line-height: 1.85;color:var(--secondary)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "El campus en orden",
+    "overview": "El campus en orden expresa una interfaz sobria de grafito, tipografía Poppins y azul Campuslands. La jerarquía se apoya en contraste tonal y espacio; los estados y acciones son legibles antes que decorativos. La identidad y el logo proceden de las referencias de marca registradas, sin atribuir a CampusFlow una afiliación oficial.\n\nLa portada aprobada usa una composición de producto primero; el dashboard Operate usa formularios y listas densas con scroll nativo. Son expresiones de un mismo sistema, no plantillas intercambiables. La primera paleta verde/marfil fue descartada por el usuario.",
+    "keyCharacteristics": [
+      "Grafito con acentos azules y superficies planas.",
+      "Poppins autoalojada, jerarquía amplia en portada y compacta en operación.",
+      "Datos, errores, vacíos y cargas con significado explícito."
+    ],
+    "rules": [
+      {
+        "name": "The Blue Action Rule",
+        "body": "Usar azul principal para acciones y azul claro para enlaces, foco y énfasis; mantener el grafito como base.",
+        "section": "colors"
+      },
+      {
+        "name": "The Local Poppins Rule",
+        "body": "Usar la familia Poppins autoalojada en portada, acceso y operación; distinguir funciones por escala y peso.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tonal Depth Rule",
+        "body": "Separar superficies por tono y borde antes de introducir sombras. El CSS vigente no usa box-shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do mantener foco visible y navegación por teclado.",
+      "Do conservar estados de carga, vacío y error por módulo; una respuesta parcial no debe ocultar módulos que respondieron.",
+      "Do respetar prefers-reduced-motion y scroll nativo del dashboard.",
+      "Do usar SVG para iconos funcionales y el logo oficial con su procedencia documentada."
+    ],
+    "donts": [
+      "Don't reutilizar la paleta verde/marfil descartada.",
+      "Don't inventar ocupación, métricas, disponibilidad, testimonios ni resultados IA.",
+      "Don't afirmar fidelidad al kit Figma inaccesible ni cierre de gates comp-led sin evidencia histórica.",
+      "Don't convertir las etiquetas auxiliares muy pequeñas observadas en una escala obligatoria para nuevas superficies."
+    ]
+  }
+}
