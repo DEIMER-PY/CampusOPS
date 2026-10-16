@@ -48,3 +48,19 @@ CI detectó que /portal, sin configurar Supabase, mostraba el shell desconectado
 ### Robot integrado en login
 
 Imagen editada mediante image_gen a alpha real; WebP de 840×840 conserva cuatro canales. Nueva composición responsiva verificada a 1033×900 y 390×844. Build web, typecheck y cuatro Playwright enfocados (login y navegación desktop/móvil) aprobados. Revisión independiente acotada: ship, sin defectos materiales. Solo cambia presentación; no se modifican credenciales, Auth ni reglas.
+
+## Integración de Tomas y refinamiento del dashboard — 16/10/2026
+
+Rama de Tomas incorporada con su historial: feature/3-n8n-prisma-agenda, commit 99d05a6 (PR #8). Incluye workflow, motor determinista, asistente y contrato API. Se conservaron los nuevos formularios, robot editado y portada con captura completa del dashboard. El SVG del stack incorpora iconos de Simple Icons con procedencia y revisión fijadas.
+
+Se añadieron GET /api/agenda/status (solo roles operativos, sin URLs/secretos) y bloqueo visual de ejecución cuando el servidor no la habilita. La API envía UUID de actor, no el prefijo de su correo. La fecha opcional ya no se rellena automáticamente con hoy, para no sobrescribir la intención del texto. PROPUESTA siempre se presenta como NOT_APPLIED. APPLIED se identifica como declaración de n8n; requiere contrastar la agenda, no prueba por sí solo entrega ni operación externa.
+
+SQL de agenda y protección adicional aplicados en Supabase CampusFlow, registrados con checksums Prisma. No se creó rol/login n8n ni se habilitó ejecución remota. Tres pruebas de integración PostgreSQL aislado aprobadas, incluida extensión sobre sala deshabilitada, rollback, ausencia de permiso PUBLIC y clasificación externa separada de Groq. Las nueve migraciones también se aplicaron desde cero en campusflow_migration_smoke. La base de pruebas histórica tenía tres migraciones aplicadas manualmente sin registro: se baselinaron sin reset ni cambios destructivos.
+
+npm run check aprobado: 20 unitarias, tipos y build; 141 avisos de lint en esa corrida, sin errores. Motor n8n probado mediante node --test tests/n8n/motor.test.mjs (un archivo contenedor; los escenarios están dentro). Playwright configurado: 10 aprobadas / 2 omitidas. No confundir los tests del motor con Gemini/Evolution reales. La máquina sigue sin N8N_WEBHOOK_URL/N8N_MODE; se solicitó URL al usuario. Integración externa real pendiente.
+
+Plano: vista horizontal centrada de la geometría original, modo integrado monocromo/original, zoom y catálogo real separado. No hay marcadores de coordenadas inventados. Incidencias y reservas tienen componentes separados y composición adaptativa, con las mismas mutaciones y validaciones de API.
+
+### URL de n8n recibida
+
+Usuario proporcionó localhost:5679/webhook-test/campusflow y localhost:5678/webhook/campusflow. Prueba healthz: 5678=200, 5679 sin conexión. Consulta ficticia PROPUESTA a 5678: 404 webhook no registrado; interfaz /setup pide cuenta propietaria. Se solicitó al usuario completar el acceso sin compartir contraseña. URL local guardada en archivo ignorado y N8N_MODE=proposal. No se habilitó ejecución, rol login ni WhatsApp. La declaración anterior de URL no suministrada queda superada; conexión operativa sigue pendiente de propietario/workflow/credenciales.

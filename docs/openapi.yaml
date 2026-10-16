@@ -291,6 +291,37 @@ paths:
         '403': { description: Rol insuficiente }
         '503': { description: Servicio no disponible }
 
+  /api/agenda/assistant:
+    post:
+      summary: Asistente de agenda con n8n e IA (ADMIN u OPERATOR)
+      description: >-
+        n8n interpreta el texto con IA y un motor determinista decide (aforo, solapes, estado del espacio, orden de llegada).
+        modo PROPUESTA nunca escribe. modo EJECUCION exige N8N_MODE=execute y aplica mediante funciones auditadas de la base;
+        el cambio solo cuenta como aplicado si execution es APPLIED. El usuario sale de la sesión, nunca del body.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [reporte, rol]
+              properties:
+                reporte: { type: string, minLength: 5, maxLength: 4000 }
+                rol: { type: string, enum: [DOCENTE, COMERCIAL, ADMINISTRATIVO] }
+                modo: { type: string, enum: [PROPUESTA, EJECUCION], default: PROPUESTA }
+                fecha: { type: string, format: date }
+                salaActual: { type: string, minLength: 1, maxLength: 80 }
+                asistentes: { type: integer, minimum: 1, maximum: 100 }
+                horaInicio: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$' }
+                horaFinSolicitada: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$' }
+      responses:
+        '200': { description: 'Decisión, estado de las salas leído de la base y execution (APPLIED, NOT_APPLIED, NO_CHANGES o NOT_REPORTED)' }
+        '400': { description: Campos inválidos }
+        '403': { description: Requiere ADMIN u OPERATOR }
+        '409': { description: Aplicación directa desactivada (N8N_MODE distinto de execute) }
+        '502': { description: Respuesta de n8n fuera del contrato; no se aplicó nada }
+        '503': { description: n8n o la IA no disponibles; no se aplicó nada }
   /api/calendar/proposals:
     post:
       summary: Propuesta n8n (ADMIN u OPERATOR), sin ejecutar cambios

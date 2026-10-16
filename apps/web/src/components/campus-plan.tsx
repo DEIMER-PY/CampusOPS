@@ -121,9 +121,12 @@ export function CampusPlan({
               tabIndex={0}
               aria-label="Plano del campus ampliable; usa las flechas para recorrerlo"
             >
-              <div className="plan-drawing" style={{ width: `${zoom * 100}%` }}>
+              <div
+                className="plan-drawing"
+                style={{ width: `${zoom * 100}%`, height: `${zoom * 100}%` }}
+              >
                 <svg
-                  viewBox="50 390 2070 1000"
+                  viewBox="80 310 2070 1000"
                   className="plan-blueprint"
                   role="img"
                   aria-labelledby="campus-plan-title"
@@ -136,7 +139,7 @@ export function CampusPlan({
                     href="/plans/torre-zenith-nivel-6.webp"
                     width={1700}
                     height={2200}
-                    transform="translate(0 1700) rotate(-90)"
+                    transform="translate(2200 0) rotate(90)"
                   />
                 </svg>
               </div>
