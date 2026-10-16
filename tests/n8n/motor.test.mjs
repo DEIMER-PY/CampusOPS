@@ -941,9 +941,10 @@ test("violencia en el texto: se registra CRÍTICO para Seguridad (no Aseo) y se 
   const incidente = r.plan.ops.find((o) => o.op === "incident");
   assert.equal(incidente.prioridad, "CRITICAL");
   assert.equal(incidente.area, "SEGURIDAD");
-  assert.equal(r.decisionIA.titulo, "Reporte de emergencia registrado");
+  assert.equal(r.decisionIA.titulo, "Aviso de seguridad registrado");
   assert.equal(r.decisionIA.tipoAlerta, "WARNING");
   assert.match(r.decisionIA.explicacion, /123/);
+  assert.match(r.decisionIA.explicacion, /no es un canal de emergencias/);
   assert.equal(r.incidenciaDetectada.areaResponsable, "SEGURIDAD");
 });
 
@@ -1010,4 +1011,48 @@ test("palabras parecidas sin riesgo real (mate, matemáticas) no activan la emer
     ia("CONSULTA"),
   );
   assert.equal(r.plan.ops.length, 0);
+});
+
+test("bromas, insultos y mensajes sin relación: «no corresponde a este chat» y no se registra nada", () => {
+  for (const [texto, respuestaIA] of [
+    ["me cagué en una silla", asepsia],
+    ["eres un idiota", ia("CONSULTA")],
+    ["hola marica", ia("CONVERSACION")],
+    ["cuéntame un chiste de gatos", ia("FUERA_DE_ALCANCE")],
+  ]) {
+    const r = emergencia(texto, respuestaIA);
+    assert.equal(r.decisionIA.titulo, "Mensaje fuera de este chat", texto);
+    assert.match(r.decisionIA.explicacion, /no corresponde a este chat/);
+    assert.equal(r.plan.ops.length, 0, texto);
+    assert.equal(r.incidenciaDetectada.existe, false);
+  }
+});
+
+test("una vulgaridad dentro de una solicitud real de salas no la bloquea", () => {
+  const r = motor({
+    entrada: entrada({
+      reporte: "puta, necesito la sala Azul hoy de 3 a 5 pm para 2 personas",
+    }),
+    estado: estado(),
+    ia: ia("RESERVA", {
+      sala: "Azul",
+      horaInicio: "15:00",
+      horaFin: "17:00",
+      asistentes: 2,
+    }),
+  });
+  assert.equal(r.decisionIA.accionEjecutada, "RESERVA_CREADA");
+});
+
+test("si además hay violencia, gana la emergencia y se aclara que el chat no es canal de emergencias", () => {
+  const r = emergencia(
+    "me cagué en una silla y el profe mató un compañero",
+    ia("FUERA_DE_ALCANCE"),
+  );
+  assert.equal(r.decisionIA.titulo, "Aviso de seguridad registrado");
+  assert.match(
+    r.decisionIA.explicacion,
+    /Este chat es solo para gestionar salas/,
+  );
+  assert.equal(r.plan.ops.find((o) => o.op === "incident").area, "SEGURIDAD");
 });
