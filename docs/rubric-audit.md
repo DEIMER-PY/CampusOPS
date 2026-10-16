@@ -11,8 +11,8 @@ Guía aportada gu_a_oficial_hackat_n_campuslands(1).md, SHA256 08e242e95c2afe1a3
 | Criterio | Peso | Estado verificado | Evidencia | Falta para certificarlo completo |
 |---|---:|---|---|---|
 | Reglas de negocio y datos | 25 | Parcial, reglas y persistencia verificadas por API/BD | Bloqueo de recurso, rechazo de inhabilitados, un préstamo activo, devolución autorizada, aforo y exclusión de reservas. tests/concurrency.integration.ts y operations.integration.ts | Inventario tecnológico/casos borde oficiales privados, integración definitiva M1/n8n y demo con dataset completo |
-| Integración estratégica de IA | 20 | Groq real y resultado persistido verificados | JSON Schema estricto, Zod, prioridad/cola/explicación, modelo/fecha/ID, contexto acotado y fallo recuperable. RUN_LIVE_AI=1 | Demo interactiva con cuenta real, autorización de la API por los organizadores y prueba real de n8n |
-| MVP y UX/UI | 15 | Parcial | Portada responsive/Lenis, dashboard y formularios conectados a API, estados, errores y cargas parciales. Smoke desktop/móvil | Registro/confirmación y prueba de login real, recorrido navegador completo de préstamo e incidencia, webhook de Tomas e interfaz n8n |
+| Integración estratégica de IA | 20 | Groq real y resultado persistido verificados | JSON Schema estricto, Zod, prioridad/cola/explicación, modelo/fecha/ID, contexto acotado y fallo recuperable. RUN_LIVE_AI=1 | Reporte desde sesión ADMIN con Groq real comprobado; faltan autorización de APIs por organizadores y prueba real de n8n |
+| MVP y UX/UI | 15 | Parcial | Portada responsive/Lenis, dashboard y formularios conectados a API, estados, errores y cargas parciales. Smoke desktop/móvil | Acceso ADMIN y reporte con Groq real ya comprobados; faltan alta/confirmación y recorrido completo con CLIENT/OPERATOR, webhook de Tomas e interfaz n8n |
 | Código y repositorio | 10 | Implementado, sujeto a CI y revisión | Workspaces, TypeScript, migraciones, permisos servidor, secretos ignorados, pruebas, README/AGENTS/OpenAPI | Comprobar CI del PR final, revisión humana y entorno limpio de evaluación con credenciales autorizadas. Avisos de especificidad CSS pendientes |
 | Cambio de regla en vivo | 15 | Preparación entregada, sin ensayo grupal cronometrado | docs/live-challenge.md, reglas pequeñas y pruebas localizables | Cada integrante debe ejecutar el reto en menos de 3 minutos, explicar impacto y pasar pruebas |
 | Defensa y pitch | 15 | Guion y explicación web preparados | docs/pitch-rehearsal.md y sección /#rag. Usuario canceló diapositivas | Ensayo con cuatro voces, demo real y duración oficial del pitch confirmada |
@@ -21,7 +21,7 @@ Guía aportada gu_a_oficial_hackat_n_campuslands(1).md, SHA256 08e242e95c2afe1a3
 
 | Requisito | Estado y aceptación |
 |---|---|
-| Flujo vertical con IA e interfaz | API completa reporte→persistencia→Groq→clasificación guardada probada. UI implementada. Pendiente prueba autenticada desde navegador |
+| Flujo vertical con IA e interfaz | API completa reporte→persistencia→Groq→clasificación guardada probada. UI implementada. Reporte ficticio desde navegador ADMIN con triaje real y persistencia confirmado; falta ensayo completo multirrol |
 | Usar datos de Campuslands | Catálogo de 11 salas del contrato incorporado, incluida Azules/6. Estados desconocidos sin habilitar. No hay inventario tecnológico oficial recibido |
 | Registrar y modificar información | Recursos/estados, préstamos/devoluciones, incidencias/seguimiento y reservas/cancelación implementados; auditados |
 | Al menos tres reglas de dominio | 1 no prestar inhabilitados, 2 no duplicar préstamo activo, 3 devolución operativa autorizada y propiedad, más aforo/no solapes en M1. No se cuentan campos requeridos como reglas |
@@ -46,7 +46,7 @@ La guía aportada contiene «Telemetría v2.6» y nombres PSA-9/MCEDC, sync_v26_
 
 ## Bloqueadores concretos
 
-1. Cuenta real registrada/confirmada y perfil ADMIN autorizado; después probar permisos de CLIENT y OPERATOR con usuarios de ensayo autorizados.
+1. Cuenta ADMIN autorizada e ingreso ya comprobados. Falta completar prueba de alta/confirmación y recorridos CLIENT/OPERATOR con usuarios autorizados.
 2. Webhook n8n, persistencia compartida y modo propuesta sin efectos confirmados por Tomas. Leonardo continúa el wiring y frontend; ver docs/n8n-integration.md.
 3. Inventario/casos borde oficiales y confirmación de estados. RAG PDF/Excel preparado como contrato futuro, no sistema de ingesta construido.
 4. Demo y ensayo del cambio de regla con cronómetro. La nota final no se calcula con una estimación propia.
@@ -54,3 +54,15 @@ La guía aportada contiene «Telemetría v2.6» y nombres PSA-9/MCEDC, sync_v26_
 ## Incremento publicado: planos, evidencia y horarios
 
 Ver README.md y docs/prototype-status.md para alcance actual. Las pruebas aisladas añaden evidencia de revisión optimista de agenda, solapes por sala/docente, acceso a fotos, normalización, conversación y correo idempotente. ScheduleBoard contiene 24 bloques de una imagen autorizada, sin fecha confirmada ni equivalencias; no acredita todavía agenda oficial completa. El visor del plano no implica ubicación interactiva de equipos. Visión está implementada pero requiere inferencia real; correo requiere dominio/entrega verificados. RAG y n8n mantienen sus pendientes. No cambia la necesidad de demo por rol, dataset validado, defensa y modificación cronometrada frente al jurado.
+
+
+## Última comprobación publicada — Neural Routing
+
+- npm run check completo: 16 unitarias aprobadas, tipos y build correctos. Lint: 100 avisos, sin errores; incluye especificidad CSS, recomendaciones de imágenes y un operador coma en prueba.
+- Dos pruebas de integración contra PostgreSQL aislado aprobadas.
+- Playwright: 10 aprobadas y 2 omitidas por tener servicios configurados; cubre portada/login desktop/móvil, protección de portal y explicación RAG.
+- Sesión ADMIN legítima: reporte ficticio 2ee7ee8a guardado desde la web, Groq real y PostgreSQL con aiStatus COMPLETE / TECHNICAL / LOW.
+- n8n: validación y errores con dobles pasan, incluido URL inválido; webhook real sigue pendiente.
+- CI extendida a Windows/macOS; no afirmar compatibilidad ejecutada hasta resultado verde. Linux ejecutado localmente.
+
+No se certifica cumplimiento total ni una nota: quedan dataset completo, n8n real, demo multirrol y sustentación/cambio cronometrado. RAG no es requisito nominal independiente de la guía: es una ampliación pendiente que no debe presentarse como funcional. La IA textual ya aporta una función estratégica real; visión y correo requieren su propia evidencia antes de prometerlos en demo.

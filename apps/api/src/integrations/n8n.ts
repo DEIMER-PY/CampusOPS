@@ -63,7 +63,12 @@ export async function requestCalendarProposal(
   const webhook = process.env.N8N_WEBHOOK_URL;
   if (!webhook || process.env.N8N_MODE !== "proposal")
     throw new WorkflowUnavailable("N8N_NOT_CONFIGURED");
-  const url = new URL(webhook);
+  let url: URL;
+  try {
+    url = new URL(webhook);
+  } catch {
+    throw new WorkflowUnavailable("N8N_INVALID_CONFIG");
+  }
   if (
     url.protocol !== "https:" &&
     !(

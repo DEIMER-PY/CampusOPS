@@ -1,5 +1,7 @@
 # Evidencia de verificación
 
+> Registro histórico: la última sección prevalece para el estado vigente.
+
 16 octubre 2026. No sustituye la demostración exigida por el jurado.
 
 - npm run check: lint sin errores (avisos de especificidad CSS), typecheck API/web, nueve tests unitarios y builds correctos.
@@ -22,3 +24,18 @@ Compilación completa API/Next, typecheck y seis archivos unitarios aprobados. D
 ScheduleBoard verificado en Supabase: 24 bloques, 9 columnas, fecha nula y revisión inicial 1. /ready del despliegue Vercel respondió ready. La suite completa Playwright Test no se repitió para todo el incremento. Playwright CLI sí capturó portada y login desktop/móvil sobre compilación local 3100, sin sesión ni credenciales. Capturas privadas de revisión anterior se identifican por separado en docs/assets/README.md.
 
 Siguen pendientes: webhook n8n real, RAG documental, mapeo de plano, fecha/equivalencias del horario, visión real y entrega de correo. No asignar calificación de rúbrica a partir de estas pruebas.
+
+
+## Última ejecución y recorrido real — 16/10/2026
+
+`npm run check` final completado con éxito: 16 pruebas unitarias, typecheck y build API/Next. Biome informa 100 avisos, sin errores; no solo CSS. Dos pruebas de integración PostgreSQL aislado aprobadas. Playwright: 10 passed, 2 skipped, desktop/móvil; las omitidas son escenarios sin configuración reservados a CI sin servicios.
+
+Comando E2E ejecutado: `E2E_EXTERNAL_SERVERS=1 E2E_BASE_URL=http://127.0.0.1:3100 E2E_API_URL=http://127.0.0.1:4100 npm run test:e2e`.
+
+Historia verificada: navegador ADMIN legítimo → crear reporte ficticio marcado PRUEBA FUNCIONAL AUTORIZADA → Express → Groq real → PostgreSQL → resultado visible. Reporte 2ee7ee8a: status OPEN, aiStatus COMPLETE, category TECHNICAL, priority LOW, comprobados por lectura SQL. Se conservó ese reporte identificado como prueba; no se cambió ningún equipo real. Esto no acredita alta/confirmación de todos los perfiles ni visión/correo/n8n reales.
+
+Adaptador n8n ampliado con casos de configuración/URL, modo incorrecto, red/HTTP, JSON y catálogo inconsistente. URL malformada corregida para devolver N8N_INVALID_CONFIG. Proveedor de esas pruebas es un doble explícito.
+
+CI ahora incluye jobs Windows/macOS además de Linux con PostgreSQL; su ejecución remota debe consultarse en Actions. No se realizaron pruebas locales Windows/macOS. La falta de runs anteriores en esta rama se explica por el trigger previo, limitado a develop/main y PR; se añadió feature/**.
+
+Documentación reproducible: docs/GETTING_STARTED.md y docs/TESTING.md. Neural Routing es el nombre del equipo; su imagen de presentación no acredita capacidades de entrenamiento ni optimización de redes.

@@ -97,3 +97,7 @@ La rama de continuación ahora es **feature/prototype-plans-vision**, publicada 
 - n8n y RAG siguen pendientes. No confundir triaje/visión con recuperación documental.
 
 Para comenzar: git fetch origin y crear una feature desde origin/feature/prototype-plans-vision. Coordinar el lockfile y contratos con Deimer antes de integrar cambios paralelos. README actualizado reúne diagramas, capturas reales, instalación y matriz de estado.
+
+### Actualización de pruebas y clonación
+
+Equipo: Neural Routing. Inicio reproducible en docs/GETTING_STARTED.md; matriz por sistema operativo en docs/TESTING.md; índice en docs/README.md. npm run check completo aprobado (16 unitarias), 2 integraciones aprobadas y Playwright 10 aprobadas/2 omitidas. Reporte ficticio desde ADMIN con Groq real persistido comprobado. No repetir la afirmación histórica de que falta todo acceso autenticado. Siguen faltando ensayo multirrol, visión y correo reales y webhook n8n. URL n8n inválida ahora produce error controlado. CI Windows/macOS añadida: consultar resultado, no presumir éxito.
