@@ -12,6 +12,27 @@ export const calendarRequest = z
   .refine((v) => v.horaFinSolicitada > v.horaInicio, {
     message: "El fin debe ser posterior al inicio dentro de la misma fecha.",
   });
+const hhmm = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
+export const agendaRequest = z
+  .strictObject({
+    reporte: z.string().trim().min(5).max(4000),
+    rol: z.enum(["DOCENTE", "COMERCIAL", "ADMINISTRATIVO"]),
+    modo: z.enum(["PROPUESTA", "EJECUCION"]).default("PROPUESTA"),
+    fecha: z.iso.date().optional(),
+    salaActual: z.string().trim().min(1).max(80).optional(),
+    asistentes: z.number().int().positive().max(100).optional(),
+    horaInicio: hhmm.optional(),
+    horaFinSolicitada: hhmm.optional(),
+  })
+  .refine(
+    (v) =>
+      !v.horaInicio ||
+      !v.horaFinSolicitada ||
+      v.horaFinSolicitada > v.horaInicio,
+    {
+      message: "El fin debe ser posterior al inicio dentro de la misma fecha.",
+    },
+  );
 const room = z.strictObject({
   nombre: z.string().min(1).max(80),
   capacidad: z.number().int().positive().max(10000),
@@ -29,6 +50,14 @@ export const calendarResponse = z
       tipoAlerta: z.enum(["SUCCESS", "WARNING", "ERROR"]),
       accionEjecutada: z.string().min(1).max(100),
     }),
+    ejecucion: z.enum(["APLICADA", "NO_APLICADA", "SIN_CAMBIOS"]).optional(),
+    interpretacionIA: z
+      .strictObject({
+        intencion: z.string().max(40),
+        modelo: z.string().max(100).nullable(),
+      })
+      .nullable()
+      .optional(),
     salas: z.array(room).min(1).max(50),
     incidenciaDetectada: z.strictObject({
       existe: z.boolean(),
@@ -53,16 +82,30 @@ export class WorkflowUnavailable extends Error {
     super(code);
   }
 }
-export async function requestCalendarProposal(
-  input: z.infer<typeof calendarRequest>,
-  actorId: string,
-  requestId: string,
-  catalog: { name: string; capacity: number; status: string }[],
-  request: typeof fetch = fetch,
+type AgendaContext = {
+  actorId: string;
+  displayName?: string;
+  requestId: string;
+  catalog: { name: string; capacity: number; status: string }[];
+  request?: typeof fetch;
+};
+export type AgendaExecution =
+  | "APPLIED"
+  | "NOT_APPLIED"
+  | "NO_CHANGES"
+  | "NOT_REPORTED";
+// N8N_MODE=proposal: n8n solo propone. N8N_MODE=execute: además puede aplicar (EJECUCION) mediante
+// las funciones auditadas de la base; el cambio solo se confirma si n8n informa ejecucion=APLICADA.
+export async function requestAgenda(
+  input: z.infer<typeof agendaRequest>,
+  { actorId, displayName, requestId, catalog, request = fetch }: AgendaContext,
 ) {
   const webhook = process.env.N8N_WEBHOOK_URL;
-  if (!webhook || process.env.N8N_MODE !== "proposal")
+  const configured = process.env.N8N_MODE;
+  if (!webhook || !["proposal", "execute"].includes(configured ?? ""))
     throw new WorkflowUnavailable("N8N_NOT_CONFIGURED");
+  if (input.modo === "EJECUCION" && configured !== "execute")
+    throw new WorkflowUnavailable("N8N_EXECUTION_DISABLED");
   const url = new URL(webhook);
   if (
     url.protocol !== "https:" &&
@@ -79,17 +122,17 @@ export async function requestCalendarProposal(
       headers: {
         "Content-Type": "application/json",
         "X-Request-Id": requestId,
-        "X-CampusFlow-Mode": "proposal",
+        "X-CampusFlow-Mode":
+          input.modo === "EJECUCION" ? "execute" : "proposal",
         ...(process.env.N8N_WEBHOOK_SECRET
           ? { Authorization: `Bearer ${process.env.N8N_WEBHOOK_SECRET}` }
           : {}),
       },
-      signal: AbortSignal.timeout(20_000),
+      signal: AbortSignal.timeout(30_000),
       redirect: "error",
       body: JSON.stringify({
         ...input,
-        usuario: actorId,
-        modo: "PROPUESTA",
+        usuario: displayName || actorId,
         zonaHoraria: "America/Bogota",
       }),
     });
@@ -111,23 +154,47 @@ export async function requestCalendarProposal(
       throw new Error("Invalid catalog");
     if (proposal.salas.length !== catalog.length)
       throw new Error("Incomplete catalog");
+    const reported = proposal.ejecucion;
+    const execution: AgendaExecution =
+      input.modo === "PROPUESTA" || reported === "NO_APLICADA"
+        ? "NOT_APPLIED"
+        : reported === "APLICADA"
+          ? "APPLIED"
+          : reported === "SIN_CAMBIOS"
+            ? "NO_CHANGES"
+            : "NOT_REPORTED";
     return {
       proposal,
-      execution: "NOT_APPLIED" as const,
+      execution,
       requestId,
       receivedAt: new Date().toISOString(),
-      warnings: proposal.salas
-        .filter(
-          (s) =>
-            ["DISPONIBLE", "REUBICADO_IA"].includes(s.estado) &&
-            known.get(s.nombre)?.status !== "AVAILABLE",
-        )
-        .map(
-          (s) =>
-            `${s.nombre}: requiere habilitación y validación de conflictos antes de asignar.`,
-        ),
+      warnings:
+        input.modo === "PROPUESTA"
+          ? proposal.salas
+              .filter(
+                (s) =>
+                  ["DISPONIBLE", "REUBICADO_IA"].includes(s.estado) &&
+                  known.get(s.nombre)?.status !== "AVAILABLE",
+              )
+              .map(
+                (s) =>
+                  `${s.nombre}: requiere habilitación y validación de conflictos antes de asignar.`,
+              )
+          : [],
     };
   } catch {
     throw new WorkflowUnavailable("N8N_INVALID_RESPONSE");
   }
+}
+export async function requestCalendarProposal(
+  input: z.infer<typeof calendarRequest>,
+  actorId: string,
+  requestId: string,
+  catalog: { name: string; capacity: number; status: string }[],
+  request: typeof fetch = fetch,
+) {
+  return requestAgenda(
+    { ...input, modo: "PROPUESTA" },
+    { actorId, requestId, catalog, request },
+  );
 }

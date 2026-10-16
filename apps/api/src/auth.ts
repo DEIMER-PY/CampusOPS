@@ -54,5 +54,6 @@ export async function authenticate(
     return;
   }
   res.locals.actor = profile;
+  res.locals.displayName = data.user.email?.split("@")[0]?.slice(0, 80);
   next();
 }

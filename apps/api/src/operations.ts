@@ -5,7 +5,9 @@ import { campusContext } from "./ai/context.js";
 import { AIUnavailable, classifyIncident } from "./ai/triage.js";
 import { database } from "./db.js";
 import {
+  agendaRequest,
   calendarRequest,
+  requestAgenda,
   requestCalendarProposal,
   WorkflowUnavailable,
 } from "./integrations/n8n.js";
@@ -418,5 +420,42 @@ operations.post("/calendar/proposals", aiLimit, async (req, res) => {
           "No se obtuvo una propuesta válida de n8n. No se aplicaron cambios en CampusFlow.",
       },
     });
+  }
+});
+
+// Asistente de agenda: n8n interpreta el texto (IA) y las reglas deterministas deciden. PROPUESTA no escribe;
+// EJECUCION aplica por las funciones auditadas de la base y exige N8N_MODE=execute. Solo ADMIN/OPERATOR.
+operations.post("/agenda/assistant", aiLimit, async (req, res) => {
+  if (!privileged(res.locals.actor.role)) {
+    res.status(403).json(forbidden);
+    return;
+  }
+  const input = agendaRequest.parse(req.body);
+  const catalog = await database().space.findMany({
+    select: { name: true, capacity: true, status: true },
+  });
+  try {
+    const result = await requestAgenda(input, {
+      actorId: res.locals.actor.id,
+      displayName: res.locals.displayName,
+      requestId: res.locals.requestId,
+      catalog,
+    });
+    res.json({ data: result });
+  } catch (error) {
+    if (!(error instanceof WorkflowUnavailable)) throw error;
+    const disabled = error.code === "N8N_EXECUTION_DISABLED";
+    res
+      .status(
+        disabled ? 409 : error.code === "N8N_INVALID_RESPONSE" ? 502 : 503,
+      )
+      .json({
+        error: {
+          code: error.code,
+          message: disabled
+            ? "La aplicación directa está desactivada. Solicita una propuesta o activa N8N_MODE=execute."
+            : "No se obtuvo una respuesta válida de n8n. No se aplicaron cambios en CampusFlow.",
+        },
+      });
   }
 });

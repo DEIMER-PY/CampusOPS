@@ -26,6 +26,7 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
 import { parseParticipants } from "@/lib/participants";
+import { AgendaAssistant } from "./agenda-assistant";
 import { BookingCalendar } from "./booking-calendar";
 import { Brand } from "./brand";
 import { CampusPlan } from "./campus-plan";
@@ -34,6 +35,7 @@ import { ScheduleView } from "./schedule-view";
 
 type Tab =
   | "schedule"
+  | "agenda"
   | "plans"
   | "summary"
   | "spaces"
@@ -117,6 +119,7 @@ const nav = [
   { key: "schedule", label: "Horarios de formación", icon: CalendarDays },
   { key: "spaces", label: "Espacios", icon: Grid2X2 },
   { key: "reservations", label: "Reservas", icon: CalendarDays },
+  { key: "agenda", label: "Asistente de agenda", icon: Sparkles },
   { key: "resources", label: "Recursos y préstamos", icon: Box },
   { key: "incidents", label: "Incidencias e IA", icon: Sparkles },
   { key: "plans", label: "Planos e integraciones", icon: Grid2X2 },
@@ -140,6 +143,10 @@ const titles: Record<Tab, [string, string]> = {
     "Consulta el aforo y solicita el horario que necesitas.",
   ],
   reservations: ["Reservas", "Cada horario confirmado, en un mismo lugar."],
+  agenda: [
+    "Pide lo que necesitas, con tus palabras.",
+    "La IA interpreta; las reglas del campus deciden y quedan auditadas.",
+  ],
   resources: [
     "Recursos y préstamos",
     "Consulta el inventario y lleva el seguimiento de tus recursos.",
@@ -454,7 +461,9 @@ export function Workspace({
               >
                 <Icon size={18} />
                 {label}
-                {key === "incidents" && <span className="ai-label">IA</span>}
+                {(key === "incidents" || key === "agenda") && (
+                  <span className="ai-label">IA</span>
+                )}
               </button>
             ))}
         </nav>
@@ -552,6 +561,16 @@ export function Workspace({
             </p>
           )}
           {tab === "plans" && <CampusPlan />}
+          {tab === "agenda" && (
+            <AgendaAssistant
+              api={api}
+              spaces={spaces}
+              reservations={reservations}
+              operator={operator}
+              disabled={disabled}
+              onApplied={() => void refresh()}
+            />
+          )}
           {tab === "schedule" && (
             <ScheduleView
               api={api}

@@ -9,6 +9,15 @@ Implementa el contrato de [CONTRATO_N8N_FRONTEND.md](../../CONTRATO_N8N_FRONTEND
 | `../sql/n8n-runtime.sql` | Rol `n8n_runtime` (solo `EXECUTE` de las dos funciones; sin acceso a tablas). |
 | `../../tests/n8n/motor.test.mjs` | 16 pruebas del código real del workflow (`node --test tests/n8n/motor.test.mjs`). |
 
+## Interfaz web: «Asistente de agenda»
+
+Pestaña **Asistente de agenda** del espacio de trabajo (solo ADMIN y OPERATOR). El navegador nunca habla con n8n: llama a `POST /api/agenda/assistant` de Express, que valida la sesión y el rol, toma el nombre del solicitante del token (no del body), reenvía al webhook con `Authorization: Bearer <N8N_WEBHOOK_SECRET>` y valida la respuesta contra el catálogo antes de devolverla.
+
+- El usuario escribe en lenguaje natural y, opcionalmente, fecha, sala, asistentes y horas.
+- **Solo proponer** (`modo: PROPUESTA`): n8n calcula todo y **no escribe**. **Aplicar** (`modo: EJECUCION`): exige `N8N_MODE=execute` y confirma con el usuario; el resultado solo se muestra como aplicado si n8n informa `ejecucion: APLICADA`.
+- Muestra la decisión, la interpretación de la IA, el estado de aplicación, la incidencia detectada y el tablero de salas leído de la base tras la solicitud.
+- Variables de `apps/api/.env`: `N8N_WEBHOOK_URL=<URL de producción del webhook>/webhook/campusflow`, `N8N_WEBHOOK_SECRET=<secreto, sin la palabra Bearer>` y `N8N_MODE=execute`. En n8n, la credencial del webhook del frontend es Header Auth con nombre `Authorization` y valor `Bearer <secreto>`.
+
 ## Arquitectura
 
 ```text
@@ -65,11 +74,14 @@ Cada operación escribe un `AuditEvent` en la misma transacción (`n8n.reservati
 ## Verificación hecha
 
 - `python -m automation validate docs/n8n/campusflow-orquestador.json`: válido, 0 errores, seguridad limpia (un aviso: sin `errorWorkflow`).
-- `node --test tests/n8n/motor.test.mjs`: 16/16.
+- `node --test tests/n8n/motor.test.mjs`: 21/21. API: 18 pruebas (incluye `agenda.test.ts`: modos, identidad del servidor, respuesta fuera de contrato).
+- **Ejecución real en n8n** (instancia de pruebas aislada, PostgreSQL local con las 8 migraciones, roles y el horario cargado): webhook con autenticación (403 sin credencial), lectura con `n8n_state()`, motor, `n8n_apply_plan()` y respuesta. Casos: consulta; reserva aplicada; misma reserva rechazada por orden de llegada; aforo excedido; **propuesta que no escribe**; reserva contigua; extensión que reubica a quien llegó después; incidencia crítica que pone la sala en mantenimiento y reubica; entrada inválida (400); fallo de Gemini (503, sin cambios); canal WhatsApp (respuesta enviada al doble de Evolution; el mensaje propio se ignora); dos reservas simultáneas (solo una aplicada). La auditoría quedó registrada (`n8n.*`).
+- La UI se verificó en el navegador contra ese mismo n8n de pruebas: tablero de salas, decisión, insignia de ejecución y la interpretación mostrada.
+- **Límite de esa verificación:** Gemini y Evolution fueron dobles de prueba locales; esa corrida no cuenta como prueba de la IA real ni de WhatsApp real.
 - Las 5 migraciones aplicadas en orden sobre un PostgreSQL 17 desechable y las funciones probadas contra las tablas reales: insert, solape rechazado (exclusión GiST), aforo y sala sin habilitar rechazados, atomicidad (un paso inválido no deja nada), incidencia + mantenimiento + auditoría, y dos inserciones simultáneas del mismo intervalo → exactamente una aceptada.
 - Rol `n8n_runtime`: puede llamar las dos funciones y se le niega leer o escribir tablas (`Reservation`, `Space`, `Profile`); `anon` sin acceso.
 
-**No verificado:** nada contra Supabase real, ni la ejecución de extremo a extremo en n8n con Gemini y Evolution reales, ni la UI web mostrando estas reservas. Prisma `generate`/`validate` y `npm run check` no se ejecutaron en esta rama.
+**No verificado:** nada contra un Supabase real (hace falta el proyecto con sus credenciales), ni el inicio de sesión con Supabase Auth desde la UI, ni Gemini y Evolution reales de punta a punta con estas tablas (la prueba local usó dobles). `npm run check` completo pasa en la rama de integración.
 
 ## Diferencias respecto al contrato
 

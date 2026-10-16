@@ -519,3 +519,66 @@ test("Gemini truncado: error explícito con finishReason y sin cambios", () => {
   assert.match(r.decisionIA.explicacion, /MAX_TOKENS/);
   assert.equal(r.plan.ops.length, 0);
 });
+
+test("fecha del pedido: la reserva se arma para ese día y no para hoy", () => {
+  const r = motor({
+    entrada: entrada({ fecha: "2026-10-20" }),
+    estado: estado(),
+    ia: ia("RESERVA", {
+      sala: "Cosmos",
+      horaInicio: "10:00",
+      horaFin: "11:00",
+      asistentes: 10,
+    }),
+  });
+  assert.equal(r.decisionIA.accionEjecutada, "RESERVA_CREADA");
+  assert.equal(
+    r.plan.ops[0].inicio,
+    new Date("2026-10-20T10:00:00-05:00").toISOString(),
+  );
+  assert.equal(r.ejecucion, "APLICADA");
+});
+
+test("modo PROPUESTA: calcula la decisión pero no genera operaciones de escritura", () => {
+  const r = motor({
+    entrada: entrada({ modo: "PROPUESTA" }),
+    estado: estado(),
+    ia: ia("RESERVA", {
+      sala: "Cosmos",
+      horaInicio: "10:00",
+      horaFin: "11:00",
+      asistentes: 10,
+    }),
+  });
+  assert.deepEqual(r.plan.ops, []);
+  assert.equal(r.propuesta.length, 1);
+  assert.equal(r.ejecucion, "NO_APLICADA");
+  assert.match(r.decisionIA.titulo, /^Propuesta/);
+  assert.equal(r.decisionIA.accionEjecutada, "PROPUESTA_RESERVA_CREADA");
+});
+
+test("Normalizar: valida fecha y modo del adaptador de Express", () => {
+  const ok = normalizar({
+    reporte: "hola",
+    usuario: "Ana",
+    rol: "DOCENTE",
+    fecha: "2026-10-20",
+    modo: "PROPUESTA",
+    zonaHoraria: "America/Bogota",
+  });
+  assert.equal(ok.valido, true);
+  assert.equal(ok.fecha, "2026-10-20");
+  assert.equal(ok.modo, "PROPUESTA");
+  const malo = normalizar({
+    reporte: "hola",
+    usuario: "Ana",
+    rol: "DOCENTE",
+    fecha: "20/10/2026",
+    modo: "BORRAR",
+  });
+  assert.deepEqual(malo.errores.map((x) => x.campo).sort(), ["fecha", "modo"]);
+  assert.equal(
+    normalizar({ reporte: "hola", usuario: "Ana", rol: "DOCENTE" }).modo,
+    "EJECUCION",
+  );
+});
