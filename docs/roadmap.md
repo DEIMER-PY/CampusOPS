@@ -1,3 +1,5 @@
+> Estado vigente y prioridades: ver docs/handoff.md; el incremento actual implementa módulos 2 y 3. Este roadmap conserva las fases siguientes.
+
 # Producto y diseño
 
 ## P0 — cerrar entrega verificable
@@ -11,11 +13,11 @@
 
 ## P1 — diseño profesional y operación
 
-Portada editorial con marfil/verde bosque/lima, ilustración conceptual propia en CSS y Lucide. Portal cliente: disponibilidad, mis reservas, préstamos e incidencias. Administración: agenda, inventario, cola de incidencias y auditoría. Contadores se calculan en backend. Navegación móvil, formularios accesibles, vacíos/carga/error, responsive desde 360px y prefers-reduced-motion.
+Portada oscura con grafito/azul Campuslands, Poppins y preview semántico (la primera propuesta verde/marfil fue descartada). Portal cliente: disponibilidad, mis reservas, préstamos e incidencias. Administración: agenda, inventario, cola de incidencias y auditoría. Contadores se calculan en backend. Navegación móvil, formularios accesibles, vacíos/carga/error, responsive desde 360px y prefers-reduced-motion.
 
 Tailwind es la base; shadcn/ui y sus primitivas accesibles son la opción para diálogos, combobox y tablas cuando se incorporen. No instalar librerías sin uso. Lenis opcional para landing tras probar teclado/móvil; mantener scroll nativo en dashboards. Motion solo para transiciones útiles y después de perf/accessibility. No agregar varias librerías de animación.
 
-Imágenes: fotografías de Campuslands solo con fuente y permiso. ImageGen puede generar una ilustración de marca; indicar su carácter conceptual. No poner rostros/fotos generadas como evidencia real. next/image, tamaños explícitos, WebP/AVIF y texto alternativo; una imagen decorativa no debe bloquear el flujo. Actualmente no se generaron raster con IA.
+Imágenes: fotografías de Campuslands solo con fuente y permiso. ImageGen puede generar una ilustración de marca; indicar su carácter conceptual. No poner rostros/fotos generadas como evidencia real. next/image, tamaños explícitos, WebP/AVIF y texto alternativo; una imagen decorativa no debe bloquear el flujo. Se generaron composiciones de exploración, sin usarlas como screenshots de interfaz. El logo procede de Campuslands.
 
 ## P2 — asistente documental y auditorías
 

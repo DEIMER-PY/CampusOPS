@@ -1,0 +1,53 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "frontend": {
+      "root": "apps/web",
+      "framework": "nextjs",
+      "buildCommand": "npm run build",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "backend",
+          "format": "url",
+          "env": "BACKEND_INTERNAL_URL"
+        }
+      ],
+      "installCommand": "cd ../.. && npm ci"
+    },
+    "backend": {
+      "root": "apps/api",
+      "framework": "express",
+      "entrypoint": "src/app.ts",
+      "buildCommand": "npm run db:generate && npm run build",
+      "installCommand": "cd ../.. && npm ci",
+      "outputDirectory": "."
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/health",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/ready",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "frontend"
+      }
+    }
+  ]
+}

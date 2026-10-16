@@ -1,7 +1,7 @@
-# Datos comunicados por el equipo
+# Procedencia del catálogo
 
-Capacidades transcritas de la conversación del organizador y proporcionadas por el usuario el 16 octubre 2026. Amarillas y Verdes son aulas independientes. Total aritmético: 283 plazas en diez espacios.
+Fuente suministrada por el usuario: CONTRATO_N8N_FRONTEND.md, sección 4.A, Catálogo Oficial de Salas. Contiene once espacios y aforos, incluido Azules (6), ausente en la transcripción anterior de diez filas. La guía oficial define la evaluación pero no contiene el inventario privado completo del evento.
 
-Verificar contra el archivo oficial antes de importación/entrega. No se ha recibido confirmación de disponibilidad ni estado de cada espacio: DISABLED es un estado inicial preventivo, **no una afirmación de que estén inhabilitados físicamente**. Habilitar solo después de revisión del operador autorizado. Este CSV no se importa automáticamente ni alimenta métricas de la portada.
+spaces.csv contiene nombres y aforos de ese contrato. DISABLED significa que no se ha confirmado habilitación, no un diagnóstico físico de avería. Los ejemplos JSON del contrato muestran disponibilidad ilustrativa y no se importan como reservas reales. Los campos mixto/estudio del contrato no bastan para inferir reglas adicionales no definidas.
 
-No hay recursos tecnológicos, usuarios ni incidencias inventados. El inventario faltante debe entregarlo organización.
+Importación: npm run db:import-spaces -w @campusflow/api. Se valida archivo completo, aforos positivos, estados, duplicados y conflictos de capacidad antes de confirmar una transacción. No sobreescribe estados ni aforos existentes. Inventario tecnológico y casos borde privados de la organización siguen pendientes de recepción. Datos sintéticos de pruebas solo en campusflow_test aislada, nunca como registros de demostración reales.

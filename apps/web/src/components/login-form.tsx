@@ -6,6 +6,7 @@ import { useState } from "react";
 export function LoginForm() {
   const router = useRouter();
   const [message, setMessage] = useState("");
+  const [register, setRegister] = useState(false);
   const [busy, setBusy] = useState(false);
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -21,13 +22,29 @@ export function LoginForm() {
         const form = new FormData(event.currentTarget);
         try {
           const client = createBrowserClient(url, key);
-          const { error } = await client.auth.signInWithPassword({
+          const credentials = {
             email: String(form.get("email")),
             password: String(form.get("password")),
-          });
+          };
+          const { data, error } = register
+            ? await client.auth.signUp({
+                ...credentials,
+                options: {
+                  emailRedirectTo: `${window.location.origin}/auth/callback`,
+                },
+              })
+            : await client.auth.signInWithPassword(credentials);
           if (error) {
             setMessage(
-              "No pudimos iniciar sesión. Revisa tus credenciales e inténtalo de nuevo.",
+              register
+                ? "No pudimos crear la cuenta. Revisa tu correo e inténtalo de nuevo; si persiste, contacta al administrador."
+                : "No pudimos iniciar sesión. Revisa tus credenciales e inténtalo de nuevo.",
+            );
+            return;
+          }
+          if (register && !data.session) {
+            setMessage(
+              "Revisa tu correo para confirmar la cuenta. Si ya existe o no recibes el enlace, contacta al administrador.",
             );
             return;
           }
@@ -55,7 +72,8 @@ export function LoginForm() {
         id="password"
         name="password"
         type="password"
-        autoComplete="current-password"
+        autoComplete={register ? "new-password" : "current-password"}
+        minLength={register ? 12 : undefined}
         required
         disabled={!configured || busy}
       />
@@ -73,9 +91,34 @@ export function LoginForm() {
         type="submit"
         disabled={!configured || busy}
       >
-        {busy ? "Ingresando…" : "Ingresar a mi cuenta"}
+        {busy
+          ? "Ingresando…"
+          : register
+            ? "Crear mi cuenta"
+            : "Ingresar a mi cuenta"}
         <ArrowRight size={18} />
       </button>
+      {configured && (
+        <div className="auth-switch">
+          <span>{register ? "¿Ya tienes cuenta?" : "¿Primera vez aquí?"}</span>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              setRegister(!register);
+              setMessage("");
+            }}
+          >
+            {register ? "Iniciar sesión" : "Crear cuenta"}
+          </button>
+        </div>
+      )}
+      {register && (
+        <p className="field-help">
+          Tu perfil inicial es de comunidad. La administración asigna los
+          permisos de operación.
+        </p>
+      )}
     </form>
   );
 }

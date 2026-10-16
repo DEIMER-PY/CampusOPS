@@ -20,3 +20,10 @@ apps/api/src/generated/
 *.sql.gz
 .mcp.json
 !.mcp.json.example
+
+# Local design boards and generated exploration; design tokens stay versioned.
+**/.impeccable/mocks/
+**/.impeccable/questions/
+**/.impeccable/review/
+**/.impeccable/build/
+**/.impeccable/portada-options.json
