@@ -19,10 +19,7 @@
       "name": "Webhook Frontend",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        0,
-        0
-      ],
+      "position": [0, 0],
       "webhookId": "campusflow-campusflow"
     },
     {
@@ -43,10 +40,7 @@
       "name": "Webhook WhatsApp",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        0,
-        220
-      ],
+      "position": [0, 220],
       "webhookId": "campusflow-campusflow-whatsapp"
     },
     {
@@ -61,10 +55,7 @@
       "name": "Responder 200 WhatsApp",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        240,
-        340
-      ]
+      "position": [240, 340]
     },
     {
       "parameters": {
@@ -74,10 +65,7 @@
       "name": "Normalizar Entrada",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        240,
-        110
-      ]
+      "position": [240, 110]
     },
     {
       "parameters": {
@@ -108,10 +96,7 @@
       "name": "Entrada Valida",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [
-        480,
-        110
-      ]
+      "position": [480, 110]
     },
     {
       "parameters": {
@@ -142,10 +127,7 @@
       "name": "Invalida es Frontend",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [
-        720,
-        220
-      ]
+      "position": [720, 220]
     },
     {
       "parameters": {
@@ -155,10 +137,7 @@
       "name": "Preparar Respuesta Invalida",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        960,
-        160
-      ]
+      "position": [960, 160]
     },
     {
       "parameters": {
@@ -172,10 +151,7 @@
       "name": "Responder Entrada Invalida",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        1200,
-        160
-      ]
+      "position": [1200, 160]
     },
     {
       "parameters": {},
@@ -183,10 +159,7 @@
       "name": "Ignorar Mensaje",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [
-        960,
-        300
-      ]
+      "position": [960, 300]
     },
     {
       "parameters": {
@@ -204,10 +177,7 @@
       "name": "Leer Estado",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [
-        720,
-        0
-      ]
+      "position": [720, 0]
     },
     {
       "parameters": {
@@ -217,10 +187,7 @@
       "name": "Clasificar Mensaje",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        960,
-        0
-      ]
+      "position": [960, 0]
     },
     {
       "parameters": {
@@ -251,10 +218,7 @@
       "name": "Necesita IA",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [
-        1200,
-        0
-      ]
+      "position": [1200, 0]
     },
     {
       "parameters": {
@@ -264,10 +228,7 @@
       "name": "Preparar Consulta IA",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1440,
-        0
-      ]
+      "position": [1440, 0]
     },
     {
       "parameters": {
@@ -293,10 +254,7 @@
       "name": "Groq Interprete",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        1680,
-        0
-      ]
+      "position": [1680, 0]
     },
     {
       "parameters": {
@@ -322,10 +280,7 @@
       "name": "Gemini Respaldo",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        1920,
-        100
-      ]
+      "position": [1920, 100]
     },
     {
       "parameters": {
@@ -335,10 +290,7 @@
       "name": "Motor de Reglas",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        2160,
-        0
-      ]
+      "position": [2160, 0]
     },
     {
       "parameters": {
@@ -358,10 +310,7 @@
       "name": "Aplicar Plan",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [
-        2400,
-        0
-      ],
+      "position": [2400, 0],
       "onError": "continueRegularOutput"
     },
     {
@@ -380,10 +329,7 @@
       "name": "Leer Estado Final",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [
-        2640,
-        0
-      ]
+      "position": [2640, 0]
     },
     {
       "parameters": {
@@ -393,10 +339,7 @@
       "name": "Construir Respuesta",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        2880,
-        0
-      ]
+      "position": [2880, 0]
     },
     {
       "parameters": {
@@ -427,10 +370,7 @@
       "name": "Salida Frontend",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [
-        3120,
-        0
-      ]
+      "position": [3120, 0]
     },
     {
       "parameters": {
@@ -444,10 +384,7 @@
       "name": "Responder Frontend",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        3360,
-        -80
-      ]
+      "position": [3360, -80]
     },
     {
       "parameters": {
@@ -474,10 +411,7 @@
       "name": "Enviar WhatsApp",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        3360,
-        100
-      ]
+      "position": [3360, 100]
     }
   ],
   "connections": {
