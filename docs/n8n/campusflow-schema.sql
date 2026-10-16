@@ -1,9 +1,13 @@
--- Estado operativo del flujo n8n de CampusFlow (esquema propio, independiente de app_private/Prisma).
--- Aplicar solo sobre una BD de desarrollo autorizada. No se ejecuta automáticamente.
+-- Estado operativo del flujo n8n de CampusFlow en Supabase PostgreSQL.
+-- Esquema propio `campusflow`, fuera de los esquemas expuestos por la Data API de Supabase
+-- (no agregarlo en Settings > API > Exposed schemas) y separado de app_private/Prisma.
+-- Aplicar solo con la credencial de migraciones (DIRECT_URL) sobre una BD de desarrollo autorizada.
+-- No se ejecuta automáticamente. No contiene contraseñas: ver docs/n8n/README.md para el rol de runtime.
 -- Salas: contrato n8n↔frontend (11 espacios). OJO: data/official/spaces.csv lista 10; "Azules" solo
 -- figura en el contrato y debe confirmarse con el organizador antes de la entrega.
 
-CREATE EXTENSION IF NOT EXISTS btree_gist;
+CREATE SCHEMA IF NOT EXISTS extensions;
+CREATE EXTENSION IF NOT EXISTS btree_gist WITH SCHEMA extensions;
 CREATE SCHEMA IF NOT EXISTS campusflow;
 
 CREATE TABLE IF NOT EXISTS campusflow.rooms (
@@ -51,8 +55,12 @@ ON CONFLICT (nombre) DO NOTHING;
 
 -- Aplica el plan calculado por el motor de reglas de n8n en UNA transacción (la de la llamada).
 -- Bloquea todas las salas en orden fijo, así dos planes concurrentes se serializan sin interbloqueo.
+-- SECURITY DEFINER: el rol de runtime solo puede ejecutar esta función, no escribir las tablas.
 CREATE OR REPLACE FUNCTION campusflow.apply_plan(plan jsonb) RETURNS jsonb
-LANGUAGE plpgsql AS $$
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = campusflow, extensions, pg_temp
+AS $$
 DECLARE
   item jsonb;
   new_id uuid;
@@ -94,3 +102,42 @@ BEGIN
   RETURN aplicadas;
 END;
 $$;
+
+-- ---------------------------------------------------------------------------------------------
+-- Seguridad (Supabase): nada de anon/authenticated ni de la Data API sobre tablas de dominio.
+-- ---------------------------------------------------------------------------------------------
+ALTER TABLE campusflow.rooms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE campusflow.bookings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE campusflow.incidents ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON SCHEMA campusflow FROM PUBLIC;
+REVOKE ALL ON ALL TABLES IN SCHEMA campusflow FROM PUBLIC;
+REVOKE ALL ON FUNCTION campusflow.apply_plan(jsonb) FROM PUBLIC;
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+    REVOKE ALL ON SCHEMA campusflow FROM anon;
+    REVOKE ALL ON ALL TABLES IN SCHEMA campusflow FROM anon;
+    REVOKE ALL ON FUNCTION campusflow.apply_plan(jsonb) FROM anon;
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+    REVOKE ALL ON SCHEMA campusflow FROM authenticated;
+    REVOKE ALL ON ALL TABLES IN SCHEMA campusflow FROM authenticated;
+    REVOKE ALL ON FUNCTION campusflow.apply_plan(jsonb) FROM authenticated;
+  END IF;
+  -- Rol de runtime de n8n: sin LOGIN ni contraseña en el repositorio (ver README).
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'n8n_runtime') THEN
+    CREATE ROLE n8n_runtime NOLOGIN;
+  END IF;
+END
+$$;
+
+GRANT USAGE ON SCHEMA campusflow TO n8n_runtime;
+GRANT SELECT ON campusflow.rooms, campusflow.bookings TO n8n_runtime;
+GRANT EXECUTE ON FUNCTION campusflow.apply_plan(jsonb) TO n8n_runtime;
+
+DROP POLICY IF EXISTS n8n_runtime_lee_rooms ON campusflow.rooms;
+CREATE POLICY n8n_runtime_lee_rooms ON campusflow.rooms FOR SELECT TO n8n_runtime USING (true);
+DROP POLICY IF EXISTS n8n_runtime_lee_bookings ON campusflow.bookings;
+CREATE POLICY n8n_runtime_lee_bookings ON campusflow.bookings FOR SELECT TO n8n_runtime USING (true);
