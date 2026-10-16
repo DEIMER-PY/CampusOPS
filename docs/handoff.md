@@ -31,3 +31,9 @@
 Leonardo: conexión/migración/datos; Tomas: servicios y contratos; Samuel: formularios/vistas sobre datos; Deimer: Auth/IA/integración. Flujo develop → feature/* → PR a develop. No desarrollar cuatro soluciones divergentes.
 
 Los archivos AGENTS.md raíz y apps/web/AGENTS.md (generado por Next) aportan reglas complementarias. Antes de cambiar APIs de Next, leer sus docs instaladas en node_modules/next/dist/docs/.
+
+## Publicación y colaboración
+
+Repositorio público: https://github.com/DEIMER-PY/campusflow . Primer commit 8c2e554; develop predeterminada y protegida con PR, una aprobación, check quality y sin force push. Ramas feature/1-data-foundation, feature/2-responsive-ui, feature/3-loans-api y feature/4-auth-triage publicadas. Issues 1–4 creadas. Invitaciones con escritura enviadas a Leonardo4516, SamuelJoseMantilla y TEstebanGQ; deben aceptarlas.
+
+La primera CI detectó falta de title accesible en icon.svg, añadido después de la última comprobación local. La corrección se prepara en fix/icon-accessibility y sigue PR/revisión del equipo; no desactivar la protección de develop para integrarla.
