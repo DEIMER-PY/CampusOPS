@@ -6,7 +6,7 @@ Base de producto para Campuslands con Next.js + React + Tailwind, API Express y 
 
 ## Estado real
 
-Este primer incremento contiene portada, acceso, estructura de portal/administración, integración de autenticación condicionada a configuración, API de salud/perfil/espacios/reservas/auditoría, modelo Prisma y migración inicial. **No es todavía el producto terminado.** No hay conexión a un proyecto Supabase, datos oficiales importados, triaje IA, préstamos, RAG ni chat funcionando. Esos incrementos están en [roadmap](docs/roadmap.md). Evidencia actual en [handoff](docs/handoff.md).
+Este incremento implementa portada/dashboards, recursos y préstamos con concurrencia, incidencias con triaje Groq estructurado, auditoría y API protegida por Supabase Auth. Supabase CampusFlow ya está configurado en el entorno local. El registro y promoción de la primera cuenta administradora aún requieren completar la verificación del propietario. RAG y realtime no están implementados. Detalles y evidencia en [handoff](docs/handoff.md) y [módulos 2–3](docs/implementation-modules-2-3.md).
 
 ## Inicio
 
@@ -20,13 +20,14 @@ cp apps/api/.env.example apps/api/.env
 npm run dev
 ```
 
-Web: http://127.0.0.1:3000 · API: http://127.0.0.1:4000/health. La portada funciona sin credenciales; el acceso queda deshabilitado hasta configurar Supabase. `/ready` devuelve 503 mientras no existe conexión de BD. No introducir claves reales en el repositorio.
+Web: http://127.0.0.1:3000 · API: http://127.0.0.1:4000/health. La portada funciona sin credenciales; el acceso requiere configurar Supabase y un perfil. `/ready` devuelve 503 mientras no existe conexión de BD. No introducir claves reales en el repositorio.
 
 Completar variables de cada app y aplicar migraciones sobre una BD de desarrollo vacía/autorizada:
 
 ```bash
 npm run db:validate
 npm run db:deploy
+npm run db:import-spaces -w @campusflow/api
 ```
 
 Runtime usa DATABASE_URL y migraciones DIRECT_URL. Nunca aplicar migraciones por defecto a una base compartida. El esquema `app_private` debe permanecer fuera de los esquemas expuestos por Supabase. Un administrador crea perfiles ligados a UUID de Auth; no existe promoción pública de rol.
@@ -65,3 +66,11 @@ AGENTS.md       contexto obligatorio para asistentes
 - [Estado para continuar entre modelos](docs/handoff.md)
 
 Repositorio público solicitado por el equipo. No contiene información privada ni atribuye una afiliación oficial al producto. La guía original de la hackatón debe verificarse antes de cerrar la entrega.
+
+Para PostgreSQL alojado configurar DATABASE_SSL_CA_FILE con la CA pública incluida, sin desactivar validación TLS. El SQL administrativo de runtime está en docs/sql/runtime-and-auth.sql; establecer su contraseña mediante un canal seguro, nunca en Git. Configurar GROQ_API_KEY solo en apps/api/.env. No ejecutar SQL de aprovisionamiento repetidamente sobre una BD ya configurada.
+
+## Equipo y aceptación
+
+Leonardo continúa frontend/integraciones, Samuel diseño/UX, Tomas n8n y espacios, Deimer API/Auth/IA. [Equipo y Git](docs/team.md). [Matriz oficial de aceptación](docs/rubric-audit.md), [contrato n8n y pendientes](docs/n8n-integration.md), [pitch de ensayo](docs/pitch-rehearsal.md), [RAG PDF/Excel previsto](docs/rag-ingestion-plan.md). El webhook de n8n no se ha recibido; el adaptador está preparado sin simular una ejecución.
+
+Relevo para Leonardo: [inicio y pendientes](docs/LEONARDO_HANDOFF.md). La explicación visual del RAG vive en /#rag; su ingesta y chat aún están pendientes. El usuario decidió continuar con la web y guion hablado en lugar de diapositivas.
