@@ -380,7 +380,7 @@ test("Normalizar: WhatsApp ignora mensajes propios y vacíos", () => {
     ),
   );
   assert.equal(ok.valido, true);
-  assert.equal(ok.replyTo, "57300@s.whatsapp.net");
+  assert.equal(ok.replyTo, "57300");
 });
 
 test("Construir Respuesta: devuelve las 11 salas con REUBICADO_IA", () => {
@@ -581,4 +581,62 @@ test("Normalizar: valida fecha y modo del adaptador de Express", () => {
     normalizar({ reporte: "hola", usuario: "Ana", rol: "DOCENTE" }).modo,
     "EJECUCION",
   );
+});
+
+test("si Gemini omite horas y asistentes, se leen del texto original", () => {
+  const r = motor({
+    entrada: entrada({
+      reporte: "Reserva la sala Azul hoy de 3 a 5 pm, somos dos personas",
+    }),
+    estado: estado(),
+    ia: ia("RESERVA", { sala: "Azul" }),
+  });
+  assert.equal(r.decisionIA.accionEjecutada, "RESERVA_CREADA");
+  assert.equal(r.plan.ops[0].inicio, iso("15:00"));
+  assert.equal(r.plan.ops[0].fin, iso("17:00"));
+  assert.equal(r.plan.ops[0].asistentes, 2);
+});
+
+test("sin datos en ningún lado: pide exactamente lo que falta", () => {
+  const r = motor({
+    entrada: entrada({ reporte: "Quiero reservar la sala Azul" }),
+    estado: estado(),
+    ia: ia("RESERVA", { sala: "Azul" }),
+  });
+  assert.equal(r.plan.ops.length, 0);
+  assert.match(
+    r.decisionIA.explicacion,
+    /hora de inicio, la hora de fin y el número de asistentes/,
+  );
+});
+
+test("el error de Gemini informa la causa sin deformar el texto", () => {
+  const r = motor({
+    entrada: entrada(),
+    estado: estado(),
+    ia: { error: { message: "You exceeded your current quota   status" } },
+  });
+  assert.equal(r.httpStatus, 503);
+  assert.match(
+    r.decisionIA.explicacion,
+    /You exceeded your current quota status/,
+  );
+});
+
+test("WhatsApp: responde al teléfono real si hay, o al JID completo si solo hay LID", () => {
+  const evo = (key) => ({
+    event: "messages.upsert",
+    data: { key: { fromMe: false, ...key }, message: { conversation: "hola" } },
+  });
+  assert.equal(
+    normalizar(evo({ remoteJid: "57300@s.whatsapp.net" })).replyTo,
+    "57300",
+  );
+  assert.equal(
+    normalizar(
+      evo({ remoteJid: "119@lid", remoteJidAlt: "57311@s.whatsapp.net" }),
+    ).replyTo,
+    "57311",
+  );
+  assert.equal(normalizar(evo({ remoteJid: "119@lid" })).replyTo, "119@lid");
 });
