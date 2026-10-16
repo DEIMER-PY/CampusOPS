@@ -8,8 +8,7 @@ export async function PortalView({
   administrative?: boolean;
 }) {
   const client = await serverAuth();
-  if (!client)
-    return <Workspace configured={false} administrative={administrative} />;
+  if (!client) redirect("/login");
   const {
     data: { user },
   } = await client.auth.getUser();
