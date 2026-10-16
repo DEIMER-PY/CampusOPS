@@ -8,6 +8,7 @@ import { authenticate } from "./auth.js";
 import { database } from "./db.js";
 import { hasCapacity } from "./domain/rules.js";
 import { Prisma } from "./generated/prisma/client.js";
+import { operations } from "./operations.js";
 
 export const app = express();
 app.disable("x-powered-by");
@@ -43,6 +44,11 @@ app.get("/ready", async (_req, res) => {
   }
 });
 app.use("/api", authenticate);
+app.use("/api", (_req, res, next) => {
+  res.setHeader("Cache-Control", "private, no-store");
+  next();
+});
+app.use("/api", operations);
 app.get("/api/me", (_req, res) => {
   res.json({ data: res.locals.actor });
 });

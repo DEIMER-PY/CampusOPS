@@ -12,7 +12,8 @@
     "db:generate": "prisma generate",
     "db:validate": "prisma validate",
     "db:deploy": "prisma migrate deploy",
-    "test:integration": "node --import tsx --test tests/concurrency.integration.ts"
+    "test:integration": "node --import tsx --test tests/*.integration.ts",
+    "db:import-spaces": "node --env-file-if-exists=.env --import tsx scripts/import-spaces.ts"
   },
   "dependencies": {
     "express": "5.3.0",
