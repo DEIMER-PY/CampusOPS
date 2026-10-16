@@ -1134,3 +1134,80 @@ test("el clasificador deja pasar a la IA solo lo que no se resuelve con reglas f
     assert.equal(clasificar(conIA).clase, null, conIA);
   }
 });
+
+test("«¿puedo reservar…?» es una pregunta: responde la disponibilidad aunque la IA diga RESERVA", () => {
+  const e = estado([
+    reserva("a", "Apolo", "Software · Apolo", "06:00", "09:00", 34, "06:00"),
+  ]);
+  const r = motor({
+    entrada: entrada({
+      reporte: "puedo reservar el salon apolo de 6 am a 8 am",
+    }),
+    estado: e,
+    ia: ia("RESERVA", { sala: "Apolo", horaInicio: "06:00", horaFin: "08:00" }),
+  });
+  assert.equal(r.decisionIA.titulo, "Apolo está ocupada");
+  assert.equal(r.plan.ops.length, 0);
+  // Una orden directa sigue siendo reserva.
+  const orden = motor({
+    entrada: entrada({
+      reporte: "reserva el salon apolo de 10 am a 11 am para 5 personas",
+    }),
+    estado: e,
+    ia: ia("RESERVA", {
+      sala: "Apolo",
+      horaInicio: "10:00",
+      horaFin: "11:00",
+      asistentes: 5,
+    }),
+  });
+  assert.equal(orden.decisionIA.accionEjecutada, "RESERVA_CREADA");
+});
+
+test("la respuesta de Groq (formato OpenAI) se entiende igual que la de Gemini; un 429 cae al respaldo", () => {
+  const groq = {
+    model: "openai/gpt-oss-20b",
+    choices: [
+      {
+        finish_reason: "stop",
+        message: {
+          content: JSON.stringify({
+            intencion: "CONSULTA",
+            sala: null,
+            horaInicio: "14:00",
+            horaFin: "16:00",
+            fecha: null,
+            asistentes: 10,
+            incidencia: {
+              existe: false,
+              descripcion: null,
+              prioridad: "NONE",
+              areaResponsable: null,
+              inhabilitaSala: false,
+            },
+          }),
+        },
+      },
+    ],
+  };
+  const ok = motor({
+    entrada: entrada({ reporte: "libres de 2 a 4 para 10" }),
+    estado: estado(),
+    ia: groq,
+  });
+  assert.equal(ok.decisionIA.titulo, "Salas disponibles");
+  assert.equal(ok.interpretacionIA.modelo, "openai/gpt-oss-20b");
+  const cortada = {
+    model: "m",
+    choices: [
+      { finish_reason: "length", message: { content: '{"intencion":"RES' } },
+    ],
+  };
+  const mala = motor({
+    entrada: entrada({ reporte: "algo" }),
+    estado: estado(),
+    ia: cortada,
+  });
+  assert.equal(mala.httpStatus, 503);
+  assert.match(mala.decisionIA.explicacion, /finishReason: length/);
+});
