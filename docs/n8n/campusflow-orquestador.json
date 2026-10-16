@@ -354,7 +354,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=http://host.docker.internal:8080/message/sendText/{{ $env.EVOLUTION_INSTANCE_CAMPUSFLOW }}",
+        "url": "=http://host.docker.internal:8080/message/sendText/{{ $env.EVOLUTION_INSTANCE_CAMPUSFLOW || 'campusflow-demo' }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
