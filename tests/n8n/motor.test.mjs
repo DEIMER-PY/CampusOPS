@@ -17,6 +17,14 @@ function ejecutar(nombre, { entrada, estado, ia }) {
   const nodos = { "Normalizar Entrada": entrada, "Leer Estado": { estado } };
   const $ = (n) => ({ first: () => ({ json: nodos[n] }) });
   const $input = { first: () => ({ json: ia }) };
+  if (nombre === "Motor de Reglas") {
+    // Igual que en n8n: antes del motor corre el clasificador de reglas fijas.
+    nodos["Clasificar Mensaje"] = new Function(
+      "$",
+      "$input",
+      codigo("Clasificar Mensaje"),
+    )($, $input)[0].json;
+  }
   return new Function("$", "$input", codigo(nombre))($, $input)[0].json;
 }
 const normalizar = (body) =>
@@ -837,7 +845,8 @@ test("«hola» se saluda aunque Gemini invente una incidencia; no registra nada"
   const r = charla("hola", incidenciaInventada);
   assert.equal(r.decisionIA.titulo, "¡Hola, Tomas Esteban Gonzalez!");
   assert.match(r.decisionIA.explicacion, /asistente de agenda de CampusFlow/);
-  assert.match(r.decisionIA.explicacion, /Reserva la sala Azul/);
+  assert.match(r.decisionIA.explicacion, /Responde con un número/);
+  assert.match(r.decisionIA.explicacion, /1️⃣ Reservar una sala/);
   assert.equal(r.plan.ops.length, 0);
   assert.equal(r.incidenciaDetectada.existe, false);
   assert.equal(r.ejecucion, "SIN_CAMBIOS");
@@ -1055,4 +1064,73 @@ test("si además hay violencia, gana la emergencia y se aclara que el chat no es
     /Este chat es solo para gestionar salas/,
   );
   assert.equal(r.plan.ops.find((o) => o.op === "incident").area, "SEGURIDAD");
+});
+
+const clasificar = (reporte, estadoBase = estado()) =>
+  new Function("$", codigo("Clasificar Mensaje"))((n) => ({
+    first: () => ({
+      json: {
+        "Normalizar Entrada": entrada({ reporte }),
+        "Leer Estado": { estado: estadoBase },
+      }[n],
+    }),
+  }))[0].json;
+
+test("el menú numerado: cada opción responde con su guía y la 4 lista las reservas propias", () => {
+  const guia = (n) => charla(String(n), ia("CONSULTA"));
+  assert.equal(guia(1).decisionIA.titulo, "Reservar una sala");
+  assert.match(
+    guia(1).decisionIA.explicacion,
+    /Reserva la sala Azul mañana de 3 a 5 pm para 2 personas/,
+  );
+  assert.equal(guia(2).decisionIA.titulo, "Reportar una incidencia");
+  assert.match(guia(2).decisionIA.explicacion, /en qué sala/);
+  assert.equal(guia(3).decisionIA.titulo, "Ver salas libres");
+  const e = estado([
+    reserva(
+      "a",
+      "Azul",
+      "Tomas Esteban Gonzalez",
+      "14:00",
+      "15:00",
+      3,
+      "07:00",
+    ),
+  ]);
+  const mis = charla("4", ia("CONSULTA"), {}, e);
+  assert.equal(mis.decisionIA.titulo, "Mis reservas");
+  assert.match(mis.decisionIA.explicacion, /Azul hoy de 14:00 a 15:00/);
+  assert.equal(
+    charla("mis reservas", ia("CONSULTA")).decisionIA.explicacion,
+    "No tienes reservas próximas a tu nombre.",
+  );
+  for (const palabra of ["reservar", "incidencia", "disponibilidad"]) {
+    assert.equal(guia(palabra).plan.ops.length, 0);
+  }
+  assert.equal(
+    charla("reservar", ia("RESERVA")).decisionIA.titulo,
+    "Reservar una sala",
+  );
+});
+
+test("el clasificador deja pasar a la IA solo lo que no se resuelve con reglas fijas", () => {
+  for (const local of [
+    "hola",
+    "1",
+    "quien soy",
+    "gracias",
+    "eres un idiota",
+    "el profe mató a alguien",
+    "ayuda",
+  ]) {
+    assert.ok(clasificar(local).clase, local);
+  }
+  for (const conIA of [
+    "Necesito Apolo hoy de 3 a 5 pm para 20 personas",
+    "El proyector de Skilab no funciona",
+    "mira si puedo reservar para mañana",
+    "La clase en Cosmos se extiende hasta las 11:30",
+  ]) {
+    assert.equal(clasificar(conIA).clase, null, conIA);
+  }
 });
