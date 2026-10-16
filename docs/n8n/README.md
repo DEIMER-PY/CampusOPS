@@ -1,0 +1,86 @@
+# Flujo n8n: orquestador de espacios
+
+Implementa el contrato de [CONTRATO_N8N_FRONTEND.md](../../CONTRATO_N8N_FRONTEND.md) y añade WhatsApp (Evolution API) como segundo canal. **La fuente de verdad es PostgreSQL de CampusFlow (`app_private`, Prisma)**: n8n no guarda estado propio.
+
+| Archivo | Contenido |
+|---|---|
+| `campusflow-orquestador.json` | Workflow importable (20 nodos). |
+| `../../apps/api/prisma/migrations/20261016150000_n8n_agenda/` | Migración: columnas de `Reservation`, perfil de servicio, funciones `n8n_state()` y `n8n_apply_plan()`. |
+| `../sql/n8n-runtime.sql` | Rol `n8n_runtime` (solo `EXECUTE` de las dos funciones; sin acceso a tablas). |
+| `../../tests/n8n/motor.test.mjs` | 16 pruebas del código real del workflow (`node --test tests/n8n/motor.test.mjs`). |
+
+## Arquitectura
+
+```text
+Frontend  POST /webhook/campusflow ───────────┐
+WhatsApp  POST /webhook/campusflow-whatsapp ──┤ (Evolution MESSAGES_UPSERT)
+                                              ▼
+                  Normalizar Entrada (valida contrato; ignora eco/mensajes vacíos)
+                                              ▼
+        Leer Estado: SELECT app_private.n8n_state()  ─► Preparar Consulta IA
+                                              ▼
+              Gemini (interpreta texto → JSON con esquema) ─ si falla ─► Gemini de respaldo
+                                              ▼
+              Motor de Reglas (código determinista: la IA NO decide)
+                                              ▼
+        Aplicar Plan: SELECT app_private.n8n_apply_plan(plan)   (una transacción, auditada)
+                                              ▼
+              Leer Estado Final ─► Construir Respuesta ─┬─► Responder Frontend (JSON del contrato)
+                                                        └─► Enviar WhatsApp (Evolution API)
+```
+
+**Papel de la IA:** Gemini solo convierte el reporte en lenguaje natural en `{intencion, sala, horas, asistentes, incidencia}` con `responseSchema`, temperatura 0 y el texto del usuario tratado como dato. La salida se valida contra enums y nombres de sala. Si Gemini falla o responde fuera del esquema: HTTP 503, `tipoAlerta: ERROR` y **ningún cambio**.
+
+**Reglas de negocio** (en `Motor de Reglas`; la base vuelve a comprobarlas bajo bloqueo):
+
+1. **Aforo:** asistentes ≤ capacidad (también en `n8n_apply_plan`).
+2. **Sin solapes:** intervalos `[inicio, fin)`; los contiguos son válidos (exclusión GiST `Reservation_no_overlap`).
+3. **Estado del espacio:** `DISABLED` (sin habilitar) y `MAINTENANCE` no se asignan.
+4. **FIFO:** conserva el espacio quien reservó primero (`createdAt`). Una extensión que choca con una reserva posterior la reubica en la sala libre de menor aforo suficiente; si no hay, se rechaza sin cambios.
+5. **Incidencia grave** (`HIGH`/`CRITICAL` e inhabilita el espacio): pasa a `MAINTENANCE` y reubica sus reservas pendientes. La incidencia se guarda en `Incident` (`aiStatus=COMPLETE`, `triage` con prioridad y área).
+
+Cada operación escribe un `AuditEvent` en la misma transacción (`n8n.reservation.created|relocated|extended`, `n8n.space.maintenance`, `n8n.incident.created`).
+
+## Mapeo a las tablas existentes
+
+| Flujo | Tabla Prisma |
+|---|---|
+| Sala | `Space` (`AVAILABLE`→DISPONIBLE, `MAINTENANCE`→MANTENIMIENTO, `DISABLED`→se muestra como MANTENIMIENTO con nota «Sin habilitar por el operador») |
+| Reserva | `Reservation` + `requesterName`, `source` (`N8N_FRONTEND`, `N8N_WHATSAPP`, `IMPORT`), `note`, `relocatedFrom` |
+| Incidencia | `Incident` |
+| Actor de escritura | Perfil de servicio `00000000-0000-4000-8000-00000000cf01` (no existe en `auth.users`; no puede iniciar sesión) |
+
+**Limitación de identidad:** quien escribe por WhatsApp se identifica con su nombre de perfil, sin verificar. Queda en `requesterName`; no es una identidad autenticada ni concede permisos. Integrar con el token de Supabase cuando el canal lo permita.
+
+## Puesta en marcha (coordinar con Leonardo y Deimer)
+
+1. **Migración** (credencial `DIRECT_URL`, nunca la de runtime): `npm run db:deploy`. Es aditiva (columnas nuevas con valor por defecto, un perfil y dos funciones).
+2. **Rol de n8n:** aplicar `docs/sql/n8n-runtime.sql` y poner contraseña fuera de Git: `ALTER ROLE n8n_runtime LOGIN PASSWORD '<generada>';`.
+3. **Catálogo y habilitación:** `npm run db:import-spaces -w @campusflow/api`. Las salas llegan `DISABLED`; el operador autorizado las habilita tras revisarlas, por ejemplo `UPDATE app_private."Space" SET status = 'AVAILABLE' WHERE name = '...';`. Mientras estén `DISABLED` el flujo rechaza reservas, a propósito.
+4. **n8n:** importar `campusflow-orquestador.json`, crear la credencial Postgres con el **pooler de Supabase** (usuario `n8n_runtime.<project-ref>`, SSL requerido) y asignarla en `Leer Estado`, `Aplicar Plan` y `Leer Estado Final`. Credenciales de los webhooks (Header Auth) y de Gemini (`x-goog-api-key`) en n8n; nada de claves en el repositorio.
+5. **Variables de n8n:** `EVOLUTION_API_KEY` (y opcional `EVOLUTION_INSTANCE_CAMPUSFLOW`, por defecto `campusflow-demo`). Requiere `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`.
+6. **Evolution API:** instancia propia, webhook hacia `/webhook/campusflow-whatsapp` (evento `MESSAGES_UPSERT`, con el header de autenticación).
+7. Activar el workflow.
+
+## Verificación hecha
+
+- `python -m automation validate docs/n8n/campusflow-orquestador.json`: válido, 0 errores, seguridad limpia (un aviso: sin `errorWorkflow`).
+- `node --test tests/n8n/motor.test.mjs`: 16/16.
+- Las 5 migraciones aplicadas en orden sobre un PostgreSQL 17 desechable y las funciones probadas contra las tablas reales: insert, solape rechazado (exclusión GiST), aforo y sala sin habilitar rechazados, atomicidad (un paso inválido no deja nada), incidencia + mantenimiento + auditoría, y dos inserciones simultáneas del mismo intervalo → exactamente una aceptada.
+- Rol `n8n_runtime`: puede llamar las dos funciones y se le niega leer o escribir tablas (`Reservation`, `Space`, `Profile`); `anon` sin acceso.
+
+**No verificado:** nada contra Supabase real, ni la ejecución de extremo a extremo en n8n con Gemini y Evolution reales, ni la UI web mostrando estas reservas. Prisma `generate`/`validate` y `npm run check` no se ejecutaron en esta rama.
+
+## Diferencias respecto al contrato
+
+- Respuesta con `status: "error"` y HTTP 503 (IA) / 409 (conflicto concurrente) / 400 (entrada inválida, con `errores[]`).
+- `accionEjecutada`: `NINGUNA`, `RESERVA_CREADA`, `EXTENSION_APLICADA`, `REUBICACION_AUTOMATICA`, `SALA_EN_MANTENIMIENTO`, `SOLICITUD_RECHAZADA`.
+- Campo adicional `interpretacionIA: { intencion, modelo }`.
+- `horario` es de hoy en `America/Bogota`.
+
+## Pendientes y decisiones abiertas
+
+- **Modo propuesta:** `docs/n8n-integration.md` y el adaptador de Express asumen que n8n solo propone (`N8N_MODE=proposal`) y Express aplica. Este flujo **escribe** a través de `n8n_apply_plan` (transaccional y auditado), no por tablas. Decidir con Deimer si el canal del frontend pasa a propuesta.
+- El adaptador envía `Authorization: Bearer <secreto>`: usar una credencial Header Auth con ese formato en el webhook del frontend.
+- Horarios oficiales de salones: se cargan como reservas `IMPORT` con un script privado (no versionado: contiene nombres de docentes). Faltan datos de «Sala Nueva», la cohorte D3 Feb-26 y el aforo de Sputnik.
+- Registrar la deriva de esquema en `docs/handoff.md` cuando se integre.

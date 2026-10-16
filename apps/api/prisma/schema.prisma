@@ -52,6 +52,10 @@ model Reservation {
   participants Json?
   purpose String
   cancelledAt DateTime? @db.Timestamptz
+  requesterName String?
+  source String @default("WEB")
+  note String?
+  relocatedFrom String?
   createdAt DateTime @default(now()) @db.Timestamptz
   space Space @relation(fields: [spaceId], references: [id])
   user Profile @relation(fields: [userId], references: [id])
