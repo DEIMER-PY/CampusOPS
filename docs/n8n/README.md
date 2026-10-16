@@ -52,7 +52,7 @@ WhatsApp  POST /webhook/campusflow-whatsapp ──┤ (Evolution MESSAGES_UPSERT
    - `CampusFlow Postgres` (`postgres`): host y puerto del **pooler de Supabase** (Connect → Session pooler), usuario `n8n_runtime.<project-ref>`, base `postgres`, SSL activado.
 4. **Variables de entorno de n8n:** `EVOLUTION_API_KEY` y `EVOLUTION_INSTANCE_CAMPUSFLOW` (instancia propia del proyecto, no la de otro asistente). Requiere `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`.
 5. **Evolution API:** webhook de la instancia hacia `http://host.docker.internal:5678/webhook/campusflow-whatsapp`, evento `MESSAGES_UPSERT`, con el header de autenticación.
-6. Activar el workflow. Los modelos de Gemini están en los nodos `Gemini Interprete` y `Gemini Respaldo`; cambiarlos ahí si un modelo deja de estar disponible.
+6. Activar el workflow. Los modelos de Gemini están en los nodos `Gemini Interprete` (`gemini-flash-lite-latest`) y `Gemini Respaldo` (`gemini-flash-latest`); cambiarlos ahí si un modelo deja de estar disponible.
 
 Ninguna clave va en el repositorio. Los datos de ejemplo se crean solo con solicitudes reales al flujo.
 
