@@ -916,3 +916,98 @@ test("una «incidencia» sobre un mensaje mínimo se trata como conversación", 
   assert.equal(corto.plan.ops.length, 0);
   assert.equal(corto.decisionIA.titulo, "Cómo puedo ayudarte");
 });
+
+const emergencia = (reporte, iaResp) =>
+  motor({
+    entrada: entrada({ reporte, usuario: "Emi" }),
+    estado: estado(),
+    ia: iaResp,
+  });
+const asepsia = ia("INCIDENCIA", {
+  incidencia: {
+    existe: true,
+    descripcion: "silla sucia",
+    prioridad: "CRITICAL",
+    areaResponsable: "ASEO",
+    inhabilitaSala: false,
+  },
+});
+
+test("violencia en el texto: se registra CRÍTICO para Seguridad (no Aseo) y se orienta a llamar al 123", () => {
+  const r = emergencia(
+    "me cagué en una silla y el profe mató un compañero",
+    asepsia,
+  );
+  const incidente = r.plan.ops.find((o) => o.op === "incident");
+  assert.equal(incidente.prioridad, "CRITICAL");
+  assert.equal(incidente.area, "SEGURIDAD");
+  assert.equal(r.decisionIA.titulo, "Reporte de emergencia registrado");
+  assert.equal(r.decisionIA.tipoAlerta, "WARNING");
+  assert.match(r.decisionIA.explicacion, /123/);
+  assert.equal(r.incidenciaDetectada.areaResponsable, "SEGURIDAD");
+});
+
+test("la emergencia se atiende aunque Gemini falle o la tome por conversación", () => {
+  const caida = emergencia("hay un herido en el auditorio, mucha sangre", {
+    error: { message: "503" },
+  });
+  assert.equal(caida.httpStatus, 200);
+  assert.equal(
+    caida.plan.ops.find((o) => o.op === "incident").area,
+    "SEGURIDAD",
+  );
+  const charla = emergencia(
+    "hola, me hicieron una amenaza",
+    ia("CONVERSACION"),
+  );
+  assert.equal(
+    charla.plan.ops.find((o) => o.op === "incident").prioridad,
+    "CRITICAL",
+  );
+});
+
+test("riesgo para la salud mental: Bienestar y mensaje de acompañamiento", () => {
+  const r = emergencia("hola, no quiero vivir más", ia("CONSULTA"));
+  assert.equal(r.plan.ops.find((o) => o.op === "incident").area, "BIENESTAR");
+  assert.match(r.decisionIA.explicacion, /Lamento que estés pasando por esto/);
+  assert.match(r.decisionIA.explicacion, /123/);
+});
+
+test("fuego o humo en una sala: Seguridad y la sala se nombra desde el texto", () => {
+  const r = emergencia("sale humo del salón Cosmos", ia("CONSULTA"));
+  const incidente = r.plan.ops.find((o) => o.op === "incident");
+  assert.equal(incidente.area, "SEGURIDAD");
+  assert.equal(incidente.sala, "Cosmos");
+});
+
+test("un daño normal no dispara la guía de emergencia y el mensaje repite lo entendido", () => {
+  const r = motor({
+    entrada: entrada({ reporte: "El proyector de la sala Skilab no funciona" }),
+    estado: estado(),
+    ia: ia("INCIDENCIA", {
+      sala: "Skilab",
+      incidencia: {
+        existe: true,
+        descripcion: "El proyector de Skilab no funciona",
+        prioridad: "LOW",
+        areaResponsable: "TECNOLOGIA",
+        inhabilitaSala: false,
+      },
+    }),
+  });
+  assert.equal(r.decisionIA.titulo, "Incidencia registrada");
+  assert.doesNotMatch(r.decisionIA.explicacion, /123/);
+  assert.match(
+    r.decisionIA.explicacion,
+    /«El proyector de Skilab no funciona»/,
+  );
+  assert.match(r.decisionIA.explicacion, /área Tecnología/);
+});
+
+test("palabras parecidas sin riesgo real (mate, matemáticas) no activan la emergencia", () => {
+  const r = emergencia(
+    "quiero reservar para la clase de matemáticas con mate",
+    ia("CONSULTA"),
+  );
+  assert.equal(r.plan.ops.length, 0);
+});
