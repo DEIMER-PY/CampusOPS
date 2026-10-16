@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: CampusFlow API
   version: 0.1.0
-  description: Contrato del bootstrap; préstamos, IA y RAG aún no disponibles.
+  description: Contrato de espacios, reservas, recursos y préstamos/devoluciones transaccionales; IA y RAG aún no disponibles.
 servers:
   - url: http://127.0.0.1:4000
 security:
@@ -24,6 +24,7 @@ components:
           properties:
             code: { type: string }
             message: { type: string }
+            reason: { type: string }
     ReservationInput:
       type: object
       additionalProperties: false
@@ -34,6 +35,12 @@ components:
         endAt: { type: string, format: date-time }
         attendees: { type: integer, minimum: 1 }
         purpose: { type: string, minLength: 3, maxLength: 300 }
+    LoanInput:
+      type: object
+      additionalProperties: false
+      required: [resourceId]
+      properties:
+        resourceId: { type: string, format: uuid }
 paths:
   /health:
     get:
@@ -85,6 +92,62 @@ paths:
         '401': { description: Sesión ausente o inválida }
         '403': { description: Perfil no habilitado }
         '409': { description: Conflicto de aforo, estado u horario }
+        '503': { description: Servicio no disponible }
+  /api/resources:
+    get:
+      summary: Recursos persistidos ordenados por nombre
+      responses:
+        '200': { description: Listado ordenado por nombre }
+        '401': { description: Sesión ausente o inválida }
+        '403': { description: Perfil no habilitado }
+        '503': { description: Servicio no disponible }
+  /api/loans:
+    get:
+      summary: Últimos 50 préstamos propios; operadores y administradores consultan todos
+      responses:
+        '200': { description: Préstamos persistidos con recurso }
+        '401': { description: Sesión ausente o inválida }
+        '403': { description: Perfil no habilitado }
+        '503': { description: Servicio no disponible }
+    post:
+      summary: Préstamo para el usuario del token con bloqueo del recurso y auditoría atómica
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoanInput' }
+      responses:
+        '201': { description: Préstamo y evento de auditoría persistidos }
+        '400': { description: Entrada inválida }
+        '401': { description: Sesión ausente o inválida }
+        '403': { description: Perfil no habilitado }
+        '409': { description: Recurso inhabilitado, no encontrado o ya prestado }
+        '503': { description: Servicio no disponible }
+  /api/loans/{id}/return:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      summary: Registra la devolución del préstamo con bloqueo y auditoría atómica
+      responses:
+        '200': { description: Devolución y evento de auditoría persistidos }
+        '400': { description: Identificador de préstamo inválido }
+        '401': { description: Sesión ausente o inválida }
+        '403': { description: Perfil no habilitado o préstamo de otro usuario sin rol operador/administrador }
+        '404': { description: Préstamo no encontrado }
+        '409': { description: Devolución duplicada rechazada }
+        '503': { description: Servicio no disponible }
+    patch:
+      summary: Registra la devolución del préstamo con bloqueo y auditoría atómica
+      responses:
+        '200': { description: Devolución y evento de auditoría persistidos }
+        '400': { description: Identificador de préstamo inválido }
+        '401': { description: Sesión ausente o inválida }
+        '403': { description: Perfil no habilitado o préstamo de otro usuario sin rol operador/administrador }
+        '404': { description: Préstamo no encontrado }
+        '409': { description: Devolución duplicada rechazada }
         '503': { description: Servicio no disponible }
   /api/admin/audit:
     get:

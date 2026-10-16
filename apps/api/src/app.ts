@@ -8,6 +8,7 @@ import { authenticate } from "./auth.js";
 import { database } from "./db.js";
 import { hasCapacity } from "./domain/rules.js";
 import { Prisma } from "./generated/prisma/client.js";
+import { createLoan, returnLoan } from "./services/loans.js";
 
 export const app = express();
 app.disable("x-powered-by");
@@ -122,6 +123,83 @@ app.post("/api/reservations", async (req, res) => {
   }
   res.status(201).json({ data: result });
 });
+app.get("/api/resources", async (_req, res) => {
+  res.json({
+    data: await database().resource.findMany({ orderBy: { name: "asc" } }),
+  });
+});
+app.get("/api/loans", async (_req, res) => {
+  const actor = res.locals.actor;
+  res.json({
+    data: await database().loan.findMany({
+      where: actor.role === "CLIENT" ? { userId: actor.id } : {},
+      take: 50,
+      orderBy: { createdAt: "desc" },
+      include: { resource: true },
+    }),
+  });
+});
+const loanInput = z
+  .object({
+    resourceId: z.uuid(),
+  })
+  .strict();
+app.post("/api/loans", async (req, res) => {
+  const input = loanInput.parse(req.body);
+  const outcome = await createLoan(
+    database(),
+    res.locals.actor,
+    input.resourceId,
+  );
+  if (!outcome.ok) {
+    res.status(409).json({
+      error: {
+        code: "LOAN_CONFLICT",
+        message: "Revisa el estado y la disponibilidad del recurso.",
+        reason: outcome.reason,
+      },
+    });
+    return;
+  }
+  res.status(201).json({ data: outcome.data });
+});
+const loanParams = z.object({
+  id: z.uuid(),
+});
+const handleLoanReturn: express.RequestHandler = async (req, res) => {
+  const params = loanParams.parse(req.params);
+  const outcome = await returnLoan(database(), res.locals.actor, params.id);
+  if (!outcome.ok) {
+    if (outcome.reason === "LOAN_NOT_FOUND") {
+      res.status(404).json({
+        error: {
+          code: "LOAN_NOT_FOUND",
+          message: "Préstamo no encontrado.",
+        },
+      });
+      return;
+    }
+    if (outcome.reason === "FORBIDDEN") {
+      res.status(403).json({
+        error: {
+          code: "FORBIDDEN",
+          message: "No tienes permiso para devolver este préstamo.",
+        },
+      });
+      return;
+    }
+    res.status(409).json({
+      error: {
+        code: "LOAN_ALREADY_RETURNED",
+        message: "El préstamo ya fue devuelto previamente.",
+      },
+    });
+    return;
+  }
+  res.json({ data: outcome.data });
+};
+app.post("/api/loans/:id/return", handleLoanReturn);
+app.patch("/api/loans/:id/return", handleLoanReturn);
 app.get("/api/admin/audit", async (_req, res) => {
   if (res.locals.actor.role !== "ADMIN") {
     res.status(403).json({

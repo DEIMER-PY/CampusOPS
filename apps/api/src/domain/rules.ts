@@ -9,3 +9,22 @@ export function overlaps(
 ): boolean {
   return start < otherEnd && end > otherStart;
 }
+export function canLoanResource(
+  status: string,
+  hasActiveLoan: boolean,
+): boolean {
+  return status === "AVAILABLE" && !hasActiveLoan;
+}
+export function canReturnLoan(returnedAt: Date | null): boolean {
+  return returnedAt === null;
+}
+export function canActorReturnLoan(
+  loanUserId: string,
+  actor: { id: string; role: string },
+): boolean {
+  return (
+    actor.id === loanUserId ||
+    actor.role === "OPERATOR" ||
+    actor.role === "ADMIN"
+  );
+}
