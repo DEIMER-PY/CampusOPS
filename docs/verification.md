@@ -39,3 +39,7 @@ Adaptador n8n ampliado con casos de configuración/URL, modo incorrecto, red/HTT
 CI ahora incluye jobs Windows/macOS además de Linux con PostgreSQL; su ejecución remota debe consultarse en Actions. No se realizaron pruebas locales Windows/macOS. La falta de runs anteriores en esta rama se explica por el trigger previo, limitado a develop/main y PR; se añadió feature/**.
 
 Documentación reproducible: docs/GETTING_STARTED.md y docs/TESTING.md. Neural Routing es el nombre del equipo; su imagen de presentación no acredita capacidades de entrenamiento ni optimización de redes.
+
+### Ajuste tras CI sin credenciales
+
+CI detectó que /portal, sin configurar Supabase, mostraba el shell desconectado en vez de redirigir. Se unificó el acceso: sin cliente Auth o sin sesión, redirige a /login, donde el estado sin configuración ya deshabilita credenciales. No se omitió ni relajó el test de protección del portal. Requiere consultar el siguiente resultado remoto de CI.
