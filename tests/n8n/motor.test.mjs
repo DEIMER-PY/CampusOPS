@@ -278,7 +278,10 @@ test("R5 incidencia crítica inhabilita la sala y reubica sus reservas", () => {
     inhabilitaSala: true,
   };
   const r = motor({
-    entrada: entrada({ salaActual: "Cosmos" }),
+    entrada: entrada({
+      salaActual: "Cosmos",
+      reporte: "Hay una inundación en Cosmos y no se puede usar la sala",
+    }),
     estado: e,
     ia: ia("INCIDENCIA", { sala: "Cosmos", incidencia }),
   });
@@ -300,7 +303,7 @@ test("incidencia leve solo se registra", () => {
     inhabilitaSala: false,
   };
   const r = motor({
-    entrada: entrada(),
+    entrada: entrada({ reporte: "El marcador de la sala Apolo está gastado" }),
     estado: estado(),
     ia: ia("INCIDENCIA", { sala: "Apolo", incidencia }),
   });
@@ -812,4 +815,104 @@ test("la lista de salas libres dice también cuáles están ocupadas y aclara Az
   assert.match(texto, /Ocupadas en ese horario: Apolo, Azul\./);
   assert.match(texto, /Fuera de servicio: Verdes\./);
   assert.match(texto, /Azul y Azules son salas distintas/);
+});
+
+const charla = (reporte, iaResp, extra = {}, est = estado()) =>
+  motor({
+    entrada: entrada({ reporte, usuario: "Tomas Esteban Gonzalez", ...extra }),
+    estado: est,
+    ia: iaResp,
+  });
+const incidenciaInventada = ia("INCIDENCIA", {
+  incidencia: {
+    existe: true,
+    descripcion: "hola",
+    prioridad: "LOW",
+    areaResponsable: "ADMINISTRATIVA",
+    inhabilitaSala: false,
+  },
+});
+
+test("«hola» se saluda aunque Gemini invente una incidencia; no registra nada", () => {
+  const r = charla("hola", incidenciaInventada);
+  assert.equal(r.decisionIA.titulo, "¡Hola, Tomas Esteban Gonzalez!");
+  assert.match(r.decisionIA.explicacion, /asistente de agenda de CampusFlow/);
+  assert.match(r.decisionIA.explicacion, /Reserva la sala Azul/);
+  assert.equal(r.plan.ops.length, 0);
+  assert.equal(r.incidenciaDetectada.existe, false);
+  assert.equal(r.ejecucion, "SIN_CAMBIOS");
+});
+
+test("un saludo se contesta incluso si Gemini falla (no se llama a la IA para saludar)", () => {
+  const r = charla("Buenos días", { error: { message: "503" } });
+  assert.equal(r.httpStatus, 200);
+  assert.match(r.decisionIA.titulo, /^¡Hola,/);
+  assert.equal(r.interpretacionIA.modelo, null);
+});
+
+test("«quién soy» dice nombre, tipo de solicitante, que no está verificado y sus reservas", () => {
+  const e = estado([
+    reserva(
+      "a",
+      "Azul",
+      "Tomas Esteban Gonzalez",
+      "14:00",
+      "15:00",
+      3,
+      "07:00",
+    ),
+  ]);
+  const r = charla("quien soy", ia("CONSULTA"), { rol: "DOCENTE" }, e);
+  assert.equal(r.decisionIA.titulo, "Tu perfil");
+  assert.match(
+    r.decisionIA.explicacion,
+    /Te veo como Tomas Esteban Gonzalez, solicitante docente/,
+  );
+  assert.match(r.decisionIA.explicacion, /no está verificado/);
+  assert.match(r.decisionIA.explicacion, /Azul hoy de 14:00 a 15:00/);
+  const sin = charla("¿quién soy?", ia("CONSULTA"));
+  assert.match(sin.decisionIA.explicacion, /No tienes reservas próximas/);
+});
+
+test("ayuda, «quién eres» y gracias tienen respuesta propia", () => {
+  assert.equal(
+    charla("ayuda", ia("CONSULTA")).decisionIA.titulo,
+    "Cómo puedo ayudarte",
+  );
+  assert.equal(
+    charla("quién eres?", ia("CONSULTA")).decisionIA.titulo,
+    "Soy el asistente de agenda de CampusFlow",
+  );
+  assert.equal(
+    charla("gracias", ia("CONSULTA")).decisionIA.titulo,
+    "¡Con gusto!",
+  );
+});
+
+test("un mensaje sin relación que Gemini marca CONVERSACION recibe la guía de ayuda", () => {
+  const r = charla("cuéntame un chiste de gatos", ia("CONVERSACION"));
+  assert.equal(r.decisionIA.titulo, "Cómo puedo ayudarte");
+  assert.match(r.decisionIA.explicacion, /No tengo claro qué necesitas/);
+});
+
+test("saludo con una solicitud real NO es solo conversación: se procesa la reserva", () => {
+  const r = charla(
+    "hola, reserva la sala Azul hoy de 3 a 5 pm para 2 personas",
+    ia("RESERVA", {
+      sala: "Azul",
+      horaInicio: "15:00",
+      horaFin: "17:00",
+      asistentes: 2,
+    }),
+  );
+  assert.equal(r.decisionIA.accionEjecutada, "RESERVA_CREADA");
+});
+
+test("una «incidencia» sobre un mensaje mínimo se trata como conversación", () => {
+  const r = charla("hola?", incidenciaInventada);
+  assert.equal(r.plan.ops.length, 0);
+  assert.match(r.decisionIA.titulo, /^¡Hola,/);
+  const corto = charla("jj", incidenciaInventada);
+  assert.equal(corto.plan.ops.length, 0);
+  assert.equal(corto.decisionIA.titulo, "Cómo puedo ayudarte");
 });
