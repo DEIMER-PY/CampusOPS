@@ -772,3 +772,21 @@ test("consultar «mañana» no usa las reservas de hoy", () => {
   assert.equal(r.decisionIA.titulo, "Azul está libre");
   assert.match(r.decisionIA.explicacion, /el 17\/10/);
 });
+
+test("consultar otro día sin hora: pide el horario en vez de usar la hora actual", () => {
+  const r = motor({
+    entrada: entrada({ reporte: "y para mañana" }),
+    estado: estado(),
+    ia: ia("CONSULTA"),
+  });
+  assert.equal(r.decisionIA.titulo, "Indica el horario");
+  assert.match(r.decisionIA.explicacion, /el 17\/10/);
+  assert.equal(r.plan.ops.length, 0);
+  // Hoy sin hora sigue usando la ventana de la próxima hora.
+  const hoy = motor({
+    entrada: entrada({ reporte: "qué hay libre" }),
+    estado: estado(),
+    ia: ia("CONSULTA"),
+  });
+  assert.equal(hoy.decisionIA.titulo, "Salas disponibles");
+});
