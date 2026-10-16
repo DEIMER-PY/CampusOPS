@@ -380,7 +380,7 @@ test("Normalizar: WhatsApp ignora mensajes propios y vacíos", () => {
     ),
   );
   assert.equal(ok.valido, true);
-  assert.equal(ok.replyTo, "57300");
+  assert.equal(ok.replyTo, "57300@s.whatsapp.net");
 });
 
 test("Construir Respuesta: devuelve las 11 salas con REUBICADO_IA", () => {
