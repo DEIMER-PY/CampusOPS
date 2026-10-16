@@ -103,7 +103,7 @@ components:
     rounded: "{rounded.badge}"
     padding: "5px 11px"
   incident-card:
-    backgroundColor: "#191919"
+    backgroundColor: "{colors.panel}"
     textColor: "{colors.text}"
     rounded: "{rounded.panel}"
     padding: "23px"
@@ -127,7 +127,7 @@ La portada aprobada usa una composición de producto primero; el dashboard Opera
 
 Fuente de extracción: `src/app/globals.css`, `src/app/layout.tsx`, componentes de workspace y movimiento. El frontmatter es normativo para los patrones reutilizados; no pretende enumerar todos los valores puntuales del CSS. Contexto de producto en `PRODUCT.md`; contrato y evidencia en `../../docs/design-review.md`.
 
-No se conservaron state/spec ni gates medidos comp-led antes de implementar. Este registro describe el código actual y la dirección aprobada, sin reconstruir esos gates ni certificar reproducción pixel-perfect. El kit Figma no fue accesible. Autenticación real con cuenta humana administrativa sigue pendiente según handoff.
+No se conservaron state/spec ni gates medidos comp-led antes de implementar. Este registro describe el código actual y la dirección aprobada, sin reconstruir esos gates ni certificar reproducción pixel-perfect. El kit Figma no fue accesible. En la revisión actual del prototipo, el integrador comprobó una sesión humana ADMIN real en navegador; las menciones de registro pendiente en documentos anteriores no describen esa comprobación. Su alcance y los límites de las capturas actuales quedan en `../../docs/design-review.md`.
 
 ## Colors
 
@@ -177,11 +177,13 @@ Bajo 640px, navegación operativa horizontal desplazable, cabecera (58px), paddi
 
 El ritmo varía por superficie: separaciones compactas para formularios, paneles contenidos y secciones amplias en portada. Los tokens de spacing son pasos observados, no una obligación de convertir todas las distancias a una única retícula.
 
+El refinamiento operativo añade un corte (750px) para apilar filtros y resumen; desde 1100px el formulario de incidencias permanece visible junto a una cola más ancha. El login ordena formulario antes del panel de identidad en escritorio e incorpora el robot suministrado por el usuario. Estas reglas describen el CSS; las capturas actuales etiquetadas como móvil incluyen archivos de 1018px de ancho y no certifican todavía el comportamiento a ancho móvil real.
+
 ## Elevation & Depth
 
-Superficies planas, bordes discretos y cambios de tono. Sin sombras en el CSS vigente. El preview usa perspectiva (1800px) y una inclinación inicial (2.2deg) que disminuye hasta cero en los primeros 600px de scroll; es una expresión de portada, no elevación de tarjetas operativas. Lenis solo se monta en landing (duración 1.05s). Las transiciones de botón usan 0.2s; el indicador de carga gira en 1s lineal. La preferencia de reducción de movimiento desactiva transiciones, animaciones y tilt, y evita montar Lenis.
+Superficies planas, bordes discretos y cambios de tono. El calendario incorpora una excepción funcional: su popover elevado usa `box-shadow: 0 16px 40px #0008` para distinguir la capa superpuesta del formulario; las tarjetas y filas siguen siendo planas. El preview usa perspectiva (1800px) y una inclinación inicial (2.2deg) que disminuye hasta cero en los primeros 600px de scroll; es una expresión de portada, no elevación de tarjetas operativas. Lenis solo se monta en landing (duración 1.05s). Las transiciones de botón usan 0.2s; el indicador de carga gira en 1s lineal. La preferencia de reducción de movimiento desactiva transiciones, animaciones y tilt, y evita montar Lenis.
 
-**The Tonal Depth Rule.** Separar superficies por tono y borde antes de introducir sombras. El CSS vigente no usa box-shadow.
+**The Tonal Depth Rule.** Separar superficies por tono y borde antes de introducir sombras. Reservar la sombra observada del calendario para distinguir su capa superpuesta.
 
 ## Shapes
 
@@ -213,6 +215,26 @@ La navegación de portada enlaza a secciones y se oculta en móvil; la de operac
 
 La propuesta IA se presenta dentro de su incidencia: separador, estado, categoría/prioridad/área, explicación y trazabilidad disponibles. Carga, vacío, error y reintento explican el estado real. La carga usa resultados independientes (Promise.allSettled): el fallo de un módulo se informa sin bloquear otros resultados. No representar como finalizado un resultado aún pendiente.
 
+### Incident queue and summary
+
+La cola combina recuentos por estado con búsqueda por descripción, número o resumen IA y un selector de estado. Los recuentos proceden de los reportes cargados y muestran un guion mientras el módulo no está listo; el filtro activo se distingue con azul y aria-pressed. Los títulos de incidencia ganan jerarquía y el reporte original permanece desplegable. El resumen usa barras nativas meter y cifras tabulares para la distribución de esos mismos registros visibles, limitada a los últimos 50: no representa un total histórico ni una tasa global del campus.
+
+### Booking calendar and participants
+
+El campo nativo de fecha sigue siendo editable y se complementa con un calendario desplegable y atajos Hoy, Mañana y En una semana, calculados para America/Bogota. La selección usa azul principal, cierra el calendario y devuelve foco al botón; Escape y cierre explícito ocultan el panel. Los participantes opcionales se muestran en etiquetas compactas y no envían invitaciones. El número de personas incluye a quien organiza y sigue sujeto al aforo validado por servidor.
+
+### Audit history
+
+El historial presenta acciones conocidas en español, iconos SVG por tipo, referencia abreviada y fecha local. Código de acción e identificador completo quedan bajo Detalle técnico. Las acciones desconocidas conservan su código con un prefijo explicativo; no fabricar una traducción ni el significado de un evento no reconocido.
+
+### Campus plan and identity assets
+
+El visor muestra un plano real de Torre Zenith nivel 6 suministrado por el equipo, con descarga del PDF, zoom, rotación en pasos de 90 grados y restablecimiento. El fondo claro conserva la lectura del documento dentro de la interfaz oscura y la región desplazable admite foco de teclado. Las posiciones del catálogo todavía no están vinculadas: no hay coordenadas confirmadas ni disponibilidad inferida del plano. El aviso de integración n8n mantiene su estado pendiente. El robot del login es un asset suministrado por el usuario; el favicon usa azul Campuslands y geometría blanca, sin sustituir el logo oficial ni presentar la ilustración como fotografía del campus.
+
+### Incident follow-up
+
+Dos secciones desplegables mantienen evidencia y conversación dentro de cada reporte. La fotografía se asocia a un código de equipo y muestra estado del análisis, observación, limitaciones y recomendación; el formulario comunica los límites de archivo y evita confundir observación visual con funcionamiento comprobado o disponibilidad. La conversación persistida muestra rol y fecha, permite guardar contexto y consulta mensajes nuevos mediante Actualizar datos. No se presenta como chat realtime. Las acciones tienen estados de espera y error explícitos; ampliar la evidencia conserva el contexto del reporte.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -229,4 +251,4 @@ La propuesta IA se presenta dentro de su incidencia: separador, estado, categor�
 - Don't afirmar fidelidad al kit Figma inaccesible ni cierre de gates comp-led sin evidencia histórica.
 - Don't convertir las etiquetas auxiliares muy pequeñas observadas en una escala obligatoria para nuevas superficies.
 
-No canonizado ni reparado en este registro: tamaños auxiliares de 9–10px, que requieren evaluación por contexto antes de reutilizarse; ausencia histórica de spec/gates comp-led, que es una limitación de evidencia y no un token. Los avisos de especificidad CSS son deuda existente, no una regla visual.
+No canonizado ni reparado en este registro: tamaños auxiliares de 9–10px, que requieren evaluación por contexto antes de reutilizarse; ausencia histórica de spec/gates comp-led, que es una limitación de evidencia y no un token. Los avisos de especificidad CSS son deuda existente, no una regla visual. El detector actual también informa valores de color y tipo fuera del frontmatter; se registran como advisories sin convertir cada excepción en token normativo. Este pase modifica documentación y no regenera el sidecar: sus muestras previas de tarjeta, profundidad y breakpoints requieren sincronización con este refinamiento.

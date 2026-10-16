@@ -7,14 +7,24 @@ import { z } from "zod";
 import { authenticate } from "./auth.js";
 import { database } from "./db.js";
 import { hasCapacity } from "./domain/rules.js";
+import { evidenceRoutes } from "./evidence.js";
 import { Prisma } from "./generated/prisma/client.js";
 import { operations } from "./operations.js";
+import { scheduleRoutes } from "./schedule.js";
 
 export const app = express();
 app.disable("x-powered-by");
+if (process.env.VERCEL) app.set("trust proxy", 1);
 app.use(helmet());
 app.use(cors({ origin: process.env.WEB_ORIGIN || "http://127.0.0.1:3000" }));
-app.use(express.json({ limit: "32kb" }));
+app.use((req, res, next) => {
+  if (
+    req.method === "POST" &&
+    /^\/api\/incidents\/[^/]+\/evidence$/.test(req.path)
+  )
+    return next();
+  return express.json({ limit: "32kb" })(req, res, next);
+});
 app.use((_req, res, next) => {
   res.locals.requestId = randomUUID();
   res.setHeader("X-Request-Id", res.locals.requestId);
@@ -48,7 +58,9 @@ app.use("/api", (_req, res, next) => {
   res.setHeader("Cache-Control", "private, no-store");
   next();
 });
+app.use("/api", evidenceRoutes);
 app.use("/api", operations);
+app.use("/api", scheduleRoutes);
 app.get("/api/me", (_req, res) => {
   res.json({ data: res.locals.actor });
 });
@@ -75,6 +87,7 @@ const reservationInput = z
     endAt: z.iso.datetime({ offset: true }),
     attendees: z.number().int().positive(),
     purpose: z.string().trim().min(3).max(300),
+    participants: z.array(z.string().trim().min(1).max(80)).max(100).optional(),
   })
   .strict()
   .refine((v) => new Date(v.endAt) > new Date(v.startAt), {
@@ -83,6 +96,14 @@ const reservationInput = z
 app.post("/api/reservations", async (req, res) => {
   const input = reservationInput.parse(req.body);
   const actor = res.locals.actor;
+  if ((input.participants?.length ?? 0) > input.attendees) {
+    res.status(400).json({
+      error: {
+        message: "Los participantes no pueden superar el número de asistentes.",
+      },
+    });
+    return;
+  }
   const result = await database().$transaction(
     async (tx) => {
       await tx.$queryRaw`SELECT id FROM app_private."Space" WHERE id = ${input.spaceId}::uuid FOR UPDATE`;
@@ -173,6 +194,20 @@ const errors: ErrorRequestHandler = (error, _req, res, _next) => {
     });
     return;
   }
+  if (
+    error &&
+    typeof error === "object" &&
+    "type" in error &&
+    error.type === "entity.too.large"
+  ) {
+    res.status(413).json({
+      error: {
+        code: "UPLOAD_TOO_LARGE",
+        message: "La foto debe pesar como máximo 1 MB.",
+      },
+    });
+    return;
+  }
   if (error instanceof SyntaxError) {
     res
       .status(400)
@@ -195,3 +230,5 @@ const errors: ErrorRequestHandler = (error, _req, res, _next) => {
   });
 };
 app.use(errors);
+
+export default app;

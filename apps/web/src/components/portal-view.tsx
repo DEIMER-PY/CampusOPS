@@ -21,7 +21,7 @@ export async function PortalView({
   let message = "";
   try {
     const response = await fetch(
-      `${process.env.API_URL || "http://127.0.0.1:4000"}/api/me`,
+      `${process.env.BACKEND_INTERNAL_URL || process.env.API_URL || "http://127.0.0.1:4000"}/api/me`,
       {
         headers: { Authorization: `Bearer ${session?.access_token}` },
         cache: "no-store",

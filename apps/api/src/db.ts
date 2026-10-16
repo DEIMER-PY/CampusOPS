@@ -7,16 +7,19 @@ export function database() {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_NOT_CONFIGURED");
   const connection = new URL(process.env.DATABASE_URL);
   const caFile = process.env.DATABASE_SSL_CA_FILE;
-  if (caFile) {
+  const ca =
+    process.env.DATABASE_SSL_CA_CERT ||
+    (caFile ? readFileSync(caFile, "utf8") : undefined);
+  if (ca) {
     for (const key of ["sslmode", "sslrootcert", "sslcert", "sslkey"])
       connection.searchParams.delete(key);
   }
   client ??= new PrismaClient({
     adapter: new PrismaPg({
       connectionString: connection.toString(),
-      ...(caFile
+      ...(ca
         ? {
-            ssl: { ca: readFileSync(caFile, "utf8"), rejectUnauthorized: true },
+            ssl: { ca, rejectUnauthorized: true },
           }
         : {}),
       max: 5,

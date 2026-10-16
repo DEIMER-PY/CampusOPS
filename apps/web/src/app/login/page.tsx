@@ -20,6 +20,13 @@ export default function Login() {
             <br />y seguir avanzando.
           </p>
         </div>
+        <img
+          className="auth-robot"
+          src="/brand/campus-robot.webp"
+          width={913}
+          height={857}
+          alt="Robot astronauta con una sonrisa azul, referencia de Campuslands"
+        />
         <p className="auth-trust">
           <ShieldCheck size={18} /> Acceso seguro para tu comunidad.
         </p>

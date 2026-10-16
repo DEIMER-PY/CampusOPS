@@ -49,6 +49,7 @@ model Reservation {
   startAt DateTime @db.Timestamptz
   endAt DateTime @db.Timestamptz
   attendees Int
+  participants Json?
   purpose String
   cancelledAt DateTime? @db.Timestamptz
   createdAt DateTime @default(now()) @db.Timestamptz
@@ -83,6 +84,13 @@ model Loan {
 model Incident {
   id String @id @default(uuid()) @db.Uuid
   userId String @db.Uuid
+  assetCode String?
+  evidence Json?
+  visual Json?
+  visionStatus String @default("NONE")
+  visionStartedAt DateTime? @db.Timestamptz
+  communications Json?
+  notification Json?
   description String
   aiStatus String @default("PENDING")
   triage Json?
@@ -102,5 +110,21 @@ model AuditEvent {
   entityId String @db.Uuid
   createdAt DateTime @default(now()) @db.Timestamptz
   @@index([createdAt])
+  @@schema("app_private")
+}
+
+model ScheduleBoard {
+  id String @id @default(uuid()) @db.Uuid
+  sourceKey String @unique
+  sourceHash String
+  title String
+  rooms Json
+  entries Json
+  applicableDate DateTime? @db.Date
+  timezone String @default("America/Bogota")
+  revision Int @default(1)
+  updatedBy String? @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
   @@schema("app_private")
 }

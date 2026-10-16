@@ -1,13 +1,17 @@
 "use client";
 import { createBrowserClient } from "@supabase/ssr";
 import {
+  Activity,
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   Box,
   CalendarDays,
   Check,
+  CheckCircle2,
   ChevronRight,
   ClipboardList,
+  Clock3,
   Grid2X2,
   LayoutDashboard,
   LoaderCircle,
@@ -21,9 +25,16 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
+import { parseParticipants } from "@/lib/participants";
+import { BookingCalendar } from "./booking-calendar";
 import { Brand } from "./brand";
+import { CampusPlan } from "./campus-plan";
+import { IncidentFollowUp } from "./incident-follow-up";
+import { ScheduleView } from "./schedule-view";
 
 type Tab =
+  | "schedule"
+  | "plans"
   | "summary"
   | "spaces"
   | "reservations"
@@ -32,6 +43,7 @@ type Tab =
   | "audit";
 type Space = { id: string; name: string; capacity: number; status: string };
 type Reservation = {
+  participants?: string[] | null;
   id: string;
   space: Space;
   startAt: string;
@@ -65,6 +77,27 @@ type Triage = {
   contextObservedAt?: string | null;
 };
 type Incident = {
+  notification?: {
+    status: string;
+    reason?: string;
+    providerId?: string;
+  } | null;
+  assetCode?: string | null;
+  visionStatus?: string;
+  visual?: {
+    observation: string;
+    findings: string;
+    limitations: string;
+    recommendation: string;
+    visibleAssetCode: string | null;
+    codeMatches: boolean | null;
+    priority: string;
+    model: string;
+    generatedAt: string;
+  } | null;
+  communications?:
+    | { message: string; role: string; createdAt: string }[]
+    | null;
   id: string;
   description: string;
   aiStatus: string;
@@ -81,13 +114,23 @@ type Audit = {
 };
 const nav = [
   { key: "summary", label: "Resumen", icon: LayoutDashboard },
+  { key: "schedule", label: "Horarios de formación", icon: CalendarDays },
   { key: "spaces", label: "Espacios", icon: Grid2X2 },
   { key: "reservations", label: "Reservas", icon: CalendarDays },
   { key: "resources", label: "Recursos y préstamos", icon: Box },
   { key: "incidents", label: "Incidencias e IA", icon: Sparkles },
+  { key: "plans", label: "Planos e integraciones", icon: Grid2X2 },
   { key: "audit", label: "Auditoría", icon: ClipboardList },
 ] as const;
 const titles: Record<Tab, [string, string]> = {
+  schedule: [
+    "La formación, en una sola agenda.",
+    "Organiza grupos, salas e instructores con trazabilidad.",
+  ],
+  plans: [
+    "El campus, sobre el plano.",
+    "Consulta la arquitectura y el estado de las integraciones.",
+  ],
   summary: [
     "Tu campus, en perspectiva.",
     "Consulta la actividad y decide tu siguiente paso.",
@@ -140,6 +183,35 @@ const date = (v: string) =>
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(v));
+function auditAction(action: string) {
+  const known: Record<string, string> = {
+    "loan.created": "Préstamo registrado",
+    "schedule.entry_updated": "Bloque de horario actualizado",
+    "loan.returned": "Recurso devuelto",
+    "incident.created": "Incidencia reportada",
+    "incident.evidence_uploaded": "Fotografía vinculada al equipo",
+    "incident.visual_analyzed": "Observación visual de IA completada",
+    "incident.message_added": "Mensaje añadido al reporte",
+    "incident.email_accepted": "Reporte aceptado por el proveedor de correo",
+    "incident.email_pending": "Envío de correo pendiente de completar",
+    "incident.visual_failed": "Observación visual no completada",
+    "incident.triaged": "Clasificación de IA completada",
+    "incident.resolved": "Incidencia resuelta",
+    "incident.in_progress": "Incidencia en atención",
+    "incident.open": "Incidencia abierta",
+    "incident.triage_failed": "Análisis de IA no completado",
+    "reservation.created": "Reserva confirmada",
+    "reservation.cancelled": "Reserva cancelada",
+    "space.available": "Espacio habilitado",
+    "space.disabled": "Espacio deshabilitado",
+    "space.maintenance": "Espacio en mantenimiento",
+    "resource.created": "Recurso registrado",
+    "resource.available": "Recurso habilitado",
+    "resource.disabled": "Recurso deshabilitado",
+    "resource.maintenance": "Recurso en mantenimiento",
+  };
+  return known[action] ?? `Operación registrada: ${action}`;
+}
 function Empty({ children }: { children: React.ReactNode }) {
   return (
     <div className="empty-state">
@@ -176,11 +248,16 @@ export function Workspace({
   const [audit, setAudit] = useState<Audit[]>([]);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [moduleReady, setModuleReady] = useState<Record<string, boolean>>({});
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState("");
   const [query, setQuery] = useState("");
   const [selectedSpace, setSelectedSpace] = useState("");
+  const [bookingReset, setBookingReset] = useState(0);
+  const [incidentFilter, setIncidentFilter] = useState("ALL");
+  const [incidentQuery, setIncidentQuery] = useState("");
+  const [auditQuery, setAuditQuery] = useState("");
   const formId = useId();
   const operator = ["ADMIN", "OPERATOR"].includes(initialRole);
   const api = useCallback(
@@ -202,8 +279,14 @@ export function Workspace({
           ...(body ? { "Content-Type": "application/json" } : {}),
         },
         body: body ? JSON.stringify(body) : undefined,
-        signal: AbortSignal.timeout(35_000),
+        signal: AbortSignal.timeout(path.endsWith("/vision") ? 55000 : 35000),
       });
+      if (!response.headers.get("content-type")?.includes("application/json"))
+        throw new Error(
+          response.status === 429
+            ? "El servidor está ocupado. Espera un minuto y actualiza."
+            : "La API no respondió correctamente. Actualiza en unos segundos.",
+        );
       const result = await response.json();
       if (!response.ok)
         throw new Error(
@@ -250,7 +333,22 @@ export function Workspace({
         setError(
           `No se pudo actualizar: ${failed.join(", ")}. Los demás módulos siguen disponibles. Pulsa actualizar para reintentar.`,
         );
-      setLoaded(results.some((result) => result.status === "fulfilled"));
+      if (!failed.length) setError("");
+      setModuleReady(
+        Object.fromEntries(
+          [
+            "spaces",
+            "reservations",
+            "resources",
+            "loans",
+            "incidents",
+            "audit",
+          ].map((name, index) => [name, results[index].status === "fulfilled"]),
+        ),
+      );
+      setLoaded(
+        results.slice(0, 5).every((result) => result.status === "fulfilled"),
+      );
     } catch (e) {
       setError(
         e instanceof Error
@@ -453,6 +551,17 @@ export function Workspace({
               <LoaderCircle size={17} className="spin" /> Actualizando datos…
             </p>
           )}
+          {tab === "plans" && <CampusPlan />}
+          {tab === "schedule" && (
+            <ScheduleView
+              api={api}
+              operator={operator}
+              onReserve={(spaceId) => {
+                setSelectedSpace(spaceId);
+                setTab("reservations");
+              }}
+            />
+          )}
           {tab === "incidents" && (
             <div className="incident-layout">
               <section className="report-composer">
@@ -514,119 +623,205 @@ export function Workspace({
                 </div>
               </section>
               <section className="incident-feed">
+                <section
+                  className="queue-overview"
+                  aria-label="Estado de los últimos reportes"
+                >
+                  {[
+                    ["OPEN", "Abiertas"],
+                    ["IN_PROGRESS", "En atención"],
+                    ["RESOLVED", "Resueltas"],
+                  ].map(([value, label]) => (
+                    <button
+                      type="button"
+                      key={value}
+                      aria-pressed={incidentFilter === value}
+                      onClick={() =>
+                        setIncidentFilter(
+                          incidentFilter === value ? "ALL" : value,
+                        )
+                      }
+                    >
+                      <span>{label}</span>
+                      <strong>
+                        {moduleReady.incidents
+                          ? incidents.filter((i) => i.status === value).length
+                          : "—"}
+                      </strong>
+                    </button>
+                  ))}
+                </section>
                 <div className="section-title">
                   <h2>
                     {operator ? "Cola de incidencias" : "Mis incidencias"}
                   </h2>
                   <span className="subtle">Últimos 50 reportes</span>
                 </div>
+                <div className="queue-tools">
+                  <label className="search-field">
+                    <Search size={17} />
+                    <input
+                      aria-label="Buscar incidencias"
+                      placeholder="Buscar por descripción o número…"
+                      value={incidentQuery}
+                      onChange={(e) => setIncidentQuery(e.target.value)}
+                    />
+                  </label>
+                  <select
+                    aria-label="Filtrar incidencias por estado"
+                    value={incidentFilter}
+                    onChange={(e) => setIncidentFilter(e.target.value)}
+                  >
+                    <option value="ALL">Todos los estados</option>
+                    <option value="OPEN">Abiertas</option>
+                    <option value="IN_PROGRESS">En atención</option>
+                    <option value="RESOLVED">Resueltas</option>
+                  </select>
+                </div>
+                {incidents.length > 0 &&
+                  !incidents.some(
+                    (i) =>
+                      (incidentFilter === "ALL" ||
+                        i.status === incidentFilter) &&
+                      `${i.description} ${i.id} ${i.triage?.summary ?? ""}`
+                        .toLowerCase()
+                        .includes(incidentQuery.toLowerCase()),
+                  ) && (
+                    <Empty>
+                      No hay reportes con estos filtros. Cambia la búsqueda o el
+                      estado.
+                    </Empty>
+                  )}
                 {!incidents.length ? (
                   <Empty>
                     {loading
                       ? "Cargando reportes…"
-                      : loaded
+                      : moduleReady.incidents
                         ? "Todavía no hay reportes. Crea el primero y conserva su seguimiento aquí."
                         : "Tus reportes aparecerán cuando el sistema esté conectado."}
                   </Empty>
                 ) : (
-                  incidents.map((i) => (
-                    <article className="incident-item" key={i.id}>
-                      <header>
-                        <span className="record-id">#{i.id.slice(0, 8)}</span>
-                        <span>{date(i.createdAt)}</span>
-                        <Badge value={i.status} />
-                      </header>
-                      <h3>
-                        {i.triage?.summary || i.description.slice(0, 120)}
-                      </h3>
-                      <p className="incident-description">{i.description}</p>
-                      {i.triage && (
-                        <div className="triage-result">
-                          <div className="triage-title">
-                            <Sparkles size={16} />
-                            <strong>Propuesta de IA</strong>
-                            <Badge value={i.triage.priority} />
-                          </div>
-                          <dl>
-                            <div>
-                              <dt>Categoría</dt>
-                              <dd>{labels[i.triage.category]}</dd>
-                            </div>
-                            <div>
-                              <dt>Área sugerida</dt>
-                              <dd>{labels[i.triage.area]}</dd>
-                            </div>
-                          </dl>
-                          <p>{i.triage.explanation}</p>
-                          <p>
-                            <strong>Siguiente paso: </strong>
-                            {i.triage.suggestedAction}
+                  incidents
+                    .filter(
+                      (i) =>
+                        (incidentFilter === "ALL" ||
+                          i.status === incidentFilter) &&
+                        `${i.description} ${i.id} ${i.triage?.summary ?? ""}`
+                          .toLowerCase()
+                          .includes(incidentQuery.toLowerCase()),
+                    )
+                    .map((i) => (
+                      <article className="incident-item" key={i.id}>
+                        <header>
+                          <span className="record-id">#{i.id.slice(0, 8)}</span>
+                          <span>{date(i.createdAt)}</span>
+                          <Badge value={i.status} />
+                        </header>
+                        <h3>
+                          {i.triage?.summary || i.description.slice(0, 120)}
+                        </h3>
+                        <details className="original-report">
+                          <summary>Descripción original del reporte</summary>
+                          <p className="incident-description">
+                            {i.description}
                           </p>
-                          <details>
-                            <summary>Ver trazabilidad del análisis</summary>
+                        </details>
+                        {i.triage && (
+                          <div className="triage-result">
+                            <div className="triage-title">
+                              <Sparkles size={16} />
+                              <strong>Propuesta de IA</strong>
+                              <Badge value={i.triage.priority} />
+                            </div>
+                            <dl>
+                              <div>
+                                <dt>Categoría</dt>
+                                <dd>{labels[i.triage.category]}</dd>
+                              </div>
+                              <div>
+                                <dt>Área sugerida</dt>
+                                <dd>{labels[i.triage.area]}</dd>
+                              </div>
+                            </dl>
+                            <p>{i.triage.explanation}</p>
                             <p>
-                              Groq · {i.triage.model}
-                              <br />
-                              {date(i.triage.generatedAt)} ·{" "}
-                              {i.triage.latencyMs} ms
-                              {i.triage.contextObservedAt && (
-                                <>
-                                  <br />
-                                  Contexto operativo consultado:{" "}
-                                  {date(i.triage.contextObservedAt)}. Horarios
-                                  sujetos a validación.
-                                </>
-                              )}
+                              <strong>Siguiente paso: </strong>
+                              {i.triage.suggestedAction}
                             </p>
-                          </details>
-                        </div>
-                      )}
-                      <div className="incident-actions">
-                        <Badge value={i.aiStatus} />
-                        {i.aiStatus !== "COMPLETE" && (
-                          <button
-                            type="button"
-                            className="button button-outline button-small"
-                            disabled={disabled}
-                            onClick={() =>
-                              void mutate(i.id, `/incidents/${i.id}/triage`)
-                            }
-                          >
-                            <RefreshCw size={14} />
-                            {busy === i.id ? "Analizando…" : "Analizar con IA"}
-                          </button>
+                            <details>
+                              <summary>Ver trazabilidad del análisis</summary>
+                              <p>
+                                Groq · {i.triage.model}
+                                <br />
+                                {date(i.triage.generatedAt)} ·{" "}
+                                {i.triage.latencyMs} ms
+                                {i.triage.contextObservedAt && (
+                                  <>
+                                    <br />
+                                    Contexto operativo consultado:{" "}
+                                    {date(i.triage.contextObservedAt)}. Horarios
+                                    sujetos a validación.
+                                  </>
+                                )}
+                              </p>
+                            </details>
+                          </div>
                         )}
-                        {operator && (
-                          <label className="inline-label">
-                            Estado
-                            <select
-                              aria-label={`Estado de incidencia ${i.id.slice(0, 8)}`}
-                              value={i.status}
+                        <div className="incident-actions">
+                          <Badge value={i.aiStatus} />
+                          {i.aiStatus !== "COMPLETE" && (
+                            <button
+                              type="button"
+                              className="button button-outline button-small"
                               disabled={disabled}
-                              onChange={(e) =>
-                                void mutate(
-                                  i.id,
-                                  `/incidents/${i.id}`,
-                                  "PATCH",
-                                  { status: e.target.value },
-                                )
+                              onClick={() =>
+                                void mutate(i.id, `/incidents/${i.id}/triage`)
                               }
                             >
-                              <option value="OPEN">Abierta</option>
-                              <option value="IN_PROGRESS">En atención</option>
-                              <option value="RESOLVED">Resuelta</option>
-                            </select>
-                          </label>
+                              <RefreshCw size={14} />
+                              {busy === i.id
+                                ? "Analizando…"
+                                : "Analizar con IA"}
+                            </button>
+                          )}
+                          {operator && (
+                            <label className="inline-label">
+                              Estado
+                              <select
+                                aria-label={`Estado de incidencia ${i.id.slice(0, 8)}`}
+                                value={i.status}
+                                disabled={disabled}
+                                onChange={(e) =>
+                                  void mutate(
+                                    i.id,
+                                    `/incidents/${i.id}`,
+                                    "PATCH",
+                                    { status: e.target.value },
+                                  )
+                                }
+                              >
+                                <option value="OPEN">Abierta</option>
+                                <option value="IN_PROGRESS">En atención</option>
+                                <option value="RESOLVED">Resuelta</option>
+                              </select>
+                            </label>
+                          )}
+                        </div>
+                        <IncidentFollowUp
+                          incident={i}
+                          operator={operator}
+                          api={api}
+                          onUpdated={refresh}
+                          disabled={disabled}
+                        />
+                        {i.aiError && (
+                          <p className="field-help">
+                            El reporte está guardado. El proveedor no completó
+                            el análisis ({i.aiError}). Reintenta.
+                          </p>
                         )}
-                      </div>
-                      {i.aiError && (
-                        <p className="field-help">
-                          El reporte está guardado. El proveedor no completó el
-                          análisis ({i.aiError}). Reintenta.
-                        </p>
-                      )}
-                    </article>
-                  ))
+                      </article>
+                    ))
                 )}
               </section>
             </div>
@@ -731,9 +926,14 @@ export function Workspace({
                         endAt: end.toISOString(),
                         attendees: Number(d.get("attendees")),
                         purpose: d.get("purpose"),
+                        participants: parseParticipants(
+                          String(d.get("participants") || ""),
+                        ),
                       })
-                    )
+                    ) {
                       f.reset();
+                      setBookingReset((value) => value + 1);
+                    }
                   }}
                 >
                   <label htmlFor={`${formId}-space`}>Espacio</label>
@@ -755,11 +955,9 @@ export function Workspace({
                       ))}
                   </select>
                   <label htmlFor={`${formId}-day`}>Fecha</label>
-                  <input
+                  <BookingCalendar
+                    key={bookingReset}
                     id={`${formId}-day`}
-                    name="day"
-                    type="date"
-                    required
                     disabled={disabled}
                   />
                   <div className="form-pair">
@@ -790,10 +988,36 @@ export function Workspace({
                     name="attendees"
                     type="number"
                     min="1"
-                    max="100"
+                    max={
+                      spaces.find((s) => s.id === selectedSpace)?.capacity ??
+                      100
+                    }
+                    placeholder="Incluye a quien organiza"
                     required
                     disabled={disabled}
                   />
+                  {selectedSpace && (
+                    <p className="capacity-note">
+                      <Users size={15} /> Aforo máximo:{" "}
+                      {spaces.find((s) => s.id === selectedSpace)?.capacity}{" "}
+                      personas. Se verifica de nuevo al confirmar.
+                    </p>
+                  )}
+                  <label htmlFor={`${formId}-participants`}>
+                    Participantes (opcional)
+                  </label>
+                  <textarea
+                    id={`${formId}-participants`}
+                    name="participants"
+                    rows={2}
+                    maxLength={8000}
+                    placeholder="Nombres separados por coma o por línea"
+                    disabled={disabled}
+                  />
+                  <p className="field-help">
+                    Incluye a todas las personas en el aforo, aunque no escribas
+                    sus nombres. Esta lista no envía invitaciones.
+                  </p>
                   <label htmlFor={`${formId}-purpose`}>Motivo</label>
                   <input
                     id={`${formId}-purpose`}
@@ -822,10 +1046,31 @@ export function Workspace({
                   <Empty>No hay reservas registradas.</Empty>
                 )}
                 {reservations.map((r) => (
-                  <article key={r.id} className="record-row">
+                  <article key={r.id} className="record-row reservation-record">
+                    <div className="reservation-date">
+                      <strong>
+                        {new Intl.DateTimeFormat("es-CO", {
+                          day: "2-digit",
+                          timeZone: "America/Bogota",
+                        }).format(new Date(r.startAt))}
+                      </strong>
+                      <span>
+                        {new Intl.DateTimeFormat("es-CO", {
+                          month: "short",
+                          timeZone: "America/Bogota",
+                        }).format(new Date(r.startAt))}
+                      </span>
+                    </div>
                     <div>
                       <h3>{r.space.name}</h3>
                       <p>{r.purpose}</p>
+                      {!!r.participants?.length && (
+                        <div className="participant-chips">
+                          {r.participants.map((name) => (
+                            <span key={name}>{name}</span>
+                          ))}
+                        </div>
+                      )}
                       <small>
                         {date(r.startAt)} → {date(r.endAt)}
                       </small>
@@ -1004,22 +1249,96 @@ export function Workspace({
           )}
           {tab === "summary" && (
             <>
-              <div className="summary-intro">
-                <Sparkles size={32} />
+              <div className="summary-focus">
                 <div>
-                  <h2>Empieza por lo que necesita atención.</h2>
+                  <Activity size={24} />
+                  <h2>El trabajo que sigue.</h2>
                   <p>
-                    Reporta una incidencia y revisa la propuesta de
-                    clasificación antes de atenderla.
+                    {loaded
+                      ? `${incidents.filter((i) => i.status !== "RESOLVED").length} incidencias por atender y ${loans.filter((l) => !l.returnedAt).length} préstamos pendientes de devolución en los registros cargados.`
+                      : "Conecta el sistema para consultar la actividad de tu campus."}
                   </p>
+                  <button
+                    type="button"
+                    className="button button-primary"
+                    onClick={() => setTab("incidents")}
+                  >
+                    Revisar incidencias <ArrowRight size={16} />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  className="button button-primary"
-                  onClick={() => setTab("incidents")}
+                <section
+                  className="resolution-breakdown"
+                  aria-label="Distribución de incidencias cargadas"
                 >
-                  Ir a incidencias <ArrowRight size={16} />
-                </button>
+                  <h3>Seguimiento de incidencias</h3>
+                  {[
+                    ["OPEN", "Abiertas"],
+                    ["IN_PROGRESS", "En atención"],
+                    ["RESOLVED", "Resueltas"],
+                  ].map(([status, label]) => (
+                    <div key={status}>
+                      <span>{label}</span>
+                      <strong>
+                        {moduleReady.incidents
+                          ? incidents.filter((i) => i.status === status).length
+                          : "—"}
+                      </strong>
+                      <meter
+                        min={0}
+                        max={Math.max(incidents.length, 1)}
+                        value={
+                          incidents.filter((i) => i.status === status).length
+                        }
+                        aria-label={label}
+                      />
+                    </div>
+                  ))}
+                  <p className="field-help">
+                    Distribución de los últimos {incidents.length} reportes
+                    visibles.
+                  </p>
+                </section>
+              </div>
+              <div className="operational-snapshot">
+                <h2>Disponibilidad operativa</h2>
+                <div>
+                  <Grid2X2 size={21} />
+                  <span>
+                    Espacios habilitados
+                    <small>El horario se valida al reservar</small>
+                  </span>
+                  <strong>
+                    {moduleReady.spaces
+                      ? `${spaces.filter((s) => s.status === "AVAILABLE").length} / ${spaces.length}`
+                      : "—"}
+                  </strong>
+                  <button
+                    type="button"
+                    className="button button-outline button-small"
+                    onClick={() => setTab("spaces")}
+                  >
+                    Ver espacios
+                  </button>
+                </div>
+                <div>
+                  <Box size={21} />
+                  <span>
+                    Recursos disponibles
+                    <small>Habilitados y sin préstamo activo</small>
+                  </span>
+                  <strong>
+                    {moduleReady.resources
+                      ? `${resources.filter((r) => r.status === "AVAILABLE" && !r.loans.length).length} / ${resources.length}`
+                      : "—"}
+                  </strong>
+                  <button
+                    type="button"
+                    className="button button-outline button-small"
+                    onClick={() => setTab("resources")}
+                  >
+                    Ver inventario
+                  </button>
+                </div>
               </div>
               <div className="summary-list">
                 {[
@@ -1046,7 +1365,9 @@ export function Workspace({
                   >
                     <span>{item.name}</span>
                     <strong>
-                      {loaded
+                      {moduleReady[
+                        item.tab === "resources" ? "loans" : item.tab
+                      ]
                         ? `${item.data.length}${item.data.length === 50 ? "+" : ""}`
                         : "Sin conexión"}
                     </strong>
@@ -1062,18 +1383,68 @@ export function Workspace({
           )}
           {tab === "audit" && (
             <>
+              <div className="list-toolbar">
+                <label className="search-field">
+                  <Search size={17} />
+                  <input
+                    aria-label="Buscar en el historial"
+                    placeholder="Buscar una acción o referencia…"
+                    value={auditQuery}
+                    onChange={(e) => setAuditQuery(e.target.value)}
+                  />
+                </label>
+                <span className="subtle">
+                  Últimos {audit.length} eventos · solo lectura
+                </span>
+              </div>
               {!audit.length && <Empty>Aún no hay eventos de auditoría.</Empty>}
+              {audit.length > 0 &&
+                !audit.some((a) =>
+                  `${auditAction(a.action)} ${a.entityId}`
+                    .toLowerCase()
+                    .includes(auditQuery.toLowerCase()),
+                ) && (
+                  <Empty>No hay eventos que coincidan con la búsqueda.</Empty>
+                )}
               <div className="audit-list">
-                {audit.map((a) => (
-                  <article key={a.id}>
-                    <ShieldCheck size={16} />
-                    <div>
-                      <strong>{a.action}</strong>
-                      <span>{a.entityId}</span>
-                    </div>
-                    <time>{date(a.createdAt)}</time>
-                  </article>
-                ))}
+                {audit
+                  .filter((a) =>
+                    `${auditAction(a.action)} ${a.entityId}`
+                      .toLowerCase()
+                      .includes(auditQuery.toLowerCase()),
+                  )
+                  .map((a) => (
+                    <article key={a.id}>
+                      <span className="audit-event-icon">
+                        {a.action.endsWith("resolved") ||
+                        a.action.endsWith("returned") ? (
+                          <CheckCircle2 size={18} />
+                        ) : a.action.startsWith("incident") ? (
+                          <AlertTriangle size={18} />
+                        ) : a.action.startsWith("reservation") ? (
+                          <CalendarDays size={18} />
+                        ) : (
+                          <Activity size={18} />
+                        )}
+                      </span>
+                      <div>
+                        <strong>{auditAction(a.action)}</strong>
+                        <span>Referencia #{a.entityId.slice(0, 8)}</span>
+                        <details>
+                          <summary>Detalle técnico</summary>
+                          <code>
+                            {a.action}
+                            <br />
+                            {a.entityId}
+                          </code>
+                        </details>
+                      </div>
+                      <time dateTime={a.createdAt}>
+                        <Clock3 size={13} />
+                        {date(a.createdAt)}
+                      </time>
+                    </article>
+                  ))}
               </div>
             </>
           )}

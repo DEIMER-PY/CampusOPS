@@ -53,6 +53,7 @@ const aiLimit = rateLimit({
 operations.get("/incidents", async (_req, res) => {
   res.json({
     data: await database().incident.findMany({
+      omit: { evidence: true },
       where: scope(res.locals.actor),
       orderBy: { createdAt: "desc" },
       take: 50,

@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const config: NextConfig = {
   poweredByHeader: false,
   async rewrites() {
+    if (process.env.VERCEL) return [];
     return [
       {
         source: "/api/:path*",
