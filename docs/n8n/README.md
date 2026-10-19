@@ -32,7 +32,7 @@ WhatsApp  POST /webhook/campusflow-whatsapp ──┤ (Evolution MESSAGES_UPSERT
                                               ▼
         Leer Estado: SELECT app_private.n8n_state()  ─► Preparar Consulta IA
                                               ▼
-              Gemini (interpreta texto → JSON con esquema) ─ si falla ─► Gemini de respaldo
+              Groq (interpreta texto → JSON con esquema) ─ si falla ─► Gemini ─ si falla ─► Gemini de respaldo
                                               ▼
               Motor de Reglas (código determinista: la IA NO decide)
                                               ▼
@@ -42,7 +42,7 @@ WhatsApp  POST /webhook/campusflow-whatsapp ──┤ (Evolution MESSAGES_UPSERT
                                                         └─► Enviar WhatsApp (Evolution API)
 ```
 
-**Papel de la IA:** Gemini solo convierte el reporte en lenguaje natural en `{intencion, sala, horas, asistentes, incidencia}` con `responseSchema`, temperatura 0 y el texto del usuario tratado como dato. La salida se valida contra enums y nombres de sala. Si Gemini falla o responde fuera del esquema: HTTP 503, `tipoAlerta: ERROR` y **ningún cambio**.
+**Papel de la IA:** Groq (`openai/gpt-oss-20b`, JSON Schema estricto; Gemini como respaldo) solo convierte el reporte en lenguaje natural en `{intencion, sala, horas, asistentes, incidencia}` con esquema de salida, temperatura 0 y el texto del usuario tratado como dato. La salida se valida contra enums y nombres de sala. Si todos los intérpretes fallan o responden fuera del esquema: HTTP 503, `tipoAlerta: ERROR` y **ningún cambio**.
 
 **Reglas de negocio** (en `Motor de Reglas`; la base vuelve a comprobarlas bajo bloqueo):
 
@@ -70,7 +70,7 @@ Cada operación escribe un `AuditEvent` en la misma transacción (`n8n.reservati
 1. **Migración** (credencial `DIRECT_URL`, nunca la de runtime): `npm run db:deploy`. Es aditiva (columnas nuevas con valor por defecto, un perfil y dos funciones).
 2. **Rol de n8n:** aplicar `docs/sql/n8n-runtime.sql` y poner contraseña fuera de Git: `ALTER ROLE n8n_runtime LOGIN PASSWORD '<generada>';`.
 3. **Catálogo y habilitación:** `npm run db:import-spaces -w @campusflow/api`. Las salas llegan `DISABLED`; el operador autorizado las habilita tras revisarlas, por ejemplo `UPDATE app_private."Space" SET status = 'AVAILABLE' WHERE name = '...';`. Mientras estén `DISABLED` el flujo rechaza reservas, a propósito.
-4. **n8n:** importar `campusflow-orquestador.json`, crear la credencial Postgres con el **pooler de Supabase** (usuario `n8n_runtime.<project-ref>`, SSL requerido) y asignarla en `Leer Estado`, `Aplicar Plan` y `Leer Estado Final`. Credenciales de los webhooks (Header Auth) y de Gemini (`x-goog-api-key`) en n8n; nada de claves en el repositorio.
+4. **n8n:** importar `campusflow-orquestador.json`, crear la credencial Postgres con el **pooler de Supabase** (usuario `n8n_runtime.<project-ref>`, SSL requerido) y asignarla en `Leer Estado`, `Aplicar Plan` y `Leer Estado Final`. Credenciales de los webhooks (Header Auth), de Groq (Header Auth `Authorization: Bearer <clave>`) y de Gemini (`x-goog-api-key`) en n8n; nada de claves en el repositorio.
 5. **Variables de n8n:** `EVOLUTION_API_KEY` (y opcional `EVOLUTION_INSTANCE_CAMPUSFLOW`, por defecto `campusflow-demo`). Requiere `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`.
 6. **Evolution API:** instancia propia, webhook hacia `/webhook/campusflow-whatsapp` (evento `MESSAGES_UPSERT`, con el header de autenticación).
 7. Activar el workflow.

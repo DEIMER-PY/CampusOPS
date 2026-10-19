@@ -17,6 +17,12 @@ function ejecutar(nombre, { entrada, estado, ia }) {
   const nodos = { "Normalizar Entrada": entrada, "Leer Estado": { estado } };
   const $ = (n) => ({ first: () => ({ json: nodos[n] }) });
   const $input = { first: () => ({ json: ia }) };
+  // El motor lee la clasificación por reglas fijas: se ejecuta el nodo real «Clasificar Mensaje».
+  if (nombre === "Motor de Reglas")
+    nodos["Clasificar Mensaje"] = new Function(
+      "$",
+      codigo("Clasificar Mensaje"),
+    )($)[0].json;
   return new Function("$", "$input", codigo(nombre))($, $input)[0].json;
 }
 const normalizar = (body) =>
@@ -278,7 +284,10 @@ test("R5 incidencia crítica inhabilita la sala y reubica sus reservas", () => {
     inhabilitaSala: true,
   };
   const r = motor({
-    entrada: entrada({ salaActual: "Cosmos" }),
+    entrada: entrada({
+      salaActual: "Cosmos",
+      reporte: "Se inundó el aula Cosmos y no se puede usar",
+    }),
     estado: e,
     ia: ia("INCIDENCIA", { sala: "Cosmos", incidencia }),
   });
@@ -300,7 +309,7 @@ test("incidencia leve solo se registra", () => {
     inhabilitaSala: false,
   };
   const r = motor({
-    entrada: entrada(),
+    entrada: entrada({ reporte: "El marcador de Apolo está gastado" }),
     estado: estado(),
     ia: ia("INCIDENCIA", { sala: "Apolo", incidencia }),
   });
