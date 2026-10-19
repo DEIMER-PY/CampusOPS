@@ -3,7 +3,7 @@
 import { mkdtemp, readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
-import { extname, join, resolve } from "node:path";
+import { extname, join, resolve, sep } from "node:path";
 import { build } from "esbuild";
 
 const output = await mkdtemp(join(tmpdir(), "campusflow-frontend-"));
@@ -73,7 +73,7 @@ const server = createServer(async (req, res) => {
         ? resolve("apps/web/public")
         : output;
     const path = resolve(base, `.${pathname}`);
-    if (!path.startsWith(`${base}/`)) throw new Error("Invalid path");
+    if (!path.startsWith(`${base}${sep}`)) throw new Error("Invalid path");
     res.setHeader(
       "Content-Type",
       mime[extname(path)] || "application/octet-stream",
