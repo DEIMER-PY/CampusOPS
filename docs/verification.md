@@ -64,3 +64,57 @@ Plano: vista horizontal centrada de la geometría original, modo integrado monoc
 ### URL de n8n recibida
 
 Usuario proporcionó localhost:5679/webhook-test/campusflow y localhost:5678/webhook/campusflow. Prueba healthz: 5678=200, 5679 sin conexión. Consulta ficticia PROPUESTA a 5678: 404 webhook no registrado; interfaz /setup pide cuenta propietaria. Se solicitó al usuario completar el acceso sin compartir contraseña. URL local guardada en archivo ignorado y N8N_MODE=proposal. No se habilitó ejecución, rol login ni WhatsApp. La declaración anterior de URL no suministrada queda superada; conexión operativa sigue pendiente de propietario/workflow/credenciales.
+
+## Rediseño de frontend y fotos — 19 octubre 2026
+
+Rama `feature/frontend-campus-operations`; solo cambios locales, sin publicación. Node 24.19.0 (dentro del rango engines, distinto del pin .nvmrc 24.22.0) y npm 11.19.1 temporal para comandos de calidad. No se modificó el lockfile. Prisma generado antes de verificar API. `next-env.d.ts` conservado con la modificación local previa, restaurada después de la generación automática de Next.
+
+- `npm run check` aprobado: lint sin errores, 149 advertencias y una observación; tipos API/web, 20 unitarias y builds correctos. Build web adicional aprobado después de los últimos ajustes del login y textos. Los avisos siguen siendo deuda, no se desactivaron reglas para ocultarlos.
+- `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/brave npm exec playwright -- test -c playwright.frontend.config.ts --workers=2`: 17 aprobadas / 3 omitidas por corresponder a otro viewport. Usa componentes reales, identidad y API interceptadas en servidor local aislado, sin llamadas a Supabase. Cubre roles de presentación, préstamo/devolución, búsqueda/vacíos, incidencia guardada cuando falla análisis, menú/foco, nueve módulos en 360/390/768/1024/1440 y reflujo al 200% de zoom CSS. No certifica permisos o mutaciones reales de servidor, ni zoom nativo o lector de pantalla.
+- Suite pública con `E2E_EXTERNAL_SERVERS=1 E2E_BASE_URL=http://127.0.0.1:3000 E2E_API_URL=http://127.0.0.1:4000 PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/brave npm run test:e2e -- --workers=2`: 17 aprobadas / 3 omitidas (dos escenarios sin configurar servicios reservados a CI y una matriz móvil ya cubierta por la matriz desktop). Comprueba portada/login, protección sin sesión, lectura sin JavaScript, RAG explicativo, galería editada y movimiento reducido del robot. No envía credenciales, altas, reportes ni mutaciones reales.
+- Inspección con la skill de diseño y Brave: 0 FAIL / 4 WARN a 1440, 768 y 390. Se revisaron las capturas completas. Avisos: variedad de escala tipográfica por marca/contenido; sin footage hasta conectar proveedor de video; movimiento deliberadamente discreto; espacio lateral en el cierre de tablet. No equivale a auditoría formal WCAG ni valoración del jurado.
+- Capturas CLI públicas y capturas Test de fixtures documentadas en `docs/assets/README.md`. Sin cookies, sesiones o datos privados versionados.
+- Context7 se intentó para Lenis y devolvió `fetch failed`; se usaron documentación oficial y tipos de la versión 1.3.27 instalada. Referencias Kiro y `midudev/mcp-higgsfield-landing` revisadas; se conserva Next.js/Express y no se añadieron dependencias.
+- Tres ediciones image_gen revisadas y exportadas a WebP. Rótulo «edición con IA», procedencia y prompts guardados. No sirven como fuente de cantidades, geometría o ubicación de activos.
+
+Hallazgos corregidos durante regresión: un refresco exitoso borraba el error de análisis; CSS móvil heredado ocultaba el robot; entradas al hacer scroll dependían de un estado previo invisible. Las entradas ahora animan contenido ya presente y la portada sigue legible sin JavaScript. Las suites guardan resultados en directorios distintos para evitar colisiones de trazas entre ejecuciones.
+
+### Video HyperFrames / ElevenLabs
+
+Guion de 206 palabras y brief de ocho escenas, aproximadamente 105 segundos, en `docs/media/campusflow-explainer/`. Incluye límites actuales y RAG identificado como arquitectura futura. Se revisó la guía oficial del MCP; esta sesión no exponía herramientas HyperFrames/ElevenLabs y la configuración local solo listaba node_repl. El catálogo ofrece HeyGen general, cuya disponibilidad no garantiza HyperFrames; se propuso su conexión. ElevenLabs redirigió a sign-in. Se solicitó al usuario autenticar/conectar los servicios. No se generó voz, composición hospedada ni MP4; no se simula ese resultado ni se sustituye el proveedor pedido.
+
+### Segunda iteración: consola y arquitectura RAG nativa
+
+La versión posterior incorpora el carrusel con mascota de cuerpo completo, login con orientación y fotografía, buscador autorizado de módulos, resumen con inventario filtrable y lista/tarjetas, y RAG HTML/SVG con siete pasos. No se añadieron dependencias ni se cambió un contrato de servidor.
+
+Verificación final con Node **24.19.0**, npm **11.19.1** y Brave/Chromium:
+
+- `npm run check`: aprobado; lint sin errores (**130 advertencias y una observación**), typecheck API/web, **20 unitarias**, build API y Next correctos. El primer intento dentro del sandbox no pudo abrir el IPC de tsx; la ejecución con permiso local completó. Se corrigió una declaración CSS duplicada detectada durante la revisión; no se silenciaron reglas.
+- Suite pública, mismo comando de la sección anterior: **17 aprobadas / 3 omitidas**. Amplía RAG con selección, reproducción, pausa y reducción de movimiento; carrusel con teclado y fotografía activa; acceso conserva formularios y permisos. Matriz pública 360/390/768/1024/1440. Ninguna mutación real.
+- Suite `playwright.frontend.config.ts`, mismo comando anterior: **21 aprobadas / 3 omitidas**. Añade inventario del resumen con búsqueda, vacío y cambio de vista, y buscador de módulos que no muestra destinos no autorizados. El harness importa los estilos finales de la consola. Las respuestas y la identidad siguen siendo fixtures, no acreditan permisos de servidor ni E2E real.
+- Capturas públicas actualizadas con Playwright CLI sobre build de producción local, sin credenciales y con movimiento reducido para evitar fotogramas transitorios. Capturas del dashboard generadas por la suite aislada, claramente rotuladas PRUEBA en los registros.
+- Mascota nueva: `docs/robot-full-image-provenance.json`; ilustración generada, WebP con alfa. Fotografías con el mismo rótulo de edición IA y trazabilidad anterior.
+
+La explicación animada del RAG no implementa recuperación, embeddings ni chat. El video/voz externos conservan el estado pendiente de conexión descrito arriba. No se ejecutó una nueva prueba real de concurrencia ni un recorrido autenticado contra Supabase.
+
+Inspector final de la compilación de producción: **0 FAIL / 5 WARN**, capturas 1440/768/390 revisadas. Los avisos conservados y su justificación están en `docs/design/frontend-review-2026-10-19.md`; no se declara certificación WCAG. Se amplió además la comprobación de reproducción RAG para esperar el avance automático al segundo paso sobre la compilación de producción.
+
+Regresión adicional del temporizador RAG sobre producción local: **2 aprobadas** (escritorio y móvil), esperando el avance automático al segundo paso antes de pausar. No hubo llamadas a servicios RAG.
+
+
+## Consolidación n8n + UI — 19 octubre 2026
+
+Base `develop c179d63`, rama `feature/frontend-campus-operations`. Resultado de la sesión actual, sin extrapolar corridas históricas:
+
+| Comprobación | Resultado | Alcance |
+|---|---|---|
+| `npm run check` (Node 24.19.0/npm 11.19.1) | Aprobado: lint sin errores, 150 avisos/1 observación, tipos, 20 unitarias, builds API/web | Código local |
+| `node --test tests/n8n/motor.test.mjs` | 32 aprobadas | Código real de nodos, entradas/estado controlados; sin instancia n8n ni proveedor |
+| `playwright test -c playwright.frontend.config.ts` | 31 aprobadas, 3 omitidas | Desktop/móvil, fixture de identidad y API; incluye propuesta/aplicación/error del asistente |
+| `playwright test` con servidores locales | 19 aprobadas, 3 omitidas | Portada/login públicos; no login real de cuenta |
+| n8n localhost 5678/5679 | Sin listener | No se acredita webhook, Groq/Gemini ni escritura real |
+| Docker | Daemon no disponible | No se creó entorno transaccional nuevo |
+
+El test de agenda verifica payload sin identidad del cliente, respuesta de propuesta, ejecución deshabilitada, actualización de configuración, cancelación/aceptación de confirmación, resultado `APPLIED` y error posterior sin resultado antiguo. Las regresiones de workflow verifican propuesta predeterminada, texto largo, bloqueo de avisos administrativos para propuestas/fallos y conservación de avisos tras aplicación confirmada. No se envían mensajes reales en las pruebas.
+
+Cambios de presentación y límites de video/planos: ver última sección de `handoff.md`. La vinculación de salas persiste solo en el navegador, se puede eliminar y no sustituye coordenadas oficiales. El preview HyperFrames no incluye voz ElevenLabs ni MP4. CI remota y aprobación del PR deben revisarse en GitHub tras publicarlo; los resultados locales no garantizan resultados remotos.

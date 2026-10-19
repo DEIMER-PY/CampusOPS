@@ -117,3 +117,13 @@ Ante un fallo guardar comando, commit, OS/arquitectura, versiones y mensaje reda
 ### Corrección detectada por CI Windows
 
 El primer job Windows falló en formato por conversión automática a CRLF. `.gitattributes` fija LF para fuentes y conserva activos binarios; volver a ejecutar CI sobre el commit que añade esa corrección. El fallo no se oculta desactivando lint.
+
+## Regresión aislada de frontend — rediseño 19 octubre
+
+`npm exec playwright -- test -c playwright.frontend.config.ts --workers=2` ejecuta componentes reales con una identidad de prueba y respuestas interceptadas por Playwright, en un servidor ligado exclusivamente a 127.0.0.1:3200. El fixture vive en `tests/frontend`, fuera del árbol de la aplicación; no añade ruta de demostración, bypass de Auth ni datos prefabricados al producto. Usa esbuild ya presente en el árbol npm. No apunta a Supabase ni modifica una BD.
+
+Cubre CLIENT/OPERATOR/ADMIN como presentación, listas/detalle y foco, filtros, mantenimiento y préstamo activo, devolución, reporte guardado ante fallo del proveedor, errores parciales, nueve módulos a cinco anchos y reflujo a 200% de zoom CSS. Esto no certifica autorización de servidor ni inferencia real. El zoom CSS comprueba reflujo; no sustituye revisión de zoom nativo o tecnologías asistivas.
+
+Se puede indicar un navegador Chromium instalado con `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` en las dos configuraciones Playwright; si no se indica, se usan los navegadores estándar de Playwright. No guardar sesiones ni cookies para estas pruebas. La suite pública amplía galería, robot/movimiento reducido, matrices responsive y lectura sin JavaScript.
+
+Segunda iteración de frontend (19/10): la suite aislada incluye búsqueda de módulos con filtrado por rol, inventario del resumen con búsqueda/vacío y alternancia lista/tarjetas; importa `console.css` junto con los estilos compartidos. Resultado: 21 aprobadas/3 omitidas. La suite pública verifica selección/reproducción/pausa de la explicación RAG y desactivación de reproducción con movimiento reducido, más teclado del carrusel; 17 aprobadas/3 omitidas. `npm run check` aprobado (20 unitarias, tipos, ambos builds; lint 130 advertencias/una observación, sin errores). Estos resultados no sustituyen pruebas multirrol reales con servicios ni una auditoría de accesibilidad asistida.

@@ -6,7 +6,7 @@
 
 > Prototipo de hackatón en evolución. Esta rama incorpora horarios, planos, seguimiento y evidencia visual. No representa una entrega completa de RAG ni de automatización n8n. Las capturas muestran datos de prueba y estados observados, no indicadores de impacto institucional.
 
-![Portada real de CampusFlow](docs/assets/screenshots/landing-desktop.webp)
+![Portada real de CampusFlow](docs/assets/screenshots/landing-redesign-desktop.webp)
 
 ## Problema e impacto esperado
 
@@ -22,11 +22,17 @@ Coordinar salas, préstamos y reportes en herramientas separadas dificulta conoc
 
 No se han medido todavía ahorros de tiempo, tasas de resolución ni mejoras porcentuales. Los contadores del dashboard describen los registros cargados y su alcance visible.
 
+## Agenda y automatización n8n
+
+En el dashboard, **Gestión → Asistente de agenda** permite a ADMIN/OPERATOR describir una solicitud, pedir una propuesta y revisar la decisión. La aplicación de cambios exige configuración del servidor y confirmación explícita. El flujo importable usa Groq con respaldo Gemini y reglas auditadas de PostgreSQL. [Configurar y verificar n8n](docs/n8n/README.md).
+
+La interfaz está integrada; en esta sesión no hay instancia n8n local disponible para acreditar el servicio real. Un resultado incierto exige revisar el estado antes de repetir la operación. RAG documental sigue en preparación.
+
 ## Interfaz y evidencia visual
 
 | Acceso de escritorio | Acceso móvil |
 |---|---|
-| ![Login con robot de Campuslands](docs/assets/screenshots/login-desktop.webp) | ![Login responsive](docs/assets/screenshots/login-mobile.webp) |
+| ![Login con robot de Campuslands](docs/assets/screenshots/login-redesign-desktop.webp) | ![Login responsive](docs/assets/screenshots/login-redesign-mobile.webp) |
 
 <details>
 <summary>Ver dashboard, reservas, incidencias, historial y planos</summary>
@@ -227,11 +233,11 @@ Capturas públicas reproducibles con Playwright CLI (primero iniciar la web):
 ```bash
 npm exec playwright-cli -- -s=readme open http://127.0.0.1:3000/
 npm exec playwright-cli -- -s=readme resize 1440 960
-npm exec playwright-cli -- -s=readme screenshot --filename=docs/assets/screenshots/landing-desktop.webp
+npm exec playwright-cli -- -s=readme screenshot --filename=docs/assets/screenshots/landing-redesign-desktop.webp
 npm exec playwright-cli -- -s=readme goto http://127.0.0.1:3000/login
-npm exec playwright-cli -- -s=readme screenshot --filename=docs/assets/screenshots/login-desktop.webp
+npm exec playwright-cli -- -s=readme screenshot --filename=docs/assets/screenshots/login-redesign-desktop.webp
 npm exec playwright-cli -- -s=readme resize 390 844
-npm exec playwright-cli -- -s=readme screenshot --filename=docs/assets/screenshots/login-mobile.webp
+npm exec playwright-cli -- -s=readme screenshot --filename=docs/assets/screenshots/login-redesign-mobile.webp
 npm exec playwright-cli -- -s=readme close
 ```
 

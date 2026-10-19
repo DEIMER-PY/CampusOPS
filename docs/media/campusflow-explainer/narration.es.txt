@@ -1,0 +1,17 @@
+CampusFlow conecta espacios, recursos e incidencias de Campuslands en un mismo recorrido.
+
+Primero, una persona inicia sesión y consulta el catálogo. Puede solicitar un espacio o un recurso. La API verifica su identidad y sus permisos, y valida las reglas antes de guardar la operación.
+
+Las reservas comprueban aforo y cruces de horario. Los préstamos impiden que un mismo equipo tenga dos préstamos activos. Cada cambio conserva su auditoría.
+
+Si ocurre un problema, el reporte se guarda antes del análisis. Groq propone categoría, prioridad y área, con una explicación. El equipo revisa y decide. Si la IA falla, el reporte permanece y el análisis puede reintentarse.
+
+El siguiente paso es el RAG documental. Esta arquitectura está en preparación: la ingesta y el chat todavía no están implementados.
+
+Un operador cargará PDF o Excel autorizados. El sistema registrará fuente, versión y permisos; después dividirá el contenido en fragmentos e indexará sus embeddings.
+
+Ante una pregunta, verificará el acceso antes de recuperar contexto. El modelo responderá con fuentes y referencias de página, hoja o fila. Sin evidencia suficiente, lo indicará.
+
+El RAG explicará documentos. La disponibilidad y las operaciones seguirán dependiendo de las reglas transaccionales del servidor.
+
+CampusFlow. La IA propone, las reglas validan y el equipo decide.
