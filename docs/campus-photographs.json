@@ -1,0 +1,36 @@
+{
+  "source": "WhatsApp Unknown 2026-10-19 at 15.23.32.zip",
+  "providedBy": "Usuario, 19 octubre 2026",
+  "use": "Fotografías aportadas por el usuario y retocadas por petición expresa para la portada. Se revisaron las 12 imágenes y se seleccionaron tres; no se publican las fotografías originales con personas.",
+  "processing": "Edición con image_gen: balance de blancos, exposición, contraste y corrección de perspectiva solicitados. Versiones retocadas por IA, con posible reinterpretación de detalles; no son fuente de inventario ni disponibilidad. Exportación WebP con Sharp.",
+  "reviewedImages": 12,
+  "assets": [
+    {
+      "asset": "apps/web/public/campus/sala-azul-editada.webp",
+      "sourceZipEntryIndex": 6,
+      "sha256": "4af03f2415e2b7954cdea873d29eac62b9066c5a59d3c19a33349a958b6bad8d",
+      "description": "Sala de formación con pared azul y puestos de trabajo",
+      "editedSha256": "8db72232b80b39138be834aa669ab81d150260cb03610be310da3e896576585d",
+      "tool": "image_gen builtin",
+      "promptDocument": "docs/media/campusflow-photo-edit-prompts.md"
+    },
+    {
+      "asset": "apps/web/public/campus/zona-reunion-editada.webp",
+      "sourceZipEntryIndex": 4,
+      "sha256": "54960bbb868fcdea2e5d385fb53a97b60153027a5046afe85a75dc7ced37b550",
+      "description": "Zona de reunión con mesas y sillones",
+      "editedSha256": "6359f1c3e1c3ead6e938617c483e15a44e540d7b1e5ea12cff70e5765ccf36ab",
+      "tool": "image_gen builtin",
+      "promptDocument": "docs/media/campusflow-photo-edit-prompts.md"
+    },
+    {
+      "asset": "apps/web/public/campus/sala-colaborativa-editada.webp",
+      "sourceZipEntryIndex": 5,
+      "sha256": "02bd7f8fe4fd5825a6c8decbe3de3acc1bf29a62c09a02a117172f55ac7f3498",
+      "description": "Sala de colaboración con mesa y pantalla",
+      "editedSha256": "5482c44627b28f618807f8b95e724eb50775c68a486a47890e5ed4584f6aa0d4",
+      "tool": "image_gen builtin",
+      "promptDocument": "docs/media/campusflow-photo-edit-prompts.md"
+    }
+  ]
+}

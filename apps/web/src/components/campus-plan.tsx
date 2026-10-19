@@ -9,17 +9,19 @@ import {
   Search,
   Workflow,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Space = { id: string; name: string; capacity: number; status: string };
 export function CampusPlan({
   spaces,
   ready,
   onReserve,
+  canLink = false,
 }: {
   spaces: Space[];
   ready: boolean;
   onReserve: (id: string) => void;
+  canLink?: boolean;
 }) {
   const [zoom, setZoom] = useState(1);
   const [original, setOriginal] = useState(false);
@@ -28,8 +30,70 @@ export function CampusPlan({
   const [selected, setSelected] = useState("");
   const viewport = useRef<HTMLDivElement>(null);
   const active = spaces.find((space) => space.id === selected);
+  const [positions, setPositions] = useState<
+    Record<string, { x: number; y: number }>
+  >({});
+  const [focused, setFocused] = useState(false);
+  const [linking, setLinking] = useState(false);
+  const [draft, setDraft] = useState<{ x: number; y: number } | null>(null);
+  const [linkNotice, setLinkNotice] = useState("");
+  const drawing = useRef<SVGSVGElement>(null);
+  useEffect(() => {
+    try {
+      const saved: unknown = JSON.parse(
+        localStorage.getItem("campusflow-plan-links-v1") || "{}",
+      );
+      if (saved && typeof saved === "object")
+        setPositions(
+          Object.fromEntries(
+            Object.entries(saved).filter(
+              ([, point]) =>
+                point &&
+                typeof point === "object" &&
+                Number.isFinite(point.x) &&
+                Number.isFinite(point.y) &&
+                point.x >= 80 &&
+                point.x <= 2150 &&
+                point.y >= 310 &&
+                point.y <= 1310,
+            ),
+          ),
+        );
+    } catch {
+      setLinkNotice("No se pudieron recuperar las vinculaciones locales.");
+    }
+  }, []);
+  const point = linking ? draft : positions[selected];
+  function choose(id: string) {
+    setSelected(id);
+    setLinking(false);
+    setDraft(null);
+    setLinkNotice("");
+    reset();
+    setFocused(true);
+  }
+  function savePosition() {
+    if (!draft || !selected) return;
+    const next = { ...positions, [selected]: draft };
+    setPositions(next);
+    setFocused(true);
+    setLinking(false);
+    setDraft(null);
+    try {
+      localStorage.setItem("campusflow-plan-links-v1", JSON.stringify(next));
+      setLinkNotice(
+        "Posición vinculada en este navegador. No modifica el plano oficial.",
+      );
+    } catch {
+      setLinkNotice(
+        "Posición disponible en esta sesión; el navegador no permitió guardarla.",
+      );
+    }
+  }
+
   const reset = () => {
     setZoom(1);
+    setFocused(false);
     viewport.current?.scrollTo({ top: 0, left: 0 });
   };
   return (
@@ -128,27 +192,126 @@ export function CampusPlan({
                 <svg
                   viewBox="80 310 2070 1000"
                   className="plan-blueprint"
+                  ref={drawing}
                   role="img"
                   aria-labelledby="campus-plan-title"
                 >
                   <title id="campus-plan-title">
                     Planta arquitectónica del nivel 6 de Torre Zenith, orientada
-                    horizontalmente. Sin ubicaciones de salas vinculadas.
+                    horizontalmente. Los marcadores son vinculaciones manuales
+                    del navegador.
                   </title>
-                  <image
-                    href="/plans/torre-zenith-nivel-6.webp"
-                    width={1700}
-                    height={2200}
-                    transform="translate(2200 0) rotate(90)"
-                  />
+                  <g
+                    className="plan-camera"
+                    style={{
+                      transform:
+                        point && !linking && focused
+                          ? `translate(${1115 - point.x * 1.8}px, ${810 - point.y * 1.8}px) scale(1.8)`
+                          : "none",
+                    }}
+                  >
+                    <image
+                      href="/plans/torre-zenith-nivel-6.webp"
+                      width={1700}
+                      height={2200}
+                      transform="translate(2200 0) rotate(90)"
+                    />
+                    {point && (
+                      <g className="plan-selection-marker">
+                        <circle
+                          cx={point.x}
+                          cy={point.y}
+                          r={65}
+                          fill="#23b5ff33"
+                          stroke="#73c7ff"
+                          strokeWidth={5}
+                        />
+                        <circle
+                          cx={point.x}
+                          cy={point.y}
+                          r={12}
+                          fill="#73c7ff"
+                        />
+                        <text
+                          x={point.x}
+                          y={point.y - 85}
+                          textAnchor="middle"
+                          fill="#ffffff"
+                          stroke="#111111"
+                          strokeWidth={8}
+                          paintOrder="stroke"
+                          fontSize={32}
+                        >
+                          {active?.name}
+                        </text>
+                      </g>
+                    )}
+                  </g>
                 </svg>
+                {linking && (
+                  <button
+                    type="button"
+                    className="plan-link-surface"
+                    aria-label={`Marcar posición de ${active?.name}; usa las flechas para ajustar y el botón Guardar posición para confirmar`}
+                    onClick={(event) => {
+                      if (event.detail === 0) {
+                        setDraft((current) => current || { x: 1115, y: 810 });
+                        return;
+                      }
+                      const svg = drawing.current,
+                        matrix = svg?.getScreenCTM();
+                      if (!svg || !matrix) return;
+                      const cursor = svg.createSVGPoint();
+                      cursor.x = event.clientX;
+                      cursor.y = event.clientY;
+                      const position = cursor.matrixTransform(matrix.inverse());
+                      if (
+                        position.x >= 80 &&
+                        position.x <= 2150 &&
+                        position.y >= 310 &&
+                        position.y <= 1310
+                      )
+                        setDraft({ x: position.x, y: position.y });
+                    }}
+                    onKeyDown={(event) => {
+                      const delta: Record<string, [number, number]> = {
+                        ArrowUp: [0, -20],
+                        ArrowDown: [0, 20],
+                        ArrowLeft: [-20, 0],
+                        ArrowRight: [20, 0],
+                      };
+                      if (!delta[event.key]) return;
+                      event.preventDefault();
+                      const [x, y] = delta[event.key];
+                      setDraft((current) => ({
+                        x: Math.max(
+                          80,
+                          Math.min(2150, (current?.x || 1115) + x),
+                        ),
+                        y: Math.max(
+                          310,
+                          Math.min(1310, (current?.y || 810) + y),
+                        ),
+                      }));
+                    }}
+                  >
+                    <span>
+                      Marca {active?.name} sobre el plano · Flechas para ajustar
+                      con teclado
+                    </span>
+                  </button>
+                )}
               </div>
             </section>
             <div className="plan-caption">
               <span>
                 <MapPin size={14} /> Vista centrada del plano aportado
               </span>
-              <span>Posiciones de salas pendientes de vincular</span>
+              <span>
+                {point
+                  ? "Marcador manual local · no es una ubicación verificada"
+                  : "Selecciona una sala para explorar su ubicación vinculada"}
+              </span>
             </div>
           </div>
           <aside className="plan-directory" aria-label="Catálogo de espacios">
@@ -165,8 +328,8 @@ export function CampusPlan({
               />
             </label>
             <p>
-              Selecciona para consultar su aforo y estado. Aún no hay
-              coordenadas verificadas.
+              Selecciona una sala para acercar su marcador. Las posiciones se
+              vinculan manualmente; no hay coordenadas oficiales verificadas.
             </p>
             <div className="plan-room-list">
               {!ready ? (
@@ -181,7 +344,7 @@ export function CampusPlan({
                       type="button"
                       key={space.id}
                       aria-pressed={selected === space.id}
-                      onClick={() => setSelected(space.id)}
+                      onClick={() => choose(space.id)}
                     >
                       <span
                         className={`plan-room-dot ${space.status === "AVAILABLE" ? "available" : ""}`}
@@ -208,7 +371,75 @@ export function CampusPlan({
             {active && (
               <div className="plan-room-selection">
                 <strong>{active.name}</strong>
-                <p>Esta selección no señala una posición en el plano.</p>
+                <p>
+                  {positions[selected]
+                    ? "Marcador vinculado manualmente en este navegador."
+                    : "Esta sala todavía no tiene una posición vinculada."}
+                </p>
+                {canLink && (
+                  <div className="plan-link-actions">
+                    {linking ? (
+                      <>
+                        <button
+                          className="button button-primary"
+                          type="button"
+                          disabled={!draft}
+                          onClick={savePosition}
+                        >
+                          Guardar posición
+                        </button>
+                        <button
+                          className="button button-outline"
+                          type="button"
+                          onClick={() => {
+                            setLinking(false);
+                            setDraft(null);
+                          }}
+                        >
+                          Cancelar vinculación
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        className="button button-outline"
+                        type="button"
+                        onClick={() => {
+                          setZoom(1);
+                          setDraft(positions[selected] || null);
+                          setLinking(true);
+                        }}
+                      >
+                        Vincular posición en el plano
+                      </button>
+                    )}
+                  </div>
+                )}
+                {canLink && positions[selected] && !linking && (
+                  <button
+                    type="button"
+                    className="text-link"
+                    onClick={() => {
+                      const next = { ...positions };
+                      delete next[selected];
+                      setPositions(next);
+                      setFocused(false);
+                      try {
+                        localStorage.setItem(
+                          "campusflow-plan-links-v1",
+                          JSON.stringify(next),
+                        );
+                        setLinkNotice("Marcador local eliminado.");
+                      } catch {
+                        setLinkNotice(
+                          "Marcador retirado de esta sesión; el navegador no permitió actualizar el guardado.",
+                        );
+                      }
+                    }}
+                  >
+                    Quitar marcador local
+                  </button>
+                )}
+                {linkNotice && <p role="status">{linkNotice}</p>}
                 <button
                   className="button button-primary button-small"
                   type="button"
@@ -225,13 +456,13 @@ export function CampusPlan({
       <aside className="integration-pending">
         <Workflow size={20} />
         <div>
-          <h3>Flujo de agenda con n8n</h3>
+          <h3>Agenda y validación de horarios</h3>
           <p>
-            El webhook de Tomas sigue pendiente. Las propuestas deberán validar
-            aforo, estado y cruces antes de aplicarse.
+            Los marcadores y las plantillas no reservan espacios. Cada solicitud
+            debe validar aforo, estado y cruces en el servidor.
           </p>
         </div>
-        <span className="status-badge">Pendiente de conexión</span>
+        <span className="status-badge">Validación en servidor</span>
       </aside>
     </section>
   );

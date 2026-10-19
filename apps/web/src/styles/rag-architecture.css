@@ -1,0 +1,110 @@
+.rag-machine {
+  margin-top: 40px;
+  background: #151515;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.rag-machine-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 24px;
+  background: #1a1a1a;
+}
+.rag-machine-toolbar > span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+.concept-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.rag-toolbar-note {
+  color: var(--muted);
+}
+.rag-inspector {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  background: #1a1a1a;
+  padding: 24px;
+  min-height: 190px;
+}
+.rag-step-index {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  white-space: nowrap;
+  min-width: 56px;
+  text-align: center;
+}
+.rag-inspector > div {
+  flex: 1;
+}
+.rag-inspector > svg {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.rag-inspector h4 {
+  font-size: 18px;
+  margin: 2px 0 8px;
+}
+.rag-static-link {
+  font-size: 13px;
+  margin-top: 10px;
+}
+@media (max-width: 700px) {
+  .rag-machine-toolbar {
+    padding: 16px;
+    align-items: flex-start;
+  }
+  .rag-toolbar-note {
+    display: none;
+  }
+  .rag-inspector {
+    gap: 14px;
+    padding: 20px 16px;
+    min-height: 250px;
+  }
+  .rag-step-index {
+    font-size: 13px;
+  }
+  .rag-inspector > svg {
+    display: none;
+  }
+  .rag-inspector h4 {
+    font-size: 16px;
+  }
+}
+.campus-site .rag-inspector p {
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.8;
+  max-width: 850px;
+}
+.campus-site .rag-inspector div > p:first-child {
+  font-size: 13px;
+  color: var(--accent);
+}
+.campus-site .rag-machine-footnote {
+  font-size: 13px;
+  margin: 0;
+  background: #1a1a1a;
+  padding: 16px 24px;
+}
+@media (max-width: 700px) {
+  .campus-site .rag-inspector p {
+    font-size: 13px;
+  }
+  .campus-site .rag-machine-footnote {
+    padding: 16px;
+  }
+}

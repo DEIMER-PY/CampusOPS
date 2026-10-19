@@ -10,14 +10,14 @@ test("portada accesible, navegación y layout sin desbordamiento", async ({
     "El campus,",
   );
   await expect(
-    page.getByRole("link", { name: "Ingresar", exact: false }),
+    page.getByRole("link", { name: "Ingresar", exact: true }),
   ).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
-  await page.getByRole("link", { name: "Ingresar", exact: false }).click();
+  await page.getByRole("link", { name: "Ingresar", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Qué bueno verte." }),
   ).toBeVisible();
@@ -48,20 +48,41 @@ test("API viva y rutas protegidas sin sesión", async ({ request }) => {
   expect((await response.json()).data).toBeUndefined();
 });
 
-test("explicación RAG accesible con imagen real y estado pendiente explícito", async ({
+test("arquitectura RAG nativa: selección, reproducción, pausa y estado pendiente", async ({
   page,
 }) => {
   await page.goto("/#rag");
   const section = page.locator("#rag");
   await expect(section.getByRole("heading", { level: 2 })).toContainText(
-    "Respuestas que muestran",
+    "Respuestas",
   );
-  const image = section.getByRole("img");
-  await expect(image).toBeVisible();
-  await expect(image).toHaveJSProperty("complete", true);
-  expect(
-    await image.evaluate((node: HTMLImageElement) => node.naturalWidth),
-  ).toBeGreaterThan(0);
+  const source = section.getByRole("button", { name: /Fuentes autorizadas/ });
+  await expect(source).toHaveAttribute("aria-pressed", "true");
+  const citations = section.getByRole("button", {
+    name: /Respuesta con citas/,
+  });
+  await citations.click();
+  await expect(citations).toHaveAttribute("aria-pressed", "true");
+  await expect(section.locator("#rag-step-description")).toContainText(
+    "página, hoja o fila",
+  );
+  const play = section.getByRole("button", {
+    name: "Reproducir recorrido RAG",
+  });
+  await play.click();
+  await expect(source).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    section.getByRole("button", { name: /Fragmentos con origen/ }),
+  ).toHaveAttribute("aria-pressed", "true", { timeout: 6000 });
+  await section.getByRole("button", { name: "Pausar recorrido RAG" }).click();
+  await expect(play).toBeVisible();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(play).toBeDisabled();
+  await source.click();
+  await expect(source).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    section.getByRole("link", { name: /Consultar el diagrama estático/ }),
+  ).toHaveAttribute("href", "/images/rag-campusflow.webp");
   await expect(section).toContainText(
     "todavía están pendientes de implementar",
   );
@@ -85,7 +106,7 @@ test("login: robot cargado, campos accesibles y registro sin elevar permisos", a
 }) => {
   await page.goto("/login");
   const robot = page.getByRole("img", {
-    name: "Robot astronauta con una sonrisa azul, referencia de Campuslands",
+    name: "Robot astronauta CampusFlow de cuerpo completo, ilustración con IA",
   });
   await expect(robot).toBeVisible();
   await expect(robot).toHaveJSProperty("complete", true);
@@ -123,4 +144,128 @@ test("portal sin sesión exige autenticación", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Qué bueno verte." }),
   ).toBeVisible();
+});
+
+test("galería del campus cambia fotografías editadas y conserva lectura accesible", async ({
+  page,
+}) => {
+  await page.goto("/#espacios");
+  const gallery = page.locator(".campus-gallery");
+  await expect(gallery).toContainText("edición con IA");
+  await expect(gallery.getByRole("heading")).toHaveText(
+    "Lugar para encontrarse.",
+  );
+  await gallery.getByRole("button", { name: "Ver siguiente espacio" }).click();
+  await expect(gallery.getByRole("heading")).toHaveText("Ideas sobre la mesa.");
+  const selected = gallery.locator('.campus-photo-card[data-active="true"]');
+  await expect(selected.getByRole("img")).toHaveJSProperty("complete", true);
+  await expect(selected.getByRole("img")).toHaveAttribute(
+    "src",
+    /sala-colaborativa-editada/,
+  );
+  await selected.focus();
+  await page.keyboard.press("Home");
+  await expect(gallery.getByRole("heading")).toHaveText(
+    "Espacio para concentrarse.",
+  );
+  await expect(gallery.locator(".robot-full img")).toHaveJSProperty(
+    "complete",
+    true,
+  );
+});
+
+test("robot responde al puntero y respeta movimiento reducido", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/login");
+  const art = page.locator(".robot-artwork");
+  if (testInfo.project.name === "desktop") {
+    let x = 60;
+    await expect
+      .poll(async () => {
+        x += 15;
+        await page.mouse.move(x, 100);
+        return (await art.getAttribute("style")) || "";
+      })
+      .toMatch(/perspective/);
+  }
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.mouse.move(300, 300);
+  await expect(art).not.toHaveAttribute("style", /perspective/);
+  await expect(art).toHaveCSS("transform", "none");
+});
+
+test("portada y acceso sin desbordamiento en cinco anchuras", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop",
+    "La matriz contiene móvil y tablet explícitos",
+  );
+  for (const path of ["/", "/login"]) {
+    await page.goto(path);
+    for (const width of [360, 390, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: 960 });
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      ).toBe(true);
+    }
+  }
+});
+
+test("la portada conserva contenido sin JavaScript", async ({
+  browser,
+  baseURL,
+}) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  try {
+    await page.goto(baseURL || "http://127.0.0.1:3000/");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "La última palabra es humana." }),
+    ).toBeVisible();
+    await expect(page.locator(".campus-hero-photo img")).toBeVisible();
+  } finally {
+    await context.close();
+  }
+});
+
+test("portada: explorador de fotos, decisión humana y footer navegables", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const hero = page.locator(".hero-explorer");
+  await hero.getByRole("button", { name: "Encuentro", exact: true }).click();
+  await expect(hero.getByRole("img")).toHaveAttribute(
+    "src",
+    /zona-reunion-editada/,
+  );
+  await expect(
+    hero.getByRole("link", { name: /El equipo empieza aquí/ }),
+  ).toHaveAttribute("href", "#espacios");
+  const decision = page.locator(".campus-decision");
+  await decision
+    .getByRole("button", { name: "Propuesta IA", exact: true })
+    .click();
+  await expect(
+    decision.getByRole("heading", { name: "La IA orienta la atención." }),
+  ).toBeVisible();
+  await decision
+    .getByRole("button", { name: "Revisión humana", exact: true })
+    .click();
+  await expect(
+    decision.getByRole("heading", {
+      name: "El equipo decide el siguiente paso.",
+    }),
+  ).toBeVisible();
+  const footer = page.getByRole("contentinfo");
+  await expect(
+    footer.getByRole("navigation", { name: "Explorar CampusFlow" }),
+  ).toBeVisible();
+  await expect(
+    footer.getByRole("link", { name: "Arquitectura RAG" }),
+  ).toHaveAttribute("href", "#rag");
 });

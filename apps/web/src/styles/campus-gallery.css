@@ -1,0 +1,210 @@
+.campus-carousel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 28px;
+}
+.campus-carousel-stage {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 0;
+  align-items: center;
+  min-width: 0;
+}
+.campus-photo-deck {
+  display: flex;
+  gap: 16px;
+  min-width: 0;
+  height: 490px;
+  align-items: stretch;
+}
+.campus-photo-card {
+  position: relative;
+  display: block;
+  min-width: 0;
+  flex: 1;
+  padding: 0;
+  background: #202020;
+  border: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition:
+    flex 0.65s var(--ease-out),
+    transform 0.65s var(--ease-out),
+    border-color 0.25s;
+  text-align: left;
+}
+.campus-photo-card[data-active="true"] {
+  flex: 1.6;
+  transform: translateY(-16px);
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+.campus-photo-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition:
+    transform 0.65s var(--ease-out),
+    filter 0.4s;
+}
+.campus-photo-card:not([data-active="true"]) img {
+  filter: brightness(0.7) saturate(0.7);
+}
+.campus-photo-card:hover img {
+  transform: scale(1.025);
+  filter: none;
+}
+.campus-photo-label {
+  position: absolute;
+  bottom: 16px;
+  left: 12px;
+  right: 12px;
+  padding: 12px;
+  background: #111e;
+  color: #fff;
+  font-size: 14px;
+  border-left: 2px solid var(--accent);
+}
+.campus-gallery-host {
+  position: relative;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.gallery-host-note {
+  font-size: 18px;
+  line-height: 1.4;
+  letter-spacing: -0.04em;
+  margin-left: 32px;
+  color: var(--secondary);
+}
+.campus-gallery-host .robot-companion {
+  min-height: 0;
+  flex: none;
+  margin-left: -32px;
+  pointer-events: none;
+}
+.campus-gallery-host .robot-artwork {
+  width: 300px;
+  max-width: none;
+  aspect-ratio: auto;
+}
+.robot-full .robot-artwork img {
+  max-height: 480px;
+  object-fit: contain;
+}
+.campus-gallery-host .robot-caption {
+  display: none;
+}
+.campus-carousel .gallery-copy {
+  grid-column: 1;
+  max-width: 740px;
+}
+.campus-carousel .gallery-copy h3 {
+  margin: 0 0 8px;
+}
+.campus-carousel .gallery-copy p {
+  margin: 0 0 12px;
+}
+.gallery-provenance {
+  font-size: 13px;
+  color: var(--muted);
+}
+.campus-carousel .gallery-controls {
+  align-self: start;
+  margin: 0;
+}
+@media (min-width: 1600px) {
+  .campus-carousel-stage {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+  .campus-gallery-host .robot-artwork {
+    width: 350px;
+  }
+}
+@media (max-width: 1100px) {
+  .campus-carousel-stage {
+    grid-template-columns: minmax(0, 1fr) 190px;
+  }
+  .campus-photo-deck {
+    height: 380px;
+    gap: 10px;
+  }
+  .campus-gallery-host .robot-artwork {
+    width: 230px;
+  }
+  .gallery-host-note {
+    margin-left: 12px;
+    font-size: 16px;
+  }
+}
+@media (max-width: 700px) {
+  .campus-carousel {
+    gap: 20px;
+  }
+  .campus-carousel-stage {
+    position: relative;
+    display: block;
+    padding-right: 0;
+  }
+  .campus-photo-deck {
+    height: 400px;
+    padding-right: 45px;
+    gap: 8px;
+  }
+  .campus-photo-card {
+    flex: 0 0 44px;
+    transition: flex 0.5s var(--ease-out);
+    border-radius: 8px;
+  }
+  .campus-photo-card[data-active="true"] {
+    flex: 1;
+    transform: none;
+  }
+  .campus-photo-card:not([data-active="true"]) .campus-photo-label {
+    display: none;
+  }
+  .campus-photo-card[data-active="true"] .campus-photo-label {
+    bottom: 12px;
+    left: 8px;
+    right: 8px;
+    font-size: 13px;
+    padding: 10px;
+  }
+  .campus-gallery-host {
+    position: absolute;
+    width: 125px;
+    right: 0;
+    bottom: -14px;
+    pointer-events: none;
+  }
+  .gallery-host-note {
+    display: none;
+  }
+  .campus-gallery-host .robot-artwork {
+    width: 125px;
+  }
+  .campus-gallery-host .robot-companion {
+    margin: 0;
+  }
+  .campus-carousel .gallery-copy {
+    grid-column: 1 / -1;
+    padding-right: 0;
+  }
+  .campus-carousel .gallery-controls {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .campus-photo-card,
+  .campus-photo-card img {
+    transition: none;
+  }
+  .campus-photo-card:hover img {
+    transform: none;
+  }
+}
