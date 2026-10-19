@@ -1,4 +1,4 @@
-> Integrado en CampusFlow: asistente visible en dashboard y migraciones aplicadas en la BD compartida. Esta máquina aún no tiene webhook ni credenciales n8n; no hay integración real acreditada. El rol n8n_runtime/login y WhatsApp no fueron activados. La actualización de verificación al final de docs/verification.md distingue ejecución local del motor y proveedores reales. La API usa UUID del actor; no envía correo/nombre derivado del correo. Una migración adicional revalida extensiones y separa la clasificación externa de Groq.
+> Estado revisado el 19 de octubre de 2026: workflow Groq principal / Gemini de respaldo y asistente del dashboard integrados desde `develop` (`c179d63`). La interfaz usa la API autenticada y distingue propuesta, aplicación y resultado incierto. La instancia local de n8n no responde en esta sesión; no se acredita ejecución real de proveedores ni cambios en la BD compartida. Ver [verificación vigente](../verification.md).
 
 # Flujo n8n: orquestador de espacios
 
@@ -6,19 +6,19 @@ Implementa el contrato de [CONTRATO_N8N_FRONTEND.md](../../CONTRATO_N8N_FRONTEND
 
 | Archivo | Contenido |
 |---|---|
-| `campusflow-orquestador.json` | Workflow importable (20 nodos). |
+| `campusflow-orquestador.json` | Workflow importable (24 nodos). |
 | `../../apps/api/prisma/migrations/20261016150000_n8n_agenda/` | Migración: columnas de `Reservation`, perfil de servicio, funciones `n8n_state()` y `n8n_apply_plan()`. |
 | `../sql/n8n-runtime.sql` | Rol `n8n_runtime` (solo `EXECUTE` de las dos funciones; sin acceso a tablas). |
-| `../../tests/n8n/motor.test.mjs` | 16 pruebas del código real del workflow (`node --test tests/n8n/motor.test.mjs`). |
+| `../../tests/n8n/motor.test.mjs` | 32 pruebas del código real del workflow (`node --test tests/n8n/motor.test.mjs`). |
 
 ## Interfaz web: «Asistente de agenda»
 
-Pestaña **Asistente de agenda** del espacio de trabajo (solo ADMIN y OPERATOR). El navegador nunca habla con n8n: llama a `POST /api/agenda/assistant` de Express, que valida la sesión y el rol, toma el nombre del solicitante del token (no del body), reenvía al webhook con `Authorization: Bearer <N8N_WEBHOOK_SECRET>` y valida la respuesta contra el catálogo antes de devolverla.
+Pestaña **Asistente de agenda** del espacio de trabajo (solo ADMIN y OPERATOR). El navegador nunca habla con n8n: llama a `POST /api/agenda/assistant` de Express, que valida la sesión y el rol, toma el UUID del actor autenticado (no del body), reenvía al webhook con `Authorization: Bearer <N8N_WEBHOOK_SECRET>` y valida la respuesta contra el catálogo antes de devolverla.
 
 - El usuario escribe en lenguaje natural y, opcionalmente, fecha, sala, asistentes y horas.
 - **Solo proponer** (`modo: PROPUESTA`): n8n calcula todo y **no escribe**. **Aplicar** (`modo: EJECUCION`): exige `N8N_MODE=execute` y confirma con el usuario; el resultado solo se muestra como aplicado si n8n informa `ejecucion: APLICADA`.
 - Muestra la decisión, la interpretación de la IA, el estado de aplicación, la incidencia detectada y el tablero de salas leído de la base tras la solicitud.
-- Variables de `apps/api/.env`: `N8N_WEBHOOK_URL=<URL de producción del webhook>/webhook/campusflow`, `N8N_WEBHOOK_SECRET=<secreto, sin la palabra Bearer>` y `N8N_MODE=execute`. En n8n, la credencial del webhook del frontend es Header Auth con nombre `Authorization` y valor `Bearer <secreto>`.
+- Variables de `apps/api/.env`: `N8N_WEBHOOK_URL=<URL de producción del webhook>/webhook/campusflow`, `N8N_WEBHOOK_SECRET=<secreto, sin la palabra Bearer>` y `N8N_MODE=proposal` para empezar. Habilitar `execute` solo después de verificar el entorno y la escritura auditada. En n8n, la credencial del webhook del frontend es Header Auth con nombre `Authorization` y valor `Bearer <secreto>`.
 
 > ¿Vas a usarlo en otro equipo? Sigue [USO_EN_OTRO_EQUIPO.md](USO_EN_OTRO_EQUIPO.md): código, n8n local, credenciales propias y cómo comprobar que la IA responde.
 
@@ -50,7 +50,7 @@ WhatsApp  POST /webhook/campusflow-whatsapp ──┤ (Evolution MESSAGES_UPSERT
 2. **Sin solapes:** intervalos `[inicio, fin)`; los contiguos son válidos (exclusión GiST `Reservation_no_overlap`).
 3. **Estado del espacio:** `DISABLED` (sin habilitar) y `MAINTENANCE` no se asignan.
 4. **FIFO:** conserva el espacio quien reservó primero (`createdAt`). Una extensión que choca con una reserva posterior la reubica en la sala libre de menor aforo suficiente; si no hay, se rechaza sin cambios.
-5. **Incidencia grave** (`HIGH`/`CRITICAL` e inhabilita el espacio): pasa a `MAINTENANCE` y reubica sus reservas pendientes. La incidencia se guarda en `Incident` (`aiStatus=COMPLETE`, `triage` con prioridad y área).
+5. **Incidencia grave** (`HIGH`/`CRITICAL` e inhabilita el espacio): pasa a `MAINTENANCE` y reubica sus reservas pendientes. La incidencia se guarda en `Incident` (`aiStatus=PENDING`; la clasificación externa no sustituye el triaje Groq de CampusFlow).
 
 Cada operación escribe un `AuditEvent` en la misma transacción (`n8n.reservation.created|relocated|extended`, `n8n.space.maintenance`, `n8n.incident.created`).
 
@@ -75,7 +75,7 @@ Cada operación escribe un `AuditEvent` en la misma transacción (`n8n.reservati
 6. **Evolution API:** instancia propia, webhook hacia `/webhook/campusflow-whatsapp` (evento `MESSAGES_UPSERT`, con el header de autenticación).
 7. Activar el workflow.
 
-## Verificación hecha
+## Verificación histórica (corrida anterior, no repetida en esta sesión)
 
 - `python -m automation validate docs/n8n/campusflow-orquestador.json`: válido, 0 errores, seguridad limpia (un aviso: sin `errorWorkflow`).
 - `node --test tests/n8n/motor.test.mjs`: 21/21. API: 18 pruebas (incluye `agenda.test.ts`: modos, identidad del servidor, respuesta fuera de contrato).
@@ -96,7 +96,15 @@ Cada operación escribe un `AuditEvent` en la misma transacción (`n8n.reservati
 
 ## Pendientes y decisiones abiertas
 
-- **Modo propuesta:** `docs/n8n-integration.md` y el adaptador de Express asumen que n8n solo propone (`N8N_MODE=proposal`) y Express aplica. Este flujo **escribe** a través de `n8n_apply_plan` (transaccional y auditado), no por tablas. Decidir con Deimer si el canal del frontend pasa a propuesta.
+- **Modos vigentes:** `PROPUESTA` vacía las operaciones antes de llamar a `n8n_apply_plan` y no envía avisos administrativos. Es el valor por defecto del canal web. `EJECUCION` es explícito y Express lo permite solo con `N8N_MODE=execute`; n8n aplica mediante la función transaccional auditada. Express no aplica un segundo plan. Un timeout de ejecución requiere revisar el estado antes de repetir.
 - El adaptador envía `Authorization: Bearer <secreto>`: usar una credencial Header Auth con ese formato en el webhook del frontend.
 - Horarios oficiales de salones: se cargan como reservas `IMPORT` con un script privado (no versionado: contiene nombres de docentes). Faltan datos de «Sala Nueva», la cohorte D3 Feb-26 y el aforo de Sputnik.
 - Registrar la deriva de esquema en `docs/handoff.md` cuando se integre.
+
+
+## Verificación de esta entrega
+
+- 32 regresiones del código real de los nodos: reglas, fechas relativas, consulta por sala, propuesta sin operaciones, grafo Groq/respaldo, avisos solo tras aplicación confirmada y reportes largos sin truncamiento a 1000 caracteres.
+- UI aislada desktop/móvil: solicitud → payload del contrato → propuesta; ejecución deshabilitada/configurable, confirmación cancelada/aceptada, actualización tras `APPLIED` y errores sin mostrar un resultado anterior como vigente.
+- En la sesión actual no hay listener n8n en 5678/5679 ni daemon Docker disponible. Importar el JSON, asignar las credenciales y activar el webhook de producción en la instancia autorizada sigue siendo necesario para probar un servicio real. No copiar credenciales de exportaciones antiguas.
+- El asistente está en Gestión → Asistente de agenda para ADMIN/OPERATOR. `GET /api/agenda/status` devuelve configuración, no salud. La comprobación efectiva ocurre al enviar una solicitud autenticada.

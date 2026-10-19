@@ -588,7 +588,7 @@ test("Normalizar: valida fecha y modo del adaptador de Express", () => {
   assert.deepEqual(malo.errores.map((x) => x.campo).sort(), ["fecha", "modo"]);
   assert.equal(
     normalizar({ reporte: "hola", usuario: "Ana", rol: "DOCENTE" }).modo,
-    "EJECUCION",
+    "PROPUESTA",
   );
 });
 
@@ -648,4 +648,112 @@ test("WhatsApp: responde al teléfono real si hay, o al JID completo si solo hay
     "57311",
   );
   assert.equal(normalizar(evo({ remoteJid: "119@lid" })).replyTo, "119@lid");
+});
+
+test("no avisa al administrador ante propuestas, fallos o cambios no confirmados", () => {
+  for (const [status, ejecucion] of [
+    ["success", "NO_APLICADA"],
+    ["error", "SIN_CAMBIOS"],
+    ["success", "SIN_CAMBIOS"],
+  ]) {
+    const nodos = {
+      "Motor de Reglas": {},
+      "Construir Respuesta": { respuesta: { status, ejecucion } },
+    };
+    const $ = (n) => ({ first: () => ({ json: nodos[n] }) });
+    const output = new Function("$", "$env", codigo("Preparar Aviso Admin"))(
+      $,
+      {
+        ADMIN_WHATSAPP_NUMBER: "0000000000",
+      },
+    );
+    assert.deepEqual(output, []);
+  }
+});
+
+test("export conecta Groq, respaldo Gemini, reglas y respuesta del frontend", () => {
+  const edge = (name, branch = 0) =>
+    workflow.connections[name].main[branch].map((n) => n.node);
+  assert.deepEqual(edge("Groq Interprete"), ["Motor de Reglas"]);
+  assert.deepEqual(edge("Groq Interprete", 1), ["Gemini Respaldo"]);
+  assert.deepEqual(edge("Gemini Respaldo"), ["Motor de Reglas"]);
+  assert.deepEqual(edge("Salida Frontend"), ["Responder Frontend"]);
+  assert.equal(
+    workflow.nodes.find((n) => n.name === "Webhook Frontend").parameters
+      .authentication,
+    "headerAuth",
+  );
+});
+
+test("frontend conserva el reporte de hasta 4000 caracteres que admite Express", () => {
+  const reporte = `Reservar ${"a".repeat(3000)}`;
+  assert.equal(
+    normalizar({ reporte, usuario: "uuid", rol: "DOCENTE" }).reporte,
+    reporte,
+  );
+});
+
+test("aviso administrativo conserva las incidencias realmente aplicadas", () => {
+  const nodos = {
+    "Motor de Reglas": { canal: "frontend", tocadas: [] },
+    "Construir Respuesta": {
+      respuesta: {
+        status: "success",
+        ejecucion: "APLICADA",
+        decisionIA: { titulo: "PRUEBA: incidencia guardada" },
+        incidenciaDetectada: {
+          existe: true,
+          prioridad: "HIGH",
+          areaResponsable: "TECNOLOGIA",
+          descripcion: "PRUEBA AISLADA",
+        },
+      },
+    },
+    "Leer Estado Final": { estado: { bookings: [] } },
+  };
+  const $ = (n) => ({ first: () => ({ json: nodos[n] }) });
+  const output = new Function("$", "$env", codigo("Preparar Aviso Admin"))($, {
+    ADMIN_WHATSAPP_NUMBER: "0000000000",
+  });
+  assert.equal(output.length, 1);
+  assert.match(output[0].json.texto, /PRUEBA AISLADA/);
+});
+
+test("Fecha relativa mañana se aplica sin fecha explícita", () => {
+  const r = motor({
+    entrada: entrada({ reporte: "Reserva Azul mañana de 10 a 11" }),
+    estado: estado(),
+    ia: ia("RESERVA", {
+      sala: "Azul",
+      horaInicio: "10:00",
+      horaFin: "11:00",
+      asistentes: 2,
+    }),
+  });
+  assert.equal(r.plan.ops[0].inicio, "2026-10-17T15:00:00.000Z");
+});
+
+test("Consulta de sala concreta respeta su estado y no genera cambios", () => {
+  const r = motor({
+    entrada: entrada({ modo: "PROPUESTA" }),
+    estado: estado([], { Azul: "MANTENIMIENTO" }),
+    ia: ia("CONSULTA", { sala: "Azul" }),
+  });
+  assert.match(r.decisionIA.explicacion, /mantenimiento/);
+  assert.equal(r.plan.ops.length, 0);
+});
+
+test("Fecha pasada se rechaza sin escribir", () => {
+  const r = motor({
+    entrada: entrada({ fecha: "2026-10-15" }),
+    estado: estado(),
+    ia: ia("RESERVA", {
+      sala: "Azul",
+      horaInicio: "10:00",
+      horaFin: "11:00",
+      asistentes: 2,
+    }),
+  });
+  assert.equal(r.decisionIA.accionEjecutada, "SOLICITUD_RECHAZADA");
+  assert.equal(r.plan.ops.length, 0);
 });
