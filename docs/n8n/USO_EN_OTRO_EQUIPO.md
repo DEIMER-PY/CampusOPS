@@ -2,7 +2,7 @@
 
 Guía para que cualquier integrante ponga a funcionar el asistente (n8n + IA) en su computador. Cada persona trabaja con **sus propias** credenciales: no se comparten claves, usuarios de n8n ni contraseñas de bases de datos.
 
-Piezas necesarias: el código, una base Supabase, un n8n corriendo y una clave de Gemini propia. WhatsApp es opcional.
+Piezas necesarias: el código, una base Supabase, un n8n corriendo y claves propias de Groq (intérprete principal) y Gemini (respaldo). WhatsApp es opcional.
 
 ## 1. El código
 
@@ -17,7 +17,10 @@ npm ci
 
 No copiar `node_modules`, `.next` ni archivos `.env` de otro sistema operativo. Ver también [GETTING_STARTED.md](../GETTING_STARTED.md).
 
-## 2. Clave de Gemini (hace trabajar a la IA)
+## 2. Claves de IA (Groq principal, Gemini respaldo)
+
+Groq: crear una clave personal en <https://console.groq.com/keys>. Puede ser la misma `GROQ_API_KEY` que ya usa la API para incidencias.
+
 
 Crear una clave personal gratuita en <https://aistudio.google.com/apikey>. No compartirla ni subirla a Git.
 
@@ -34,10 +37,11 @@ Abrir <http://localhost:5678> y crear el usuario propietario.
 ## 4. Importar el flujo y crear las credenciales
 
 1. En n8n: **Workflows → Import from file** y elegir `docs/n8n/campusflow-orquestador.json`.
-2. Crear tres credenciales y asignarlas a los nodos indicados:
+2. Crear cuatro credenciales y asignarlas a los nodos indicados:
 
 | Credencial | Contenido | Nodos |
 |---|---|---|
+| Groq | Header Auth, nombre `Authorization`, valor `Bearer <clave de Groq>` | `Groq Interprete` |
 | Gemini | Header Auth, nombre `x-goog-api-key`, valor: su clave del paso 2 | `Gemini Interprete`, `Gemini Respaldo` |
 | Webhook | Header Auth, nombre `Authorization`, valor `Bearer <secreto que inventa>` | `Webhook Frontend` |
 | Postgres | Usuario `n8n_runtime.<project-ref>` de **su** Supabase, SSL requerido | `Leer Estado`, `Aplicar Plan`, `Leer Estado Final` |
@@ -76,14 +80,14 @@ Entrar a <http://127.0.0.1:3000>, iniciar sesión (usuario con rol ADMIN u OPERA
 
 - Escribir algo en lenguaje libre, por ejemplo «necesito la sala azul mañana de 3 a 5 con dos personas».
 - La tarjeta de resultado debe mostrar **«La IA entendió: Reserva · gemini-…»** con el nombre del modelo.
-- En n8n, **Executions** → abrir la ejecución → nodo `Gemini Interprete`: la salida debe tener `candidates` con el JSON de la interpretación.
+- En n8n, **Executions** → abrir la ejecución → nodo `Groq Interprete`: la salida debe tener `choices` con el JSON de la interpretación. Si Groq falla (error HTTP o tiempo agotado), la ejecución pasa a `Gemini Interprete` y luego a `Gemini Respaldo`.
 
 ## Si algo falla
 
 | Síntoma | Qué hacer |
 |---|---|
-| «Gemini no respondió (… quota …)» | La clave agotó su cuota: esperar o usar otra |
-| «Gemini no respondió (… high demand …)» | Saturación temporal del modelo: reintentar en unos minutos |
+| «La IA no respondió (… quota …)» | La clave agotó su cuota: esperar o usar otra |
+| «La IA no respondió (… high demand …)» | Saturación temporal del modelo: reintentar en unos minutos |
 | Error 403 al llamar al webhook | El secreto de `N8N_WEBHOOK_SECRET` no coincide con el de n8n |
 | Error de Postgres en n8n | Usuario o contraseña de `n8n_runtime` incorrectos |
 | La app dice que la aplicación directa está desactivada | `N8N_MODE` no es `execute` |
