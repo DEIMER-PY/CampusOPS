@@ -3,6 +3,7 @@
 El diagrama del equipo mezcla inferencia, comprobación matemática y ejecución. CampusFlow separa esas responsabilidades para que una propuesta de IA no autorice estados inválidos.
 
 ```mermaid
+%%{init: {'theme': 'neutral'}}%%
 flowchart TD
   A["Reporte o solicitud autenticada"] --> B["Validar entrada y guardar reporte"]
   B --> C["Consultar snapshot autorizado de PostgreSQL"]

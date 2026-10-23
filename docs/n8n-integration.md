@@ -31,6 +31,7 @@ Estado actual: adaptador y validación preparados y probados con fixtures. Falta
 ## Recorrido acordado y activación
 
 ```mermaid
+%%{init: {'theme': 'neutral'}}%%
 sequenceDiagram
   participant O as Operador autenticado
   participant A as API Express

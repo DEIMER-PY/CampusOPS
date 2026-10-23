@@ -20,6 +20,7 @@ Las comunicaciones en CampusFlow **no constituyen una red social abierta**, sino
 El sistema utiliza un servidor nativo de WebSockets (`ws`) montado directamente sobre el servidor HTTP de Express (`apps/api/src/index.ts`), compartiendo el mismo puerto (`4000`) y protegiendo el endpoint mediante un handshake seguro.
 
 ```mermaid
+%%{init: {'theme': 'neutral'}}%%
 flowchart TD
     Client["Navegador / useCampusSocket"] -->|"HTTP Upgrade /ws?token=JWT"| Server["Express + ws Server"]
     Server -->|"Verifica Bearer JWT"| Auth["Supabase Auth"]

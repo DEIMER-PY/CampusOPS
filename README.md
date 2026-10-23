@@ -70,6 +70,7 @@ Versiones exactas y árbol reproducible en `package-lock.json`. La referencia vi
 ## Arquitectura
 
 ```mermaid
+%%{init: {'theme': 'neutral'}}%%
 flowchart LR
   U["Comunidad y operadores"] --> WEB["Next.js / React"]
   WEB --> AUTH["Supabase Auth"]
@@ -94,6 +95,7 @@ La IA propone categoría, prioridad, área y siguiente paso. No habilita equipos
 ### Modelo de datos
 
 ```mermaid
+%%{init: {'theme': 'neutral'}}%%
 erDiagram
   Profile ||--o{ Reservation : solicita
   Space ||--o{ Reservation : recibe
@@ -188,6 +190,7 @@ Fechas persistidas en UTC/timestamptz y mostradas en `America/Bogota`. Un fallo 
 ### Flujo de incidencias y evidencia
 
 ```mermaid
+%%{init: {'theme': 'neutral'}}%%
 flowchart TD
   A["Describir incidencia"] --> B["Validar y guardar reporte"]
   B --> C["Triaje Groq con contexto autorizado"]
