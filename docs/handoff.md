@@ -77,3 +77,12 @@ Base actualizada por fast-forward a `origin/develop c179d63` (PR #14: Groq princ
 Verificación local con Node 24.19.0/npm 11.19.1: `npm run check` aprobado (150 advertencias y una observación, sin errores; tipos, 20 unitarias y builds); motor n8n 32/32; UI aislada 31 aprobadas/3 omitidas; pública 19 aprobadas/3 omitidas. La nueva suite de dashboard se incluye también en CI. Matriz responsive 360/390/768/1024/1440 y pruebas de foco/movimiento reducido dentro del alcance aislado. No equivalen a cuentas Supabase multirrol ni a servicios reales.
 
 Bloqueo operativo actual: puertos locales n8n 5678/5679 sin respuesta y Docker sin daemon. Para acreditar el flujo real hacen falta instancia disponible, credenciales asignadas, webhook activado y recorrido autenticado con escritura autorizada. No se activaron `N8N_MODE=execute`, WhatsApp ni rol de login de BD en esta sesión; no se cambiaron esquema, permisos ni dependencias raíz.
+
+
+## Auditoría y propuesta de escalado — 23 octubre 2026
+
+Base `develop a2a8916` (PR #15 integrado); rama documental `feature/integrations-scaling-plan`. [Paquete completo](scaling/README.md), [evidencia](scaling/current-state.md) y [tareas por integrante](scaling/team-backlog.md). Incluye arquitectura objetivo/ER/secuencias, migraciones, concurrencia/rendimiento, RAG en Go, correo n8n y maqueta navegable por cargo. No se implementaron ni desplegaron esas ampliaciones.
+
+Hallazgos: `/health=200`, `/ready=503` con unavailable; Supabase activo pero esquema realtime parcialmente adelantado al historial de nueve migraciones. Nuevos roles ya asignados requieren corregir filtros que solo restringen CLIENT. Ramas realtime/SaaS fuera de develop; CI quality fallido en ambas revisiones remotas. RAG sin ingesta/recuperación ni tablas/vector en BD; triaje Groq es independiente. n8n 5678 health=200, sin prueba de webhook/ejecución. No se reprodujeron credenciales de pruebas encontradas en documentación remota.
+
+Verificación local: Node 24.22.0/npm 11.19.1, npm ci, db:generate, db:validate y check correctos (150 avisos/1 observación de lint; 20 unitarias; tipos/builds); motor n8n 32/32; E2E pública 19 aprobadas/3 omitidas y frontend con fixtures 31/3. Lecturas MCP de metadatos/agregados, sin cambios en BD; concurrencia de integración no repetida por Docker sin daemon. Sin inferencia IA real, entrega email, login multirrol o carga nuevos. Lockfile sin cambios. `next-env.d.ts` generado por las pruebas restaurado al estado inicial.

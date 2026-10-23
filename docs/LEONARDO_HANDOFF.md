@@ -1,5 +1,7 @@
 # Relevo para Leonardo — CampusFlow
 
+> **Prioridad vigente — 23 octubre 2026:** leer [auditoría de ramas y servicios](scaling/current-state.md) y [reparto por integrante](scaling/team-backlog.md). `develop a2a8916` ya integra PR #15. Supabase tiene tablas/roles realtime adicionales sin el registro de migración equivalente inspeccionado; los filtros por CLIENT requieren revisión inmediata. El despliegue respondió `/health=200` y `/ready=503`. RAG sigue sin funcionamiento: propuesta en **Go** en [rag-go.md](scaling/rag-go.md). Plan completo en [scaling/README.md](scaling/README.md), rama documental `feature/integrations-scaling-plan`. Las secciones inferiores conservan historia.
+
 > Actualización 19 octubre 2026: consultar primero la última sección de [handoff.md](handoff.md) y [verification.md](verification.md). La entrega `feature/frontend-campus-operations` integra `develop c179d63`, dashboard rediseñado y asistente n8n. La instancia n8n está pendiente de disponibilidad; las afirmaciones históricas de ausencia de UI ya no describen esta entrega.
 
 ## Punto de entrada

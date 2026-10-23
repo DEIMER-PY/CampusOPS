@@ -121,3 +121,12 @@ Cambios de presentación y límites de video/planos: ver última sección de `ha
 
 
 CI del PR #15: primera corrida Linux (incluyendo integración PostgreSQL aislada) y macOS aprobadas; Windows detectó una ruta con separador `/` en el servidor de pruebas de presentación. Se corrige usando `node:path.sep`; no afecta al servidor Next/Express del producto. La corrección se verifica repitiendo la matriz remota, sin omitir la suite en Windows. Resultados actuales en [PR #15](https://github.com/DEIMER-PY/campusflow/pull/15).
+
+
+## Auditoría y propuesta de escalado — 23 octubre 2026
+
+Base `develop a2a8916` (PR #15 integrado); rama documental `feature/integrations-scaling-plan`. [Paquete completo](scaling/README.md), [evidencia](scaling/current-state.md) y [tareas por integrante](scaling/team-backlog.md). Incluye arquitectura objetivo/ER/secuencias, migraciones, concurrencia/rendimiento, RAG en Go, correo n8n y maqueta navegable por cargo. No se implementaron ni desplegaron esas ampliaciones.
+
+Hallazgos: `/health=200`, `/ready=503` con unavailable; Supabase activo pero esquema realtime parcialmente adelantado al historial de nueve migraciones. Nuevos roles ya asignados requieren corregir filtros que solo restringen CLIENT. Ramas realtime/SaaS fuera de develop; CI quality fallido en ambas revisiones remotas. RAG sin ingesta/recuperación ni tablas/vector en BD; triaje Groq es independiente. n8n 5678 health=200, sin prueba de webhook/ejecución. No se reprodujeron credenciales de pruebas encontradas en documentación remota.
+
+Verificación local: Node 24.22.0/npm 11.19.1, npm ci, db:generate, db:validate y check correctos (150 avisos/1 observación de lint; 20 unitarias; tipos/builds); motor n8n 32/32; E2E pública 19 aprobadas/3 omitidas y frontend con fixtures 31/3. Lecturas MCP de metadatos/agregados, sin cambios en BD; concurrencia de integración no repetida por Docker sin daemon. Sin inferencia IA real, entrega email, login multirrol o carga nuevos. Lockfile sin cambios. `next-env.d.ts` generado por las pruebas restaurado al estado inicial.

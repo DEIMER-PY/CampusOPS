@@ -1,3 +1,5 @@
+> **Actualización 23 octubre 2026:** [auditoría actual](scaling/current-state.md) y [contrato propuesto de correo/outbox para Tomas](scaling/email-n8n.md). n8n local 5678 responde health, sin acreditar workflow real. Las referencias históricas a URL ausente no sustituyen ese estado.
+
 > Estado vigente (19 octubre 2026): asistente ADMIN/OPERATOR integrado desde `develop c179d63`, con Groq principal y Gemini de respaldo. La UI llama a Express con sesión; propuesta y ejecución tienen estados separados. Ver [guía del workflow](n8n/README.md). No hay n8n local disponible en esta sesión: configuración y ejecución real siguen pendientes de comprobación. El contrato histórico de propuesta de calendario que sigue abajo no implica que Express aplique el plan del asistente.
 
 # Integración de Tomas con n8n

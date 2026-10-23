@@ -1,5 +1,7 @@
 # RAG documental: PDF, Excel y corpus de demostración
 
+> Actualización 23 octubre 2026: RAG sin funcionamiento en código y estructura de Supabase inspeccionados. El usuario pidió plantear implementación en **Go**: [servicio y contratos](scaling/rag-go.md), [arquitectura](scaling/architecture.md) y [reparto del trabajo](scaling/team-backlog.md). Este documento conserva requisitos de fuentes y seguridad.
+
 Alcance solicitado para la siguiente iteración de Leonardo: PDF, Excel y, cuando falten fuentes, documentos simulados identificados. Aún no existe upload, extracción, índice vectorial ni chat RAG implementado. El triaje Groq actual es independiente.
 
 ## Flujo acordado

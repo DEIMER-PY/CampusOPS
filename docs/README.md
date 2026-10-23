@@ -4,6 +4,8 @@
 
 ## Continuar el desarrollo
 
+**Revisión vigente, 23 octubre 2026:** [Integración y escalado](scaling/README.md), con auditoría de ramas/Supabase, tareas para Leonardo/Mantilla/Tomas, SaaS, concurrencia, RAG en Go, correo n8n y maqueta gráfica. Las ampliaciones son propuestas.
+
 | Documento | Para qué sirve |
 |---|---|
 | [Guía de inicio](GETTING_STARTED.md) | Clonación, herramientas, variables, Prisma y arranque por OS |
@@ -31,4 +33,4 @@
 - [Cambio de regla en vivo](live-challenge.md): ejercicio para ensayar en menos de tres minutos.
 - [Activos y capturas](assets/README.md): procedencia y límites de las imágenes.
 
-Estado de referencia: rama `feature/prototype-plans-vision`. Los apartados históricos de evidencia no sustituyen su actualización final. n8n real, RAG, visión real y entrega de correo no se consideran cerrados por tener diagramas, adaptadores o pruebas con dobles.
+Estado revisado: `develop a2a8916`, con realtime/SaaS en ramas separadas; ver [auditoría actual](scaling/current-state.md). Los apartados históricos de evidencia no sustituyen su actualización final. n8n real, RAG, visión real y entrega de correo no se consideran cerrados por tener diagramas, adaptadores o pruebas con dobles.
