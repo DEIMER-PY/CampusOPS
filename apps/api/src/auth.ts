@@ -41,7 +41,7 @@ export async function authenticate(
     });
     return;
   }
-  const profile = await database().profile.findUnique({
+  let profile = await database().profile.findUnique({
     where: { id: data.user.id },
   });
   if (!profile) {
@@ -52,6 +52,21 @@ export async function authenticate(
       },
     });
     return;
+  }
+  const email = data.user.email;
+  const name =
+    (data.user.user_metadata?.full_name as string) ||
+    (data.user.user_metadata?.name as string) ||
+    email?.split("@")[0] ||
+    "Usuario";
+  if (!profile.name || !profile.email) {
+    profile = await database().profile.update({
+      where: { id: profile.id },
+      data: {
+        name: profile.name || name,
+        email: profile.email || email,
+      },
+    });
   }
   res.locals.actor = profile;
   next();
