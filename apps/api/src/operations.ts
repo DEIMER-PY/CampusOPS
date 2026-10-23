@@ -473,8 +473,10 @@ operations.post("/agenda/assistant", aiLimit, async (req, res) => {
         error: {
           code: error.code,
           message: disabled
-            ? "La aplicación directa está desactivada. Solicita una propuesta o activa N8N_MODE=execute."
-            : "No se obtuvo una respuesta válida de n8n. No se aplicaron cambios en CampusFlow.",
+            ? "La aplicación directa está desactivada. Solicita una propuesta; un administrador debe configurar la ejecución."
+            : input.modo === "EJECUCION"
+              ? "No se pudo confirmar el resultado de n8n. Revisa reservas, incidencias y auditoría antes de repetir: el cambio podría haberse guardado."
+              : "No se obtuvo una propuesta válida de n8n. Revisa la configuración e inténtalo de nuevo.",
         },
       });
   }

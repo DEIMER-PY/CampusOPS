@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-19",
+  "assets": [
+    {
+      "path": "assets/robot.webp",
+      "sha256": "299889e9cdaae9766e3e9f08ff516d5d9f47e638f4bd5857667ea4c5cb122d24"
+    },
+    {
+      "path": "assets/poppins-500.woff2",
+      "sha256": "cd36de204aca2d5fa263a731f7c20009b5e3d754ba1f1e03c33e93a48f3e7446"
+    },
+    {
+      "path": "assets/campus.webp",
+      "sha256": "8db72232b80b39138be834aa669ab81d150260cb03610be310da3e896576585d"
+    },
+    {
+      "path": "assets/poppins-400.woff2",
+      "sha256": "7d93459d86585bfcdbb7e0376056226adb25821ee54b96236fe2123e9560929f"
+    },
+    {
+      "path": "generated/gsap.min.js",
+      "sha256": "c174bfce53a729418d57a8ad8625e7247c793a22fef8e2851e3cfa3de9cd8280"
+    }
+  ],
+  "sources": {
+    "campus.webp": "Fotografía aportada y retocada, docs/campus-photographs.json",
+    "robot.webp": "Ilustración generada desde la mascota aportada, docs/robot-full-image-provenance.json",
+    "poppins-400.woff2": "@fontsource/poppins instalado en el monorepo",
+    "poppins-500.woff2": "@fontsource/poppins instalado en el monorepo",
+    "gsap.min.js": "https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
+  },
+  "audio": "Pendiente de ElevenLabs. No hay voz temporal ni sustitución de proveedor."
+}

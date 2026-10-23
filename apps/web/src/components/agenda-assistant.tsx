@@ -75,7 +75,7 @@ const executionText: Record<Result["execution"], [string, string]> = {
   NOT_REPORTED: ["n8n no confirmó la aplicación del cambio", "warning"],
 };
 const stateText: Record<string, string> = {
-  DISPONIBLE: "Disponible",
+  DISPONIBLE: "Sin ocupación registrada",
   OCUPADO: "Ocupada",
   REUBICADO_IA: "Reubicada por IA",
   MANTENIMIENTO: "Mantenimiento",
@@ -148,6 +148,7 @@ export function AgendaAssistant({
   operator,
   disabled,
   onApplied,
+  contextReady = true,
 }: {
   api: Api;
   spaces: Space[];
@@ -155,6 +156,7 @@ export function AgendaAssistant({
   operator: boolean;
   disabled: boolean;
   onApplied: () => void;
+  contextReady?: boolean;
 }) {
   const id = useId();
   const [text, setText] = useState("");
@@ -170,6 +172,8 @@ export function AgendaAssistant({
   useEffect(() => {
     if (!operator) return;
     let active = true;
+    setAvailability(null);
+    setStatusError(false);
     api<{ configured: boolean; executionEnabled: boolean }>("/agenda/status")
       .then((value) => {
         if (active) setAvailability(value);
@@ -212,6 +216,7 @@ export function AgendaAssistant({
       return;
     setBusy(true);
     setError("");
+    setResult(null);
     try {
       const response = await api<Result>("/agenda/assistant", "POST", body);
       setResult(response);
@@ -237,15 +242,30 @@ export function AgendaAssistant({
   const locked = disabled || busy || !operator;
 
   return (
-    <div className="agenda-layout">
+    <div className="agenda-layout agenda-guided">
+      <ol className="agenda-journey" aria-label="Recorrido de una solicitud">
+        {[
+          "Describe la necesidad",
+          "Valida las reglas",
+          "Revisa el resultado",
+        ].map((label, index) => (
+          <li
+            key={label}
+            data-active={index === (busy ? 1 : result || error ? 2 : 0)}
+          >
+            <span>{index + 1}</span>
+            <strong>{label}</strong>
+          </li>
+        ))}
+      </ol>
       <section className="report-composer agenda-composer">
         <div className="panel-heading">
           <Sparkles size={22} />
-          <h2>Asistente de agenda</h2>
+          <h2>¿Qué necesitas coordinar?</h2>
         </div>
         <p>
-          Escribe lo que necesitas. La IA entiende el texto y las reglas del
-          campus deciden: aforo, solapes, estado del espacio y orden de llegada.
+          Empieza con una tarea. Completa la sala, la fecha y el horario en tus
+          palabras; revisa la respuesta antes de continuar.
         </p>
         {!operator && (
           <p className="agenda-note" role="note">
@@ -257,9 +277,40 @@ export function AgendaAssistant({
             {statusError
               ? "No pudimos comprobar la conexión de n8n. Actualiza la página para reintentar."
               : availability
-                ? "Conexión pendiente: configura el webhook de Tomas en el servidor. Puedes consultar el tablero; aún no se envían solicitudes a n8n."
+                ? "Asistente pendiente de configurar. Puedes preparar tu solicitud y consultar los registros cargados; todavía no se envían propuestas."
                 : "Comprobando configuración de n8n…"}
           </p>
+        )}
+        {operator && (
+          <div className="agenda-connection">
+            <p role="status">
+              {availability?.configured
+                ? availability.executionEnabled
+                  ? "Configuración cargada · propuesta y aplicación habilitadas"
+                  : "Configuración cargada · solo propuestas"
+                : "Conexión pendiente de comprobar"}
+              <small>
+                La configuración no garantiza que el webhook o la IA estén
+                disponibles.
+              </small>
+            </p>
+            <button
+              type="button"
+              className="button button-secondary"
+              disabled={busy}
+              onClick={() => {
+                setStatusError(false);
+                setAvailability(null);
+                void api<{ configured: boolean; executionEnabled: boolean }>(
+                  "/agenda/status",
+                )
+                  .then(setAvailability)
+                  .catch(() => setStatusError(true));
+              }}
+            >
+              Revisar configuración
+            </button>
+          </div>
         )}
         <form
           onSubmit={(e) => {
@@ -267,7 +318,31 @@ export function AgendaAssistant({
             void submit(e.currentTarget);
           }}
         >
-          <label htmlFor={`${id}-text`}>¿Qué necesitas?</label>
+          <fieldset
+            className="agenda-task-picker"
+            aria-label="Tipo de solicitud"
+          >
+            {[
+              "Reservar una sala",
+              "Ampliar un horario",
+              "Reportar un problema",
+              "Consultar un horario",
+            ].map((label, index) => (
+              <button
+                type="button"
+                key={label}
+                disabled={locked}
+                aria-pressed={text === examples[index]}
+                onClick={() => setText(examples[index])}
+              >
+                <span>
+                  {["Reserva", "Extensión", "Incidencia", "Consulta"][index]}
+                </span>
+                <strong>{label}</strong>
+              </button>
+            ))}
+          </fieldset>
+          <label htmlFor={`${id}-text`}>Describe tu solicitud</label>
           <textarea
             id={`${id}-text`}
             rows={4}
@@ -279,70 +354,66 @@ export function AgendaAssistant({
             placeholder="Por ejemplo: necesito Apolo hoy de 3 a 5 pm para 20 personas…"
             disabled={locked}
           />
-          <ul className="agenda-examples" aria-label="Ejemplos">
-            {examples.map((example) => (
-              <li key={example}>
-                <button
-                  type="button"
-                  disabled={locked}
-                  onClick={() => setText(example)}
+          <p className="agenda-input-hint">
+            Incluye sala, fecha, horas y personas.{" "}
+            <span>{text.length} / 4000</span>
+          </p>
+          <details className="agenda-optional">
+            <summary>
+              Precisar fecha, sala y asistentes <span>Opcional</span>
+            </summary>
+            <fieldset className="agenda-fields" disabled={locked}>
+              <legend>
+                Datos opcionales (si los omites, la IA los toma del texto)
+              </legend>
+              <div>
+                <label htmlFor={`${id}-date`}>Fecha</label>
+                <input id={`${id}-date`} name="fecha" type="date" />
+              </div>
+              <div>
+                <label htmlFor={`${id}-space`}>Sala</label>
+                <select id={`${id}-space`} name="sala" defaultValue="">
+                  <option value="">Que decida la IA / las reglas</option>
+                  {spaces.map((space) => (
+                    <option key={space.id} value={space.name}>
+                      {space.name} ({space.capacity})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor={`${id}-people`}>Asistentes</label>
+                <input
+                  id={`${id}-people`}
+                  name="asistentes"
+                  type="number"
+                  min={1}
+                  max={100}
+                  inputMode="numeric"
+                />
+              </div>
+              <div>
+                <label htmlFor={`${id}-start`}>Hora de inicio</label>
+                <input id={`${id}-start`} name="inicio" type="time" />
+              </div>
+              <div>
+                <label htmlFor={`${id}-end`}>Hora de fin</label>
+                <input id={`${id}-end`} name="fin" type="time" />
+              </div>
+              <div>
+                <label htmlFor={`${id}-role`}>Tipo de solicitante</label>
+                <select
+                  id={`${id}-role`}
+                  name="rol"
+                  defaultValue="ADMINISTRATIVO"
                 >
-                  {example}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <fieldset className="agenda-fields" disabled={locked}>
-            <legend>
-              Datos opcionales (si los omites, la IA los toma del texto)
-            </legend>
-            <div>
-              <label htmlFor={`${id}-date`}>Fecha</label>
-              <input id={`${id}-date`} name="fecha" type="date" />
-            </div>
-            <div>
-              <label htmlFor={`${id}-space`}>Sala</label>
-              <select id={`${id}-space`} name="sala" defaultValue="">
-                <option value="">Que decida la IA / las reglas</option>
-                {spaces.map((space) => (
-                  <option key={space.id} value={space.name}>
-                    {space.name} ({space.capacity})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor={`${id}-people`}>Asistentes</label>
-              <input
-                id={`${id}-people`}
-                name="asistentes"
-                type="number"
-                min={1}
-                max={100}
-                inputMode="numeric"
-              />
-            </div>
-            <div>
-              <label htmlFor={`${id}-start`}>Hora de inicio</label>
-              <input id={`${id}-start`} name="inicio" type="time" />
-            </div>
-            <div>
-              <label htmlFor={`${id}-end`}>Hora de fin</label>
-              <input id={`${id}-end`} name="fin" type="time" />
-            </div>
-            <div>
-              <label htmlFor={`${id}-role`}>Tipo de solicitante</label>
-              <select
-                id={`${id}-role`}
-                name="rol"
-                defaultValue="ADMINISTRATIVO"
-              >
-                <option value="DOCENTE">Docente</option>
-                <option value="COMERCIAL">Comercial</option>
-                <option value="ADMINISTRATIVO">Administrativo</option>
-              </select>
-            </div>
-          </fieldset>
+                  <option value="DOCENTE">Docente</option>
+                  <option value="COMERCIAL">Comercial</option>
+                  <option value="ADMINISTRATIVO">Administrativo</option>
+                </select>
+              </div>
+            </fieldset>
+          </details>
           <fieldset className="agenda-mode" disabled={locked}>
             <legend>¿Qué hacer con el resultado?</legend>
             <label>
@@ -369,6 +440,13 @@ export function AgendaAssistant({
               </span>
             </label>
           </fieldset>
+          {!availability?.executionEnabled && (
+            <p className="agenda-note">
+              Aplicar requiere que un administrador habilite la ejecución en el
+              servidor. Puedes revisar propuestas cuando la conexión esté
+              configurada.
+            </p>
+          )}
           <button
             className="button button-primary"
             type="submit"
@@ -460,15 +538,20 @@ export function AgendaAssistant({
         <div className="agenda-board-head">
           <h3>
             <CalendarDays size={18} />{" "}
-            {result ? "Estado de las salas tras tu solicitud" : "Salas ahora"}
+            {result ? "Resultado comunicado" : "Contexto del campus"}
           </h3>
           <p>
             {result
-              ? "Leído de la base de datos después de procesar la solicitud."
-              : "Según las reservas guardadas. Pide una propuesta para ver el efecto de un cambio."}
+              ? "Consulta el estado de aplicación indicado arriba antes de asumir un cambio."
+              : "Vista de los registros cargados. La disponibilidad para una franja se valida al solicitarla."}
           </p>
         </div>
-        {board.length === 0 ? (
+        {!result && !contextReady ? (
+          <p className="agenda-note">
+            No se pudieron cargar todos los espacios y reservas. Actualiza los
+            datos antes de interpretar el contexto.
+          </p>
+        ) : board.length === 0 ? (
           <p className="agenda-note">
             Aún no hay espacios cargados. Importa el catálogo para empezar.
           </p>

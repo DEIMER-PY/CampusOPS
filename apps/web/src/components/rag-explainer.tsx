@@ -1,5 +1,5 @@
 import { ArrowUpRight, FileText, ShieldCheck } from "lucide-react";
-import Image from "next/image";
+import { RagArchitecture } from "./rag-architecture";
 
 export function RagExplainer() {
   return (
@@ -7,9 +7,9 @@ export function RagExplainer() {
       <div className="rag-heading">
         <div>
           <h2 id="rag-title">
-            Respuestas que muestran
+            Respuestas
             <br />
-            <span>de dónde vienen.</span>
+            <span>con fuentes.</span>
           </h2>
           <p>
             Así conectaremos documentos autorizados con respuestas que puedas
@@ -18,32 +18,15 @@ export function RagExplainer() {
         </div>
         <span className="status-badge">RAG · En preparación</span>
       </div>
-      <figure className="rag-figure">
-        <a
-          href="/images/rag-campusflow.webp"
-          target="_blank"
-          rel="noreferrer"
-          aria-label="Abrir el diagrama del RAG en tamaño completo"
-        >
-          <Image
-            src="/images/rag-campusflow.webp"
-            alt="Arquitectura prevista del RAG: preparar PDF y Excel, crear un índice, validar permisos de la pregunta, recuperar fragmentos y generar una respuesta con citas."
-            width={1672}
-            height={941}
-            sizes="(max-width: 640px) calc(100vw - 36px), (max-width: 1400px) calc(100vw - 96px), 1320px"
-          />
-        </a>
-        <figcaption>
-          Diagrama conceptual generado para explicar la siguiente fase.{" "}
-          <a
-            href="/images/rag-campusflow.webp"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Ver en tamaño completo <ArrowUpRight size={13} />
-          </a>
-        </figcaption>
-      </figure>
+      <RagArchitecture />
+      <a
+        className="text-link rag-static-link"
+        href="/images/rag-campusflow.webp"
+        target="_blank"
+        rel="noreferrer"
+      >
+        Consultar el diagrama estático <ArrowUpRight size={16} />
+      </a>
       <div className="rag-detail">
         <div>
           <FileText size={24} />

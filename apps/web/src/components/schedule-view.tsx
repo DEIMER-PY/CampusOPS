@@ -64,6 +64,7 @@ export function ScheduleView({
     [filter, setFilter] = useState("ALL"),
     [query, setQuery] = useState(""),
     [selected, setSelected] = useState(""),
+    [roomFilter, setRoomFilter] = useState("ALL"),
     [view, setView] = useState("AGENDA"),
     [saving, setSaving] = useState(false);
   const load = useCallback(async () => {
@@ -86,15 +87,20 @@ export function ScheduleView({
     board?.entries.filter(
       (e) =>
         (filter === "ALL" || e.category === filter) &&
+        (roomFilter === "ALL" || e.room === roomFilter) &&
         `${e.label} ${e.room} ${e.instructor ?? ""} ${e.course ?? ""}`
           .toLowerCase()
           .includes(query.toLowerCase()),
     ) ?? [];
   const current = board?.entries.find((e) => e.id === selected);
-  const first = board
+  const visibleRooms =
+    board?.rooms.filter(
+      (room) => roomFilter === "ALL" || room === roomFilter,
+    ) ?? [];
+  const first = board?.entries.length
     ? Math.floor(Math.min(...board.entries.map((e) => e.startMinute)) / 60) * 60
     : 360;
-  const last = board
+  const last = board?.entries.length
     ? Math.ceil(Math.max(...board.entries.map((e) => e.endMinute)) / 60) * 60
     : 780;
   return (
@@ -102,10 +108,10 @@ export function ScheduleView({
       <div className="schedule-intro">
         <CalendarRange size={27} />
         <div>
-          <h2>De la hoja de cálculo a una agenda compartida.</h2>
+          <h2>Jornada de formación</h2>
           <p>
-            Bloques de la referencia, guardados en Supabase. Plantilla sin fecha
-            de aplicación; sus bloques todavía no son reservas.
+            Calendario por sala · plantilla sin fecha de aplicación. Estos
+            bloques no son reservas confirmadas.
           </p>
         </div>
         <button
@@ -167,6 +173,21 @@ export function ScheduleView({
                 ),
               )}
             </section>
+            <label className="schedule-room-filter">
+              <span>Sala</span>
+              <select
+                aria-label="Filtrar horario por sala"
+                value={roomFilter}
+                onChange={(event) => setRoomFilter(event.target.value)}
+              >
+                <option value="ALL">Todas las salas</option>
+                {board.rooms.map((room) => (
+                  <option key={room} value={room}>
+                    {room}
+                  </option>
+                ))}
+              </select>
+            </label>
             <label className="search-field">
               <input
                 aria-label="Buscar en horarios"
@@ -195,19 +216,19 @@ export function ScheduleView({
               {view === "AGENDA" ? (
                 <section
                   className="schedule-scroll"
-                  aria-label="Agenda por sala; desplázate horizontalmente para consultar las nueve columnas"
+                  aria-label="Calendario por sala; usa las flechas para recorrer las columnas"
                   // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users must scroll the timetable.
                   tabIndex={0}
                 >
                   <div
                     className="schedule-canvas"
                     style={{
-                      gridTemplateColumns: `66px repeat(${board.rooms.length}, 176px)`,
-                      gridTemplateRows: `56px repeat(${(last - first) / 15}, 25px)`,
+                      gridTemplateColumns: `72px repeat(${visibleRooms.length}, 232px)`,
+                      gridTemplateRows: `64px repeat(${(last - first) / 15}, 44px)`,
                     }}
                   >
                     <div className="schedule-corner">Hora</div>
-                    {board.rooms.map((room, index) => (
+                    {visibleRooms.map((room, index) => (
                       <h3
                         className="schedule-room-heading"
                         key={room}
@@ -228,10 +249,14 @@ export function ScheduleView({
                           gridRow: (minute - first) / 15 + 2,
                         }}
                       >
-                        {clock(minute)}
+                        {minute % 60 === 0 ? (
+                          clock(minute)
+                        ) : (
+                          <span aria-hidden="true">·</span>
+                        )}
                       </div>
                     ))}
-                    {board.rooms.map((room, index) => (
+                    {visibleRooms.map((room, index) => (
                       <div
                         key={room}
                         className="schedule-room-lane"
@@ -249,7 +274,7 @@ export function ScheduleView({
                         aria-pressed={selected === entry.id}
                         aria-label={`${entry.label}, ${entry.room}, ${clock(entry.startMinute)} a ${clock(entry.endMinute)}, ${entry.status === "CANCELLED" ? "cancelado" : "por confirmar"}`}
                         style={{
-                          gridColumn: board.rooms.indexOf(entry.room) + 2,
+                          gridColumn: visibleRooms.indexOf(entry.room) + 2,
                           gridRow: `${(entry.startMinute - first) / 15 + 2} / ${(entry.endMinute - first) / 15 + 2}`,
                         }}
                         onClick={() => setSelected(entry.id)}
@@ -259,21 +284,15 @@ export function ScheduleView({
                           {clock(entry.startMinute)}–{clock(entry.endMinute)}
                         </span>
                         <strong>{entry.label}</strong>
-                        <span>
-                          {entry.course ??
-                            (entry.status === "CANCELLED"
-                              ? "Cancelado"
-                              : "Nivel no indicado")}
-                        </span>
-                        <span>
-                          {entry.instructor ?? "Instructor no indicado"}
+                        <span className="schedule-block-person">
+                          {entry.instructor ?? "Sin instructor indicado"}
                           {entry.attendees !== null
                             ? ` · ${entry.attendees} personas`
                             : ""}
                         </span>
                         {entry.issues.length > 0 && (
                           <span className="schedule-block-warning">
-                            <AlertTriangle size={12} />
+                            <AlertTriangle size={14} />
                             {entry.status === "CANCELLED"
                               ? "Cancelado"
                               : "Por confirmar"}

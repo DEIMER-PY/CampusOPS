@@ -1,0 +1,7 @@
+.hyperframes/
+.media/
+renders/
+exports/
+node_modules/
+
+.thumbnails/

@@ -257,3 +257,26 @@ No canonizado ni reparado en este registro: tamaños auxiliares de 9–10px, que
 ## Refinamiento del robot del login
 
 La imagen original permanece como fuente. El login utiliza campus-robot-login.webp, edición de la referencia con image_gen: fondo transparente real, torso completo y luz azul contenida. No colocarla dentro de un bloque con fondo propio ni simular el recorte con máscaras geométricas. Next Image conserva proporción y alpha, con preload y sizes; el busto tiene presencia amplia en escritorio y se compacta a 128 px junto a la marca bajo 640 px. Formulario y comportamiento Auth permanecen iguales. Capturas verificadas a 1033×900 y 390×844; build, typecheck y cuatro pruebas Playwright aprobados. Procedencia: docs/robot-image-provenance.json.
+
+## Rediseño de operaciones — 19 octubre 2026
+
+Esta sección prevalece para el incremento `feature/frontend-campus-operations`. Conserva la paleta grafito/azul y Poppins; la portada adopta composición asimétrica con fotografías del campus retocadas mediante IA, identificadas como tales. Procedencia y prompts: `docs/campus-photographs.json` y `docs/media/campusflow-photo-edit-prompts.md` desde la raíz. Las ediciones son material de presentación, no prueba de arquitectura, inventario o disponibilidad.
+
+La referencia creativa se apoya en Kiro (jerarquía/contraste) y el repositorio `midudev/mcp-higgsfield-landing` (recorrido y alternativas estáticas). No se migró a Astro ni se importaron sus fotografías o videos. Dirección de la skill: One motif, semilla 632005633; el marco abierto de las salas aportadas guía la composición. App: True-black flat. La marca y el alcance existente prevalecen sobre presets ornamentales.
+
+- Portal inicial: Resumen. Navegación agrupada en Tu espacio, Operación, Campus y Gestión. Menú móvil desplegable, foco al navegar y Escape para cerrar.
+- Incidencias: lista compacta y panel de detalle; en móvil se alternan lista/detalle con retorno del foco. Creación en panel, propuesta IA y seguimiento conservan contratos. Un error de análisis permanece visible aunque la recarga de datos tenga éxito.
+- Recursos: Inventario/Préstamos con filtros locales. Estado operativo y préstamo activo se leen por separado; se explica por qué no se puede prestar un equipo.
+- Resumen: tareas pendientes y registros recientes calculados de la respuesta real, hasta 50 por módulo. Guion para dato no actualizado; cero solo después de una lectura correcta. Fecha de actualización completa y refresco manual.
+- Tokens compartidos, shell y vistas separados; CSS en `src/styles/legacy.css`, `operations.css` y `marketing.css`. Se retiraron 146 reglas heredadas sin uso. El resto del CSS heredado se conserva para calendario, planos, horarios, seguimiento y asistente.
+- Texto operativo 14 px; metadatos desde 12 px y portada desde 13 px. Controles principales de 44 px. Radios de control 5 px y panel 8 px; estados con texto y color.
+- Lenis 1.3.27 solo portada, anclas y limpieza; desplazamiento preciso de pequeña magnitud nativo. Las entradas se activan al intersectar, sin ocultar anticipadamente contenido. Fotos del flujo cambian por capítulo; sin video de recorrido simulado.
+- Robot: arte 2D aportado, transformado en perspectiva según puntero fino; no es un modelo 3D. En táctil y movimiento reducido permanece estático. El formulario no depende del efecto.
+
+RAG sigue identificado como arquitectura futura. No se añadieron endpoints, bibliotecas ni cambios en Auth, Prisma, RBAC o n8n. El video narrado solicitado tiene guion/brief en `docs/media/campusflow-explainer`; voz ElevenLabs y render HyperFrames requieren conexión y no se presentan como entregados.
+
+### Referencias posteriores: fotos y consola
+
+El carrusel reúne las tres fotografías aportadas, expande la selección y conserva flechas, gestos y teclado. La mascota completa es ilustración generada desde la referencia existente, sin modelo 3D o cámara. El login incorpora escena fotográfica y orientación útil; móvil prioriza marca y formulario.
+
+La consola utiliza búsqueda de módulos por permisos y composición de cola/inventario/contexto. Lista/tarjetas y búsquedas operan sobre las cargas existentes. Ceros, guiones y fallos tienen significados distintos. RAG se dibuja con componentes HTML e iconos SVG: siete pasos, reproducción finita/pausa y modo manual al reducir movimiento; no consulta documentos. Las nuevas superficies tienen estilos separados y no agregan dependencias raíz.

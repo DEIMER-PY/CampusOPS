@@ -1,0 +1,113 @@
+.schedule-content {
+  grid-template-columns: 1fr;
+}
+.schedule-intro {
+  background: transparent;
+  border: 0;
+  padding: 0 0 20px;
+}
+.schedule-intro h2 {
+  font-size: 22px;
+}
+.schedule-room-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.schedule-room-filter select {
+  max-width: 220px;
+  font-size: 14px;
+}
+.schedule-scroll {
+  max-height: 800px;
+  border-radius: 8px;
+}
+.schedule-room-lane {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 43px,
+    #292929 43px 44px
+  );
+}
+.schedule-time {
+  font-size: 12px;
+  padding-top: 6px;
+  background: #111;
+}
+.schedule-time:not(.schedule-hour) {
+  color: #606060;
+}
+.schedule-room-heading {
+  font-size: 14px;
+  background: #191919;
+}
+.schedule-block {
+  overflow: hidden;
+  padding: 10px 12px;
+  gap: 5px;
+  border-left: 3px solid #61a9da;
+  background: #152b3b;
+  color: #f3f3f3;
+}
+.schedule-block-software {
+  border-left-color: #af97e8;
+  background: #282139;
+}
+.schedule-block-ser {
+  border-left-color: #5ebcb2;
+  background: #18302d;
+}
+.schedule-block-cancelled,
+.schedule-cancelled {
+  background: #252525;
+  border-left-color: #888;
+}
+.schedule-block strong {
+  font-size: 14px;
+  line-height: 1.4;
+}
+.schedule-block-type,
+.schedule-block-person {
+  font-size: 12px;
+}
+.schedule-block-person {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.schedule-block-warning {
+  font-size: 12px;
+  line-height: 1.2;
+  margin-top: auto;
+}
+.schedule-editor {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+}
+.schedule-editor form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.schedule-editor form > button,
+.schedule-editor form > p {
+  grid-column: 1 / -1;
+}
+@media (max-width: 640px) {
+  .schedule-room-filter {
+    width: 100%;
+  }
+  .schedule-room-filter select {
+    flex: 1;
+    max-width: none;
+    min-width: 0;
+  }
+  .schedule-editor form {
+    grid-template-columns: 1fr;
+  }
+  .schedule-block {
+    padding: 8px;
+  }
+}

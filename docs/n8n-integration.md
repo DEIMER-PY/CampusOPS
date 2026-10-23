@@ -1,4 +1,4 @@
-> Actualización: la rama feature/3-n8n-prisma-agenda de Tomas ya está integrada. Existe asistente en dashboard, /api/agenda/assistant y SQL de persistencia; la conexión real sigue sin webhook/configuración. Los apartados siguientes describen el contrato estricto /calendar/proposals. Para el asistente ampliado ver docs/n8n/README.md. La guía no activa por sí misma ejecución ni WhatsApp.
+> Estado vigente (19 octubre 2026): asistente ADMIN/OPERATOR integrado desde `develop c179d63`, con Groq principal y Gemini de respaldo. La UI llama a Express con sesión; propuesta y ejecución tienen estados separados. Ver [guía del workflow](n8n/README.md). No hay n8n local disponible en esta sesión: configuración y ejecución real siguen pendientes de comprobación. El contrato histórico de propuesta de calendario que sigue abajo no implica que Express aplique el plan del asistente.
 
 # Integración de Tomas con n8n
 

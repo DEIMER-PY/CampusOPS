@@ -1,0 +1,11 @@
+{
+  "date": "2026-10-19",
+  "tool": "image_gen built-in",
+  "reference": "apps/web/public/brand/campus-robot-login.webp",
+  "asset": "apps/web/public/brand/campus-robot-full.webp",
+  "sha256": "299889e9cdaae9766e3e9f08ff516d5d9f47e638f4bd5857667ea4c5cb122d24",
+  "processing": "Exportación WebP 840×1260 con alfa preservado, calidad 90.",
+  "promptDocument": "docs/media/campusflow-photo-edit-prompts.md",
+  "purpose": "Mascota de cuerpo completo para carrusel de fotos y acceso; seguimiento del puntero mediante CSS.",
+  "limitations": "Ilustración generada desde referencia; no modelo 3D, nuevo activo oficial ni fotografía del campus."
+}

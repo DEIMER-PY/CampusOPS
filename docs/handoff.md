@@ -40,3 +40,40 @@ Triaje v2 envía snapshot acotado aprobado por usuario a Groq, excluyendo propie
 Leonardo continúa frontend e integraciones/planos según última indicación. Tomas desarrolla n8n/módulo 1. Guion hablado en docs/pitch-rehearsal.md; el usuario canceló diapositivas y priorizó explicación RAG en web; demo con cuenta real y ensayo grupal pendientes. Plan RAG PDF/Excel/datos simulados etiquetados en docs/rag-ingestion-plan.md: no afirmar ingesta o RAG implementados.
 
 Relevo final completo para Leonardo: docs/LEONARDO_HANDOFF.md. Explicación RAG en /#rag implementada con WebP generado, procedencia y prompt en docs/rag-image-provenance.json, texto accesible y límite de estado previsto. Ingesta/chat RAG no implementados.
+
+## Continuación frontend — 19 octubre 2026
+
+Rama local `feature/frontend-campus-operations` desde el `develop` que estaba abierto. Sin merge, push ni despliegue. Se preserva el cambio previo de `apps/web/next-env.d.ts`.
+
+Rediseño completo de presentación: portada asimétrica con fotos aportadas y retocadas por IA, galería navegable, capítulos con transiciones por scroll y Lenis; login con robot 2D que responde al puntero fino. Portal abre en Resumen, navegación agrupada y menú móvil. Incidencias separa lista/detalle/composición, devuelve foco y conserva error de análisis después de refrescar. Recursos separa inventario/préstamos y filtros locales. Resumen deriva tareas y alcance de los registros cargados. Shell, tipos compartidos, detalle e interfaces extraídos de Workspace; estilos divididos por superficie y 146 reglas heredadas sin uso retiradas.
+
+Contratos API, BD, permisos y operaciones existentes conservados. No se han acreditado nuevas capacidades de RAG, n8n, visión, correo o realtime. Las pruebas nuevas de presentación usan identidad y respuestas aisladas, rotuladas como PRUEBA; no equivalen a E2E real de Supabase o Groq. Consultar la última sección de `docs/verification.md` para resultados y límites.
+
+Fotografías: las 12 del ZIP se revisaron; tres seleccionadas para edición con image_gen y exportación WebP. Procedencia en `docs/campus-photographs.json`, prompts en `docs/media/campusflow-photo-edit-prompts.md`. Las versiones retocadas no son datos oficiales ni fuentes para contar o posicionar activos.
+
+Video solicitado: guion español de 206 palabras y brief de ocho escenas, duración orientativa 105 s, preparados en `docs/media/campusflow-explainer/`. El MCP HyperFrames no estaba conectado y ElevenLabs redirigía a login. Se solicitó al usuario conectar los servicios. No existe render MP4 ni voz generada; continuar por los proveedores solicitados después de autenticar, sin sustituirlos silenciosamente ni prometer ingesta RAG funcional.
+
+### Segunda iteración visual — carrusel, acceso, consola y RAG nativo
+
+Se implementaron las nuevas referencias del usuario: carrusel de tres fotos propias con tarjetas expandibles, navegación por flechas/teclado y gestos; robot ilustrado de cuerpo completo, extendido desde la mascota anterior con ImageGen. Acceso con escena fotográfica, orientación y ayuda de roles; formulario y marca primero en móvil. No es un modelo 3D: el puntero transforma la ilustración mediante CSS.
+
+El resumen ahora utiliza una consola compacta: identidad del campus, buscador de módulos con permisos, cola de atención, catálogo local con búsqueda y vista lista/tarjetas, préstamos, seguimiento y reservas. No cambia cargas ni contratos API. Los estilos se separan en `campus-gallery.css`, `rag-architecture.css`, `access.css` y `console.css`; se retiraron reglas sustituidas de las superficies anteriores.
+
+`/#rag` muestra siete pasos nativos de HTML/SVG, selección manual y reproducción finita con pausa. Movimiento reducido conserva los controles manuales y desactiva reproducción. El WebP anterior queda como enlace secundario; ingesta, índice y chat siguen pendientes. El video narrado HyperFrames/ElevenLabs permanece pendiente de conexión, como se documentó arriba.
+
+Calidad final: `npm run check` aprobado con Node 24.19.0/npm 11.19.1; lint sin errores, 130 advertencias y una observación, tipos API/web, 20 unitarias y ambos builds. Suite pública 17 aprobadas/3 omitidas; presentación aislada 21 aprobadas/3 omitidas. Matrices 360/390/768/1024/1440, reflujo CSS 200%, roles de presentación, filtros, fallos parciales, foco y movimiento reducido. Sigue pendiente acreditar recorridos autenticados reales y auditoría formal de accesibilidad. Sin push ni deploy; cambio local anterior de `next-env.d.ts` conservado.
+
+
+## Entrega consolidada — dashboard y flujo n8n (19 octubre 2026)
+
+Base actualizada por fast-forward a `origin/develop c179d63` (PR #14: Groq principal/Gemini de respaldo). Rama de entrega `feature/frontend-campus-operations`, destinada a PR hacia `develop`; no se mezcla ni publica directamente sobre develop. El cambio previo de `next-env.d.ts` se conserva fuera del commit. Las secciones anteriores son históricas: esta actualización prevalece para el estado actual.
+
+- Gestión → Asistente de agenda: tareas guiadas, campos opcionales, contexto con alcance, comprobación/reintento de configuración, envío real mediante API autenticada existente, separación propuesta/aplicación, confirmación y refresco de módulos tras `APPLIED`. La UI no toma el rol de autorización del formulario ni llama directamente al webhook.
+- Workflow importable de 24 nodos: Groq y respaldo Gemini conservados, web por defecto en `PROPUESTA`, reportes de 4000 caracteres sin truncamiento a 1000, avisos administrativos solo después de `APLICADA` confirmada. Se conservan las reglas y funciones transaccionales existentes. Ante fallo de respuesta en ejecución, la API ya no asegura que no hubo cambios: pide revisar reservas/incidencias/auditoría antes de repetir.
+- Se recuperan las tres regresiones de fechas/consulta del PR #13; la lógica correspondiente ya está en develop. No se reemplaza el intérprete actual por la exportación más antigua ni se cierran PR de compañeros automáticamente.
+- Feedback visual: plano con vinculación manual local por navegador (sin coordenadas oficiales inventadas), marcador/zoom/eliminación; agenda guiada; calendario por sala sin scroll por bloque; auditoría agrupada y detalle; avatar del rol; hero con selección de fotos, revisión humana por pasos, RAG por etapas y footer ampliado; login con robot sin fotografía de fondo.
+- HyperFrames: composición HTML real de 8 escenas/105 s en `docs/media/campusflow-explainer/composition`, CLI 0.8.178, `check` aprobado con 8 advertencias estructurales. Preview local 3102. Voz ElevenLabs y MP4 pendientes, sin afirmar render terminado ni servicio RAG implementado.
+
+Verificación local con Node 24.19.0/npm 11.19.1: `npm run check` aprobado (150 advertencias y una observación, sin errores; tipos, 20 unitarias y builds); motor n8n 32/32; UI aislada 31 aprobadas/3 omitidas; pública 19 aprobadas/3 omitidas. La nueva suite de dashboard se incluye también en CI. Matriz responsive 360/390/768/1024/1440 y pruebas de foco/movimiento reducido dentro del alcance aislado. No equivalen a cuentas Supabase multirrol ni a servicios reales.
+
+Bloqueo operativo actual: puertos locales n8n 5678/5679 sin respuesta y Docker sin daemon. Para acreditar el flujo real hacen falta instancia disponible, credenciales asignadas, webhook activado y recorrido autenticado con escritura autorizada. No se activaron `N8N_MODE=execute`, WhatsApp ni rol de login de BD en esta sesión; no se cambiaron esquema, permisos ni dependencias raíz.

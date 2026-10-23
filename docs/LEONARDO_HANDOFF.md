@@ -1,5 +1,7 @@
 # Relevo para Leonardo — CampusFlow
 
+> Actualización 19 octubre 2026: consultar primero la última sección de [handoff.md](handoff.md) y [verification.md](verification.md). La entrega `feature/frontend-campus-operations` integra `develop c179d63`, dashboard rediseñado y asistente n8n. La instancia n8n está pendiente de disponibilidad; las afirmaciones históricas de ausencia de UI ya no describen esta entrega.
+
 ## Punto de entrada
 
 Continúas frontend e integraciones/planos según indicación del usuario. Tomas prepara los flujos de n8n para agenda/módulo 1. Samuel apoya diseño/UX y Deimer dejó API/Auth/Groq y documentación. No hay autorización para fingir el flujo con respuestas estáticas. Lee AGENTS.md, apps/web/AGENTS.md, apps/web/PRODUCT.md y apps/web/DESIGN.md antes de cambiar código.
