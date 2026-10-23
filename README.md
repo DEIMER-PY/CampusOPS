@@ -139,7 +139,7 @@ flowchart TD
   I --> J[Guardar aceptación o error del proveedor]
 ```
 
-Una foto por incidencia, JPEG/PNG/WebP hasta 1 MB y 12 MP; se elimina EXIF y se normaliza. Un análisis visual puede declarar que no es posible determinar el estado. La conversación se persiste y se refresca manualmente; todavía no es chat en tiempo real. `ACCEPTED` en correo significa aceptación de Resend, no entrega al buzón.
+Una foto por incidencia, JPEG/PNG/WebP hasta 1 MB y 12 MP; se elimina EXIF y se normaliza. Un análisis visual puede declarar que no es posible determinar el estado. El seguimiento de la incidencia se persiste como historial del ticket; la coordinación general del campus opera en tiempo real mediante el módulo WebSocket. `ACCEPTED` en correo significa aceptación de Resend, no entrega al buzón.
 
 ## Estado real y pendientes
 
