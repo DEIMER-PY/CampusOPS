@@ -99,6 +99,7 @@ export function useCampusSocket({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const socketRef = useRef<WebSocket | null>(null);
+  const isClosedIntentionallyRef = useRef<boolean>(false);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
@@ -265,12 +266,20 @@ export function useCampusSocket({
             }
 
             case "PRESENCE_UPDATE": {
+              const rawUsers: PresenceUser[] = payload.users || [];
+              const uniqueUsersMap = new Map<string, PresenceUser>();
+              for (const u of rawUsers) {
+                if (!uniqueUsersMap.has(u.id)) {
+                  uniqueUsersMap.set(u.id, u);
+                }
+              }
+              const cleanUsers = Array.from(uniqueUsersMap.values());
               setPresence((prev) => ({
                 ...prev,
                 [payload.channelSlug]: {
                   channelSlug: payload.channelSlug,
-                  onlineCount: payload.onlineCount,
-                  users: payload.users || [],
+                  onlineCount: cleanUsers.length,
+                  users: cleanUsers,
                 },
               }));
               break;
@@ -345,6 +354,11 @@ export function useCampusSocket({
       };
 
       ws.onclose = () => {
+        if (isClosedIntentionallyRef.current) {
+          setStatus("disconnected");
+          return;
+        }
+
         setStatus("reconnecting");
         if (heartbeatIntervalRef.current) {
           clearInterval(heartbeatIntervalRef.current);
@@ -354,7 +368,9 @@ export function useCampusSocket({
         if (reconnectTimeoutRef.current)
           clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = setTimeout(() => {
-          connect();
+          if (!isClosedIntentionallyRef.current) {
+            connect();
+          }
         }, 3000);
       };
     } catch (e) {
@@ -365,16 +381,23 @@ export function useCampusSocket({
 
   // Initial connect & metadata fetch
   useEffect(() => {
+    isClosedIntentionallyRef.current = false;
     fetchMetadata();
     connect();
 
     return () => {
-      if (reconnectTimeoutRef.current)
+      isClosedIntentionallyRef.current = true;
+      if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
-      if (heartbeatIntervalRef.current)
+        reconnectTimeoutRef.current = null;
+      }
+      if (heartbeatIntervalRef.current) {
         clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+      }
       if (socketRef.current) {
         socketRef.current.close();
+        socketRef.current = null;
       }
     };
   }, [fetchMetadata, connect]);

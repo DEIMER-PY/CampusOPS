@@ -399,32 +399,6 @@ export function CommsView({
 
       {/* SIDEBAR DE CANALES */}
       <aside className="comms-sidebar">
-        <div className="comms-sidebar-header">
-          <div className="comms-brand-title">
-            <Radio size={16} className="text-accent animate-pulse" />
-            <span>Campus Realtime</span>
-          </div>
-          <div
-            className={`comms-status-badge ${
-              status === "connected"
-                ? "status-online"
-                : status === "connecting"
-                  ? "status-connecting"
-                  : "status-offline"
-            }`}
-            title={`WebSocket: ${status}`}
-          >
-            <span className="comms-status-dot" />
-            <span className="comms-status-label">
-              {status === "connected"
-                ? "En vivo"
-                : status === "connecting"
-                  ? "Conectando"
-                  : "Reconectando"}
-            </span>
-          </div>
-        </div>
-
         {/* CANAL OFICIAL / BROADCAST */}
         <div className="comms-channel-section">
           <span className="comms-section-label">CANAL OFICIAL</span>
@@ -451,8 +425,6 @@ export function CommsView({
               .filter((c) => c.slug !== "avisos-generales")
               .map((channel) => {
                 const isActive = activeChannel === channel.slug;
-                const channelPresence = socket.allPresence[channel.slug];
-                const onlineCount = channelPresence?.onlineCount ?? 0;
 
                 // Pick an icon based on slug
                 let IconComponent = Hash;
@@ -471,15 +443,6 @@ export function CommsView({
                       <IconComponent size={14} className="comms-hash-icon" />
                       <span className="comms-channel-name">{channel.slug}</span>
                     </div>
-                    {onlineCount > 0 && (
-                      <span
-                        className="comms-channel-presence-pill"
-                        title={`${onlineCount} usuario(s) conectados en este canal`}
-                      >
-                        <span className="comms-presence-micro-dot" />
-                        {onlineCount}
-                      </span>
-                    )}
                   </button>
                 );
               })}

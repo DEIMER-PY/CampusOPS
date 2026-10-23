@@ -354,16 +354,27 @@ function broadcastGlobalAnnouncement(data: object) {
 }
 
 function broadcastPresence(channelSlug: string) {
-  const members = [];
+  // Deduplicate by userId so a user with multiple tabs or connections is counted as ONE real person
+  const uniqueUsers = new Map<
+    string,
+    { id: string; name: string; role: Role }
+  >();
   for (const client of clients.values()) {
-    if (client.activeChannels.has(channelSlug)) {
-      members.push({
-        id: client.userId,
-        name: client.name,
-        role: client.role,
-      });
+    if (
+      client.activeChannels.has(channelSlug) &&
+      client.ws.readyState === WebSocket.OPEN
+    ) {
+      if (!uniqueUsers.has(client.userId)) {
+        uniqueUsers.set(client.userId, {
+          id: client.userId,
+          name: client.name,
+          role: client.role,
+        });
+      }
     }
   }
+
+  const members = Array.from(uniqueUsers.values());
 
   const payload = JSON.stringify({
     type: "PRESENCE_UPDATE",

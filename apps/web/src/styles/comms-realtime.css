@@ -1,9 +1,15 @@
 /* Campuslands Realtime Communications Styling */
 
+.workspace-body:has(.comms-workspace-container) {
+  padding: 16px 24px;
+  max-width: 1750px;
+}
+
 .comms-workspace-container {
   display: flex;
-  height: calc(100vh - 120px);
-  min-height: 580px;
+  height: calc(100vh - 105px);
+  max-height: calc(100vh - 105px);
+  min-height: 480px;
   background: var(--panel, #1b1b1b);
   border: 1px solid var(--border, #353535);
   border-radius: var(--radius, 8px);
@@ -12,68 +18,13 @@
 
 /* SIDEBAR */
 .comms-sidebar {
-  width: 260px;
+  width: 250px;
   background: #141414;
   border-right: 1px solid var(--border, #353535);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   user-select: none;
-}
-
-.comms-sidebar-header {
-  padding: 16px;
-  border-bottom: 1px solid var(--border, #353535);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.comms-brand-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  letter-spacing: -0.01em;
-  color: var(--text, #f3f3f3);
-}
-
-.comms-status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  font-size: 11px;
-  font-family: monospace;
-  border: 1px solid transparent;
-}
-
-.comms-status-badge.status-online {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
-  border-color: rgba(16, 185, 129, 0.3);
-}
-
-.comms-status-badge.status-connecting {
-  background: rgba(245, 158, 11, 0.12);
-  color: #f59e0b;
-  border-color: rgba(245, 158, 11, 0.3);
-}
-
-.comms-status-badge.status-offline {
-  background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
-  border-color: rgba(239, 68, 68, 0.3);
-}
-
-.comms-status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 6px currentColor;
 }
 
 .comms-channel-section {

@@ -44,8 +44,8 @@ import { WorkspaceShell } from "./workspace-shell";
 
 const titles: Record<Tab, [string, string]> = {
   comms: [
-    "Comunicaciones en vivo",
-    "Canales en tiempo real entre áreas, avisos prioritarios y presencia del campus.",
+    "Comunicaciones",
+    "Coordinación y solicitudes entre áreas del campus.",
   ],
   schedule: [
     "Horarios de formación",
@@ -314,13 +314,15 @@ export function Workspace({
           socket.joinChannel(slug);
         }}
       />
-      <div className="workspace-heading">
-        <div>
-          <h1>{titles[tab][0]}</h1>
-          <p>{titles[tab][1]}</p>
+      {tab !== "comms" && (
+        <div className="workspace-heading">
+          <div>
+            <h1>{titles[tab][0]}</h1>
+            <p>{titles[tab][1]}</p>
+          </div>
+          <span className="timezone">Hora de Colombia · UTC−5</span>
         </div>
-        <span className="timezone">Hora de Colombia · UTC−5</span>
-      </div>
+      )}
       {!configured && (
         <div className="notice">
           <ShieldCheck size={20} />
