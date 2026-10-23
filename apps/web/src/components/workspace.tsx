@@ -15,11 +15,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { useCampusSocket } from "@/hooks/use-campus-socket";
 import { parseParticipants } from "@/lib/participants";
 import { AgendaAssistant } from "./agenda-assistant";
 import { AuditView } from "./audit-view";
 import { CampusPlan } from "./campus-plan";
+import { CommsView } from "./comms-view";
 import { IncidentsView } from "./incidents-view";
+import { RealtimeAlertBanner } from "./realtime-alert-banner";
 import { ReservationComposer } from "./reservation-composer";
 import { ResourcesView } from "./resources-view";
 import { ScheduleView } from "./schedule-view";
@@ -40,6 +43,10 @@ import {
 import { WorkspaceShell } from "./workspace-shell";
 
 const titles: Record<Tab, [string, string]> = {
+  comms: [
+    "Comunicaciones en vivo",
+    "Canales en tiempo real entre áreas, avisos prioritarios y presencia del campus.",
+  ],
   schedule: [
     "Horarios de formación",
     "Organiza grupos, salas e instructores con trazabilidad.",
@@ -103,6 +110,9 @@ export function Workspace({
   const [selectedSpace, setSelectedSpace] = useState("");
   const [bookingReset, setBookingReset] = useState(0);
   const operator = ["ADMIN", "OPERATOR"].includes(initialRole);
+  const socket = useCampusSocket({
+    initialChannel: "avisos-generales",
+  });
   const api = useCallback(
     async <T,>(path: string, method = "GET", body?: unknown): Promise<T> => {
       const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -296,6 +306,14 @@ export function Workspace({
       }}
       onSignOut={() => void signOut()}
     >
+      <RealtimeAlertBanner
+        alert={socket.globalAlert}
+        onDismiss={socket.dismissGlobalAlert}
+        onGoToChannel={(slug) => {
+          setTab("comms");
+          socket.joinChannel(slug);
+        }}
+      />
       <div className="workspace-heading">
         <div>
           <h1>{titles[tab][0]}</h1>
@@ -558,6 +576,14 @@ export function Workspace({
           operator={operator}
           disabled={disabled}
           mutate={mutate}
+        />
+      )}
+      {tab === "comms" && (
+        <CommsView
+          socket={socket}
+          spaces={spaces}
+          resources={resources}
+          role={initialRole}
         />
       )}
       {tab === "summary" && (

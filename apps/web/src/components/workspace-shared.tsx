@@ -9,7 +9,8 @@ export type Tab =
   | "reservations"
   | "resources"
   | "incidents"
-  | "audit";
+  | "audit"
+  | "comms";
 export type Space = {
   id: string;
   name: string;

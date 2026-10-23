@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Radio,
   RefreshCw,
   Search,
   Sparkles,
@@ -22,6 +23,7 @@ import type { Tab } from "./workspace-shared";
 
 const nav = [
   { key: "summary", label: "Resumen", icon: LayoutDashboard },
+  { key: "comms", label: "Comunicaciones en vivo", icon: Radio },
   { key: "schedule", label: "Horarios de formación", icon: CalendarDays },
   { key: "spaces", label: "Espacios", icon: Grid2X2 },
   { key: "reservations", label: "Reservas", icon: CalendarDays },
@@ -34,7 +36,7 @@ const nav = [
 
 const groups: { label: string; keys: readonly Tab[] }[] = [
   { label: "Tu espacio", keys: ["summary"] },
-  { label: "Operación", keys: ["incidents", "resources"] },
+  { label: "Operación", keys: ["comms", "incidents", "resources"] },
   { label: "Campus", keys: ["spaces", "reservations", "schedule", "plans"] },
   { label: "Gestión", keys: ["agenda", "audit"] },
 ];
