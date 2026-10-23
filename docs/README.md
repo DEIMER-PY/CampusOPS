@@ -19,6 +19,7 @@
 | [README principal](../README.md) | Producto, stack, diagramas, datos, roles e impacto esperado |
 | [Arquitectura](architecture.md) | Decisiones técnicas y límites de confianza |
 | [API OpenAPI](openapi.yaml) | Contratos HTTP y permisos |
+| [Comunicaciones en tiempo real](realtime-comms.md) | Motor WebSocket nativo, roles por área, presencia y menciones |
 | [Flujo de decisiones](decision-flow.md) | Reglas deterministas frente a propuestas IA |
 | [Integración n8n](n8n-integration.md) | Contrato de Tomas y aceptación real pendiente |
 | [Plan RAG](rag-ingestion-plan.md) | Ingesta PDF/Excel pendiente, permisos y referencias |

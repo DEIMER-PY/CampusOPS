@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: CampusFlow API
-  version: 0.2.0
-  description: Recursos, préstamos e incidencias con Groq. RAG y realtime no implementados.
+  version: 0.3.0
+  description: Recursos, préstamos, incidencias con Groq, coordinación inter-área y WebSocket nativo en tiempo real.
 servers:
   - url: http://127.0.0.1:4000
 security:
@@ -24,6 +24,45 @@ components:
           properties:
             code: { type: string }
             message: { type: string }
+    Role:
+      type: string
+      enum: [ADMIN, FORMACION, COWORKING, MARKETING, SOPORTE, FULL_SERVICE, CLONAI, OPERATOR, CLIENT]
+    CommunicationChannel:
+      type: object
+      required: [id, slug, name, isOfficial]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        isOfficial: { type: boolean }
+        messageCount: { type: integer }
+    ChannelMessage:
+      type: object
+      required: [id, channelId, senderId, content, priority, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        channelId: { type: string, format: uuid }
+        senderId: { type: string, format: uuid }
+        content: { type: string }
+        priority: { type: string, enum: [NORMAL, URGENT] }
+        createdAt: { type: string, format: date-time }
+        sender:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            name: { type: string, nullable: true }
+            email: { type: string, nullable: true }
+            role: { $ref: '#/components/schemas/Role' }
+    MemberProfile:
+      type: object
+      required: [id, role]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        role: { $ref: '#/components/schemas/Role' }
+        areaLabel: { type: string }
     ReservationInput:
       type: object
       additionalProperties: false
@@ -350,3 +389,85 @@ paths:
         '409': { description: Espacio sin habilitar o aforo excedido }
         '502': { description: JSON n8n inválido o catálogo incoherente }
         '503': { description: Webhook sin configurar o no disponible }
+  /api/channels:
+    get:
+      summary: Lista canales de comunicación del campus
+      description: Retorna los canales temáticos por área y el canal de avisos oficiales con el conteo de mensajes recientes.
+      responses:
+        '200':
+          description: Canales ordenados (avisos oficiales primero)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommunicationChannel'
+        '401': { description: Sesión ausente o inválida }
+  /api/channels/{slug}/messages:
+    get:
+      summary: Historial de mensajes de un canal
+      description: Retorna hasta 50 mensajes recientes en orden cronológico ascendente.
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Mensajes del canal con datos del remitente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChannelMessage'
+        '401': { description: Sesión ausente o inválida }
+        '404': { description: Canal no encontrado }
+  /api/members:
+    get:
+      summary: Directorio de miembros del campus
+      description: Retorna la lista de miembros registrados con su nombre, correo y área para autocompletado de menciones.
+      responses:
+        '200':
+          description: Lista de miembros activos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MemberProfile'
+        '401': { description: Sesión ausente o inválida }
+  /api/admin/users:
+    get:
+      summary: Lista todos los usuarios con roles para administración
+      description: Solo disponible para el rol ADMIN.
+      responses:
+        '200':
+          description: Lista completa de perfiles
+        '401': { description: Sesión ausente o inválida }
+        '403': { description: Requiere rol ADMIN }
+  /api/admin/users/{id}/role:
+    patch:
+      summary: Reasigna el área/rol de un usuario
+      description: Solo disponible para ADMIN. Permite modificar el área a cualquiera de los roles válidos.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role: { $ref: '#/components/schemas/Role' }
+      responses:
+        '200': { description: Rol actualizado exitosamente }
+        '400': { description: Rol no reconocido }
+        '401': { description: Sesión ausente o inválida }
+        '403': { description: Requiere rol ADMIN }
+        '404': { description: Usuario no encontrado }
+

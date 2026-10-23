@@ -28,6 +28,16 @@ Reservas bloquean la fila del espacio, revalidan capacidad/estado, consultan con
 
 Préstamos deben bloquear recurso y crear/cerrar préstamo con auditoría atómica; aún pendiente de servicio. Reintentos de creación deben incorporar idempotency keys para evitar duplicados tras timeout. Errores SQL no se exponen al usuario. Ensayo obligatorio con dos conexiones simultáneas: solo una reserva/préstamo debe sobrevivir para el mismo activo.
 
+## Comunicaciones en tiempo real y modelo de áreas (WebSocket nativo)
+
+El subsistema de coordinación operativa utiliza un servidor WebSocket nativo (`ws`) acoplado al ciclo de vida del servidor HTTP Express (`apps/api/src/index.ts`):
+
+1. **Protocolo y Autenticación:** Las conexiones cliente inician con un handshake en `ws://.../ws?token=JWT`. El servidor valida el token contra Supabase Auth y resuelve el rol y perfil desde PostgreSQL (`app_private.profiles`). No se admiten conexiones anónimas ni se aceptan identificadores de usuario desde el cliente.
+2. **Modelo de Áreas Transversales:** Se sustituye la jerarquía vertical rígida por 7 áreas de campus (`FORMACION`, `COWORKING`, `MARKETING`, `SOPORTE`, `FULL_SERVICE`, `CLONAI`, junto a `ADMIN`). Todas las áreas pueden comunicarse entre sí en canales temáticos abiertos para solicitar préstamos, colaboración o traslados. El canal `#avisos-generales` está restringido para escritura exclusiva de `ADMIN`.
+3. **Menciones y Notificaciones Dirigidas:** El motor de sockets analiza los mensajes entrantes con sintaxis formal (`@usuario:Nombre`, `@espacio:Nombre`, `@equipo:Código`). Cuando un usuario es mencionado, se genera y despacha un evento `USER_MENTIONED` de alta prioridad a las conexiones activas del destinatario, activando notificaciones flotantes (toasts) en tiempo real en el frontend.
+4. **Presencia y Latido:** Control de conexiones activas con `ping`/`pong` cada 30s. Al unirse o salir de un canal, se difunde `PRESENCE_STATE` para actualizar los indicadores de presencia (`● N en línea`).
+5. **Persistencia de Historial:** Los mensajes se almacenan transaccionalmente en `app_private.channel_messages` vinculados a `app_private.communication_channels` y `app_private.profiles`, permitiendo lectura paginada vía REST (`GET /api/channels/:slug/messages`) al abrir cualquier canal.
+
 ## Entorno y despliegue
 
 Web 3000, API 4000. Origen web explícito en CORS, peticiones con Authorization y JSON validado. No guardar tokens en logs. API con Helmet, límites de cuerpo/solicitudes y request ID. Revisar trust proxy solo al conocer la topología; rate limit en memoria es para una instancia, usar almacenamiento compartido antes de escalar réplicas.

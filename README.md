@@ -2,9 +2,9 @@
 
 **Tu campus. Todo en su lugar.** Espacios, recursos tecnológicos e incidencias en un mismo flujo, con decisiones verificadas por el servidor y asistencia de IA.
 
-[Documentación](docs/README.md) · [Clonar y configurar](docs/GETTING_STARTED.md) · [Pruebas por OS](docs/TESTING.md) · [Probar despliegue](https://campusflow-prototype.vercel.app) · [Relevo para Leonardo](docs/LEONARDO_HANDOFF.md) · [Rúbrica y aceptación](docs/rubric-audit.md) · [Verificación](docs/verification.md) · [Contrato API base](docs/openapi.yaml)
+[Documentación](docs/README.md) · [Clonar y configurar](docs/GETTING_STARTED.md) · [Comunicaciones Realtime](docs/realtime-comms.md) · [Pruebas por OS](docs/TESTING.md) · [Probar despliegue](https://campusflow-prototype.vercel.app) · [Relevo para Leonardo](docs/LEONARDO_HANDOFF.md) · [Rúbrica y aceptación](docs/rubric-audit.md) · [Verificación](docs/verification.md) · [Contrato API base](docs/openapi.yaml)
 
-> Prototipo de hackatón en evolución. Esta rama incorpora horarios, planos, seguimiento y evidencia visual. No representa una entrega completa de RAG ni de automatización n8n. Las capturas muestran datos de prueba y estados observados, no indicadores de impacto institucional.
+> Prototipo de hackatón en evolución. Esta rama incorpora horarios, planos, seguimiento, evidencia visual y coordinación inter-área mediante WebSockets nativos. No representa una entrega completa de RAG ni de automatización n8n. Las capturas muestran datos de prueba y estados observados, no indicadores de impacto institucional.
 
 ![Portada real de CampusFlow](docs/assets/screenshots/landing-redesign-desktop.webp)
 
@@ -18,6 +18,7 @@ Coordinar salas, préstamos y reportes en herramientas separadas dificulta conoc
 | Controlar equipos prestados | Código único, préstamo activo y devolución | Equipos pendientes de devolución y movimientos auditados |
 | Atender incidencias con contexto | Triaje estructurado y revisión humana | Tiempo hasta clasificación y resolución, medido en un piloto |
 | Entender la agenda | Tablero gráfico con procedencia y advertencias | Bloques revisados y vinculados a espacios reales |
+| Coordinar solicitudes inter-área | Canales temáticos por área, avisos oficiales y menciones con alertas en vivo | Tiempo de respuesta y resolución de solicitudes entre áreas operativas |
 | Explicar las decisiones | Historial legible y evidencia de IA | Operaciones con registro y capacidad de reconstrucción |
 
 No se han medido todavía ahorros de tiempo, tasas de resolución ni mejoras porcentuales. Los contadores del dashboard describen los registros cargados y su alcance visible.
@@ -56,6 +57,7 @@ Estas cinco capturas proceden de la revisión autenticada del prototipo, previa 
 | Web | Next.js 16.4.2, React 19.3.1, TypeScript 7.0.2, Tailwind CSS 4.3.3 |
 | Interacción | Lenis 1.3.27 en portada, Lucide, Poppins local; scroll nativo en dashboard |
 | API | Node.js 24, Express 5.3.0, Zod 4.6.7, Helmet y límites por usuario |
+| Tiempo real | WebSocket nativo (ws 8.19), presencia y menciones dirigidas |
 | Persistencia | PostgreSQL en Supabase, Prisma y adapter 7.10.1, pg 8.23.1 |
 | Identidad | Supabase Auth; roles y propiedad comprobados por Express |
 | IA | Groq para triaje textual y adaptador visual con salida validada |
@@ -72,6 +74,7 @@ flowchart LR
   U[Comunidad y operadores] --> WEB[Next.js / React]
   WEB --> AUTH[Supabase Auth]
   WEB -->|API del mismo origen + sesión| API[Express: identidad, rol y Zod]
+  WEB <-->|WebSocket /ws: presencia y menciones| API
   API --> RULES[Reglas transaccionales y auditoría]
   RULES --> ORM[Prisma / rol runtime restringido]
   ORM --> DB[(PostgreSQL app_private)]
@@ -96,12 +99,16 @@ erDiagram
   Profile ||--o{ Loan : solicita
   Resource ||--o{ Loan : registra
   Profile ||--o{ Incident : reporta
-  Profile { uuid id PK string role }
+  Profile ||--o{ ChannelMessage : envia
+  CommunicationChannel ||--o{ ChannelMessage : agrupa
+  Profile { uuid id PK string role string name string email }
   Space { uuid id PK string name int capacity string status }
   Reservation { uuid id PK uuid spaceId FK uuid userId FK datetime startAt datetime endAt json participants }
   Resource { uuid id PK string code UK string status }
   Loan { uuid id PK uuid resourceId FK uuid userId FK datetime returnedAt }
   Incident { uuid id PK uuid userId FK string assetCode json evidence json triage json visual json communications json notification }
+  CommunicationChannel { uuid id PK string slug UK string name boolean isOfficial }
+  ChannelMessage { uuid id PK uuid channelId FK uuid senderId FK string content string priority datetime createdAt }
   ScheduleBoard { uuid id PK string sourceKey UK json rooms json entries int revision date applicableDate }
   AuditEvent { uuid id PK uuid actorId uuid entityId string action datetime createdAt }
 ```
@@ -138,7 +145,8 @@ Una foto por incidencia, JPEG/PNG/WebP hasta 1 MB y 12 MP; se elimina EXIF y se 
 
 | Área | Estado y límite |
 |---|---|
-| Auth y permisos | Integración Supabase y acceso ADMIN comprobados; registro público crea CLIENT |
+| Auth y permisos | Integración Supabase y roles por área (`ADMIN`, `FORMACION`, `COWORKING`, `MARKETING`, `SOPORTE`, `FULL_SERVICE`, `CLONAI`); cuentas simuladas y panel de reasignación |
+| Tiempo real y coordinación | Motor WebSocket nativo (`/ws`) probado con presencia, 7 canales temáticos y menciones (`@usuario:Nombre`) con notificaciones en vivo |
 | Reservas y préstamos | Persistencia, validaciones y concurrencia probadas con PostgreSQL aislado |
 | Triaje textual | Groq conectado; contexto acotado sin datos de otros usuarios; fallos recuperables |
 | Visión | Adaptador y pruebas con proveedor simulado; modelo listado por Groq. Falta acreditar una inferencia visual real de extremo a extremo |
