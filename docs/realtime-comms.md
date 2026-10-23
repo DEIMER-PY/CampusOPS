@@ -21,16 +21,16 @@ El sistema utiliza un servidor nativo de WebSockets (`ws`) montado directamente 
 
 ```mermaid
 flowchart TD
-    Client[Navegador / useCampusSocket] -->|HTTP Upgrade /ws?token=JWT| Server[Express + ws Server]
-    Server -->|Verifica Bearer JWT| Auth[Supabase Auth]
-    Auth -->|id / email válido| DB[(PostgreSQL app_private)]
-    DB -->|Perfil + Rol de Área| Server
-    Server -->|Conexión Aceptada + Presence ONLINE| Client
-    Client -->|JOIN_CHANNEL / SEND_MESSAGE| Server
-    Server -->|Persiste Mensaje| DB
-    Server -->|Parsea @usuario:...| MentionEngine[Motor de Menciones]
-    MentionEngine -->|USER_MENTIONED a socket de destino| TargetUser[Usuario Mencionado (Toast)]
-    Server -->|NEW_MESSAGE a subscriptores| ChannelClients[Clientes en el Canal]
+    Client["Navegador / useCampusSocket"] -->|"HTTP Upgrade /ws?token=JWT"| Server["Express + ws Server"]
+    Server -->|"Verifica Bearer JWT"| Auth["Supabase Auth"]
+    Auth -->|"id / email válido"| DB[("PostgreSQL app_private")]
+    DB -->|"Perfil + Rol de Área"| Server
+    Server -->|"Conexión Aceptada + Presence ONLINE"| Client
+    Client -->|"JOIN_CHANNEL / SEND_MESSAGE"| Server
+    Server -->|"Persiste Mensaje"| DB
+    Server -->|"Parsea @usuario:Nombre"| MentionEngine["Motor de Menciones"]
+    MentionEngine -->|"USER_MENTIONED a socket de destino"| TargetUser["Usuario Mencionado (Toast)"]
+    Server -->|"NEW_MESSAGE a subscriptores"| ChannelClients["Clientes en el Canal"]
 ```
 
 ### 2.1. Handshake y Autenticación

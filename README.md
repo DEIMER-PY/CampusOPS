@@ -71,19 +71,20 @@ Versiones exactas y árbol reproducible en `package-lock.json`. La referencia vi
 
 ```mermaid
 flowchart LR
-  U[Comunidad y operadores] --> WEB[Next.js / React]
-  WEB --> AUTH[Supabase Auth]
-  WEB -->|API del mismo origen + sesión| API[Express: identidad, rol y Zod]
-  WEB <-->|WebSocket /ws: presencia y menciones| API
-  API --> RULES[Reglas transaccionales y auditoría]
-  RULES --> ORM[Prisma / rol runtime restringido]
-  ORM --> DB[(PostgreSQL app_private)]
-  API -->|Descripción y contexto autorizado| GROQ[Groq: triaje y visión]
-  GROQ -->|JSON validado / propuesta| API
-  API --> SHARP[Sharp: validar y normalizar imagen]
-  API --> MAIL[Resend: solicitud de correo]
-  API -.->|Pendiente: webhook propuesta| N8N[n8n / Tomas]
-  PDF[PDF del plano] --> WEB
+  U["Comunidad y operadores"] --> WEB["Next.js / React"]
+  WEB --> AUTH["Supabase Auth"]
+  WEB -->|"API del mismo origen + sesión"| API["Express: identidad, rol y Zod"]
+  WEB -->|"WebSocket /ws (presencia)"| API
+  API -->|"WebSocket /ws (alertas y menciones)"| WEB
+  API --> RULES["Reglas transaccionales y auditoría"]
+  RULES --> ORM["Prisma / rol runtime restringido"]
+  ORM --> DB[("PostgreSQL app_private")]
+  API -->|"Descripción y contexto autorizado"| GROQ["Groq: triaje y visión"]
+  GROQ -->|"JSON validado / propuesta"| API
+  API --> SHARP["Sharp: validar y normalizar imagen"]
+  API --> MAIL["Resend: solicitud de correo"]
+  API -.->|"Pendiente: webhook propuesta"| N8N["n8n / Tomas"]
+  PDF["PDF del plano"] --> WEB
 ```
 
 El navegador no recibe claves de Groq, correo ni credenciales PostgreSQL. Supabase autentica; Express aplica autorización y reglas. El rol de conexión a PostgreSQL está restringido: no se presupone aislamiento por usuario únicamente por usar Prisma o RLS.
@@ -101,16 +102,77 @@ erDiagram
   Profile ||--o{ Incident : reporta
   Profile ||--o{ ChannelMessage : envia
   CommunicationChannel ||--o{ ChannelMessage : agrupa
-  Profile { uuid id PK string role string name string email }
-  Space { uuid id PK string name int capacity string status }
-  Reservation { uuid id PK uuid spaceId FK uuid userId FK datetime startAt datetime endAt json participants }
-  Resource { uuid id PK string code UK string status }
-  Loan { uuid id PK uuid resourceId FK uuid userId FK datetime returnedAt }
-  Incident { uuid id PK uuid userId FK string assetCode json evidence json triage json visual json communications json notification }
-  CommunicationChannel { uuid id PK string slug UK string name boolean isOfficial }
-  ChannelMessage { uuid id PK uuid channelId FK uuid senderId FK string content string priority datetime createdAt }
-  ScheduleBoard { uuid id PK string sourceKey UK json rooms json entries int revision date applicableDate }
-  AuditEvent { uuid id PK uuid actorId uuid entityId string action datetime createdAt }
+
+  Profile {
+    uuid id PK
+    string role
+    string name
+    string email
+  }
+  Space {
+    uuid id PK
+    string name
+    int capacity
+    string status
+  }
+  Reservation {
+    uuid id PK
+    uuid spaceId FK
+    uuid userId FK
+    datetime startAt
+    datetime endAt
+    json participants
+  }
+  Resource {
+    uuid id PK
+    string code UK
+    string status
+  }
+  Loan {
+    uuid id PK
+    uuid resourceId FK
+    uuid userId FK
+    datetime returnedAt
+  }
+  Incident {
+    uuid id PK
+    uuid userId FK
+    string assetCode
+    json evidence
+    json triage
+    json visual
+    json communications
+    json notification
+  }
+  CommunicationChannel {
+    uuid id PK
+    string slug UK
+    string name
+    boolean isOfficial
+  }
+  ChannelMessage {
+    uuid id PK
+    uuid channelId FK
+    uuid senderId FK
+    string content
+    string priority
+    datetime createdAt
+  }
+  ScheduleBoard {
+    uuid id PK
+    string sourceKey UK
+    json rooms
+    json entries
+    int revision
+    date applicableDate
+  }
+  AuditEvent {
+    uuid id PK
+    uuid actorId
+    uuid entityId
+    string action
+    datetime createdAt
+  }
 ```
 
 `ScheduleBoard` guarda una plantilla versionada en JSON; no equivale a reservas confirmadas. `AuditEvent.actorId/entityId` y `Incident.assetCode` son referencias verificadas por aplicación donde corresponde, no relaciones FK declaradas en Prisma. La evidencia fotográfica normalizada se guarda actualmente como JSON privado; para escalar conviene migrar a almacenamiento privado con URLs autorizadas.
@@ -127,16 +189,16 @@ Fechas persistidas en UTC/timestamptz y mostradas en `America/Bogota`. Un fallo 
 
 ```mermaid
 flowchart TD
-  A[Describir incidencia] --> B[Validar y guardar reporte]
-  B --> C[Triaje Groq con contexto autorizado]
-  B --> D[Adjuntar foto y código de equipo]
-  D --> E[Validar formato, tamaño y código]
-  E --> F[Normalizar imagen y analizar con Groq]
-  C --> G[Propuesta visible y trazabilidad]
+  A["Describir incidencia"] --> B["Validar y guardar reporte"]
+  B --> C["Triaje Groq con contexto autorizado"]
+  B --> D["Adjuntar foto y código de equipo"]
+  D --> E["Validar formato, tamaño y código"]
+  E --> F["Normalizar imagen y analizar con Groq"]
+  C --> G["Propuesta visible y trazabilidad"]
   F --> G
-  G --> H[Operador revisa y actualiza estado]
-  G --> I[Correo manual o daño visible de prioridad alta/crítica]
-  I --> J[Guardar aceptación o error del proveedor]
+  G --> H["Operador revisa y actualiza estado"]
+  G --> I["Correo manual o daño visible de prioridad alta/crítica"]
+  I --> J["Guardar aceptación o error del proveedor"]
 ```
 
 Una foto por incidencia, JPEG/PNG/WebP hasta 1 MB y 12 MP; se elimina EXIF y se normaliza. Un análisis visual puede declarar que no es posible determinar el estado. El seguimiento de la incidencia se persiste como historial del ticket; la coordinación general del campus opera en tiempo real mediante el módulo WebSocket. `ACCEPTED` en correo significa aceptación de Resend, no entrega al buzón.
