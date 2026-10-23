@@ -77,3 +77,30 @@ Base actualizada por fast-forward a `origin/develop c179d63` (PR #14: Groq princ
 Verificación local con Node 24.19.0/npm 11.19.1: `npm run check` aprobado (150 advertencias y una observación, sin errores; tipos, 20 unitarias y builds); motor n8n 32/32; UI aislada 31 aprobadas/3 omitidas; pública 19 aprobadas/3 omitidas. La nueva suite de dashboard se incluye también en CI. Matriz responsive 360/390/768/1024/1440 y pruebas de foco/movimiento reducido dentro del alcance aislado. No equivalen a cuentas Supabase multirrol ni a servicios reales.
 
 Bloqueo operativo actual: puertos locales n8n 5678/5679 sin respuesta y Docker sin daemon. Para acreditar el flujo real hacen falta instancia disponible, credenciales asignadas, webhook activado y recorrido autenticado con escritura autorizada. No se activaron `N8N_MODE=execute`, WhatsApp ni rol de login de BD en esta sesión; no se cambiaron esquema, permisos ni dependencias raíz.
+
+## Incremento SaaS Comercial, Ciberseguridad y Normatividad — 23 octubre 2026
+
+Rama: `feature/campusops-commercial-saas` (basada en el último commit de `origin/develop a2a8916`).
+
+### Capacidades Implementadas
+1. **Modelo Multi-Tenant B2B y Ecosistema Campuslands**:
+   - Nuevos modelos en Prisma: `Organization`, `CampusBranch`, `OrganizationMembership`.
+   - Jerarquía completa de roles: `SUPER_ADMIN`, `CAMPUS_DIRECTOR`, `ACADEMIC_COORDINATOR`, `TRAINER`, `CAMPER`, `PARTNER_REPRESENTATIVE`, `IT_OPERATOR`.
+   - Portal y endpoints B2B para Empresas Aliadas y Sedes (`/api/saas/organizations`, `/api/saas/branches`).
+2. **Protección de Datos Personales (Ley 1581 de 2012 / Habeas Data)**:
+   - Registro inmutable de consentimiento (`ConsentLog`) con soporte reforzado para campers menores de edad (16–17 años) exigiendo acudiente legal.
+   - Filtro de sanitización automática de PII (`sanitizePiiForAI`) para enmascarar Cédulas, teléfonos colombianos y correos antes de llamadas a IA.
+3. **Actas Digitales con Firma y No-Repudio (Ley 527 de 1999)**:
+   - Generación de `DigitalActa` con hash SHA-256 inmutable y firma OTP para la entrega y devolución de laptops institucionales con plena validez probatoria.
+4. **Auditoría Forense Criptográfica (Tamper-Evident)**:
+   - Encadenamiento criptográfico estilo Merkle/blockchain en `AuditEvent` (`previousHash` y `hash`) con detector automático de manipulación de registros en base de datos.
+5. **Reglas de Negocio Académicas, CMMS y Cuotas**:
+   - Asignación de aulas según ruta formativa (`AI_DATA` exige estaciones con GPU, `CYBERSECURITY` subred aislada, `SOFT_SKILLS` mesas modulares).
+   - Motor CMMS predictivo de lotes de hardware para cuarentena preventiva y reclamo RMA.
+   - Control de cuotas de reserva e *internal chargeback* con aprobación de Dirección (*Human-in-the-Loop*).
+
+### Verificación
+- 31 pruebas unitarias aprobadas (`npm test -w @campusflow/api`).
+- Typecheck estricto aprobado sin errores en API y Web (`npm run typecheck`).
+- Migración aditiva documentada en `apps/api/prisma/migrations/20261023140000_campusops_saas_core/migration.sql`.
+
