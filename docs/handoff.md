@@ -77,3 +77,29 @@ Base actualizada por fast-forward a `origin/develop c179d63` (PR #14: Groq princ
 Verificación local con Node 24.19.0/npm 11.19.1: `npm run check` aprobado (150 advertencias y una observación, sin errores; tipos, 20 unitarias y builds); motor n8n 32/32; UI aislada 31 aprobadas/3 omitidas; pública 19 aprobadas/3 omitidas. La nueva suite de dashboard se incluye también en CI. Matriz responsive 360/390/768/1024/1440 y pruebas de foco/movimiento reducido dentro del alcance aislado. No equivalen a cuentas Supabase multirrol ni a servicios reales.
 
 Bloqueo operativo actual: puertos locales n8n 5678/5679 sin respuesta y Docker sin daemon. Para acreditar el flujo real hacen falta instancia disponible, credenciales asignadas, webhook activado y recorrido autenticado con escritura autorizada. No se activaron `N8N_MODE=execute`, WhatsApp ni rol de login de BD en esta sesión; no se cambiaron esquema, permisos ni dependencias raíz.
+
+## Entrega módulo comunicaciones en tiempo real (WebSocket nativo) — 23 octubre 2026
+
+Rama de trabajo: `feature/realtime-comms-websocket` (aislada de develop).
+
+### Implementado
+- **Roles por Área:** Ampliación del enum `Role` a 7 áreas operativas del campus: `ADMIN`, `FORMACION`, `COWORKING`, `MARKETING`, `SOPORTE`, `FULL_SERVICE`, `CLONAI` (con retrocompatibilidad para `CLIENT` y `OPERATOR`).
+- **Esquema de Datos y Canales:** Modelo `CommunicationChannel` y `ChannelMessage` en PostgreSQL vía Prisma con migración `20261022180000_realtime_communication`. Canales base: `#avisos-generales`, `#formacion`, `#co-working`, `#marketing-alianzas`, `#soporte-tecnico`, `#full-service`, `#clonai`.
+- **Motor WebSocket Nativo:** Servidor WS montado en Express HTTP upgrade en `apps/api/src/realtime/socket-server.ts`. Handshake con validación JWT contra Supabase Auth, presencia en tiempo real con heartbeat `ping/pong`, difusión de mensajes por canal y eventos de alta prioridad (`URGENT`).
+- **Sistema de Menciones y Notificaciones:** Detección de menciones a usuarios (`@usuario:Nombre`) en el payload del mensaje con despacho directo de evento `USER_MENTIONED` a los sockets activos del destinatario y toast flotante en frontend. Soporte de menciones de recursos y espacios.
+- **Directorio y Reasignación de Área:** Endpoints `GET /api/members`, `GET /api/admin/users`, `PATCH /api/admin/users/:id/role` con validación estricta de rol `ADMIN`.
+- **Frontend Interactivo:** Hook `useCampusSocket` y componente `CommsView` integrado en el dashboard bajo la pestaña "Comunicaciones" y barra de alerta `RealtimeAlertBanner`.
+- **Cuentas Simuladas Verificadas:** 6 cuentas de área creadas con contraseña `CampusFlow2026!` probadas exitosamente con Supabase Auth:
+  - Formación: `carlos.formacion@campuslands.com`
+  - Co-Working: `ana.coworking@campuslands.com`
+  - Marketing: `laura.marketing@campuslands.com`
+  - Soporte: `david.soporte@campuslands.com`
+  - Operaciones / Full-Service: `marta.operaciones@campuslands.com`
+  - ClonAI: `felipe.clonai@campuslands.com`
+
+### Verificación
+- Pruebas unitarias de realtime (`apps/api/tests/realtime.test.ts`): 4 tests pasando (24/24 tests totales en API).
+- `npm run typecheck`: 0 errores en `@campusflow/api` y `@campusflow/web`.
+- `npm run build`: compilación limpia en ambos paquetes.
+- Biome check: 0 errores de formateo o lint en los archivos creados/modificados.
+
