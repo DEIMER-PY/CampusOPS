@@ -12,6 +12,13 @@ enum Role {
   CLIENT
   OPERATOR
   ADMIN
+  SUPER_ADMIN
+  CAMPUS_DIRECTOR
+  ACADEMIC_COORDINATOR
+  TRAINER
+  CAMPER
+  PARTNER_REPRESENTATIVE
+  IT_OPERATOR
   @@schema("app_private")
 }
 
@@ -22,113 +29,235 @@ enum AssetStatus {
   @@schema("app_private")
 }
 
-model Profile {
-  id         String @id @db.Uuid
-  role       Role @default(CLIENT)
-  createdAt  DateTime @default(now()) @db.Timestamptz
+enum OrganizationType {
+  CAMPUS_HEADQUARTERS
+  CAMPUS_BRANCH
+  PARTNER_COMPANY
+  EDUCATIONAL_ALLIANCE
+  @@schema("app_private")
+}
+
+enum LearningPath {
+  AI_DATA
+  CLOUD_DEVOPS
+  FULLSTACK_DEVELOPMENT
+  SOFT_SKILLS
+  CYBERSECURITY
+  @@schema("app_private")
+}
+
+model Organization {
+  id          String           @id @default(uuid()) @db.Uuid
+  code        String           @unique
+  name        String
+  type        OrganizationType @default(CAMPUS_BRANCH)
+  taxId       String?          // NIT o RUT legal en Colombia
+  billingPlan String           @default("ENTERPRISE_INTERNAL")
+  quotaHours  Int              @default(40)
+  createdAt   DateTime         @default(now()) @db.Timestamptz
+  updatedAt   DateTime         @updatedAt @db.Timestamptz
+
+  branches     CampusBranch[]
+  memberships  OrganizationMembership[]
+  spaces       Space[]
+  resources    Resource[]
   reservations Reservation[]
-  loans Loan[]
-  incidents Incident[]
+  incidents    Incident[]
+  actas        DigitalActa[]
+
+  @@schema("app_private")
+}
+
+model CampusBranch {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  name           String
+  city           String
+  address        String
+  timezone       String       @default("America/Bogota")
+  createdAt      DateTime     @default(now()) @db.Timestamptz
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  spaces         Space[]
+
+  @@schema("app_private")
+}
+
+model OrganizationMembership {
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @db.Uuid
+  organizationId String       @db.Uuid
+  department     String?
+  role           Role         @default(CAMPER)
+  status         String       @default("ACTIVE")
+  createdAt      DateTime     @default(now()) @db.Timestamptz
+
+  user           Profile      @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([userId, organizationId])
+  @@schema("app_private")
+}
+
+model ConsentLog {
+  id                String    @id @default(uuid()) @db.Uuid
+  userId            String    @db.Uuid
+  policyVersion     String
+  acceptedPurposes  Json
+  ipAddress         String?
+  userAgent         String?
+  isMinor           Boolean   @default(false)
+  guardianEmail     String?
+  guardianConsentAt DateTime? @db.Timestamptz
+  createdAt         DateTime  @default(now()) @db.Timestamptz
+
+  user              Profile   @relation(fields: [userId], references: [id])
+  @@index([userId, policyVersion])
+  @@schema("app_private")
+}
+
+model DigitalActa {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  loanId         String       @unique @db.Uuid
+  actaType       String       // "DELIVERY", "RETURN"
+  assetSerial    String
+  conditionNotes String
+  sha256Hash     String
+  signatureData  String
+  pdfS3Key       String?
+  signedAt       DateTime     @default(now()) @db.Timestamptz
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  loan           Loan         @relation(fields: [loanId], references: [id])
+  @@schema("app_private")
+}
+
+model Profile {
+  id           String                   @id @db.Uuid
+  role         Role                     @default(CLIENT)
+  createdAt    DateTime                 @default(now()) @db.Timestamptz
+  reservations Reservation[]
+  loans        Loan[]
+  incidents    Incident[]
+  memberships  OrganizationMembership[]
+  consentLogs  ConsentLog[]
   @@schema("app_private")
 }
 
 model Space {
-  id String @id @default(uuid()) @db.Uuid
-  name String @unique
-  capacity Int
-  status AssetStatus @default(DISABLED)
-  source String
-  reservations Reservation[]
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String?       @db.Uuid
+  branchId       String?       @db.Uuid
+  name           String        @unique
+  capacity       Int
+  status         AssetStatus   @default(DISABLED)
+  hardwareSpecs  Json?
+  source         String
+  reservations   Reservation[]
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  branch         CampusBranch? @relation(fields: [branchId], references: [id])
   @@schema("app_private")
 }
 
 model Reservation {
-  id String @id @default(uuid()) @db.Uuid
-  spaceId String @db.Uuid
-  userId String @db.Uuid
-  startAt DateTime @db.Timestamptz
-  endAt DateTime @db.Timestamptz
-  attendees Int
-  participants Json?
-  purpose String
-  cancelledAt DateTime? @db.Timestamptz
-  requesterName String?
-  source String @default("WEB")
-  note String?
-  relocatedFrom String?
-  createdAt DateTime @default(now()) @db.Timestamptz
-  space Space @relation(fields: [spaceId], references: [id])
-  user Profile @relation(fields: [userId], references: [id])
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String?       @db.Uuid
+  spaceId        String        @db.Uuid
+  userId         String        @db.Uuid
+  startAt        DateTime      @db.Timestamptz
+  endAt          DateTime      @db.Timestamptz
+  attendees      Int
+  participants   Json?
+  purpose        String
+  cancelledAt    DateTime?     @db.Timestamptz
+  requesterName  String?
+  source         String        @default("WEB")
+  note           String?
+  relocatedFrom  String?
+  createdAt      DateTime      @default(now()) @db.Timestamptz
+  space          Space         @relation(fields: [spaceId], references: [id])
+  user           Profile       @relation(fields: [userId], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id])
   @@index([userId, createdAt])
   @@schema("app_private")
 }
 
 model Resource {
-  id String @id @default(uuid()) @db.Uuid
-  code String @unique
-  name String
-  status AssetStatus @default(DISABLED)
-  source String
-  loans Loan[]
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String?       @db.Uuid
+  code           String        @unique
+  name           String
+  batchCode      String?
+  hardwareModel  String?
+  status         AssetStatus   @default(DISABLED)
+  source         String
+  loans          Loan[]
+  organization   Organization? @relation(fields: [organizationId], references: [id])
   @@schema("app_private")
 }
 
 model Loan {
-  id String @id @default(uuid()) @db.Uuid
-  resourceId String @db.Uuid
-  userId String @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamptz
-  returnedAt DateTime? @db.Timestamptz
-  resource Resource @relation(fields: [resourceId], references: [id])
-  user Profile @relation(fields: [userId], references: [id])
+  id         String       @id @default(uuid()) @db.Uuid
+  resourceId String       @db.Uuid
+  userId     String       @db.Uuid
+  createdAt  DateTime     @default(now()) @db.Timestamptz
+  returnedAt DateTime?    @db.Timestamptz
+  resource   Resource     @relation(fields: [resourceId], references: [id])
+  user       Profile      @relation(fields: [userId], references: [id])
+  acta       DigitalActa?
   @@index([userId, createdAt])
   @@schema("app_private")
 }
 
 model Incident {
-  id String @id @default(uuid()) @db.Uuid
-  userId String @db.Uuid
-  assetCode String?
-  evidence Json?
-  visual Json?
-  visionStatus String @default("NONE")
-  visionStartedAt DateTime? @db.Timestamptz
-  communications Json?
-  notification Json?
-  description String
-  aiStatus String @default("PENDING")
-  triage Json?
-  aiError String?
-  aiStartedAt DateTime? @db.Timestamptz
-  status String @default("OPEN")
-  createdAt DateTime @default(now()) @db.Timestamptz
-  user Profile @relation(fields: [userId], references: [id])
+  id              String        @id @default(uuid()) @db.Uuid
+  organizationId  String?       @db.Uuid
+  userId          String        @db.Uuid
+  assetCode       String?
+  evidence        Json?
+  visual          Json?
+  visionStatus    String        @default("NONE")
+  visionStartedAt DateTime?     @db.Timestamptz
+  communications  Json?
+  notification    Json?
+  description     String
+  aiStatus        String        @default("PENDING")
+  triage          Json?
+  aiError         String?
+  aiStartedAt     DateTime?     @db.Timestamptz
+  status          String        @default("OPEN")
+  createdAt       DateTime      @default(now()) @db.Timestamptz
+  user            Profile       @relation(fields: [userId], references: [id])
+  organization    Organization? @relation(fields: [organizationId], references: [id])
   @@index([userId, createdAt])
   @@schema("app_private")
 }
 
 model AuditEvent {
-  id String @id @default(uuid()) @db.Uuid
-  actorId String @db.Uuid
-  action String
-  entityId String @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamptz
+  id           String   @id @default(uuid()) @db.Uuid
+  actorId      String   @db.Uuid
+  action       String
+  entityId     String   @db.Uuid
+  previousHash String?
+  hash         String?
+  createdAt    DateTime @default(now()) @db.Timestamptz
   @@index([createdAt])
   @@schema("app_private")
 }
 
 model ScheduleBoard {
-  id String @id @default(uuid()) @db.Uuid
-  sourceKey String @unique
-  sourceHash String
-  title String
-  rooms Json
-  entries Json
+  id             String    @id @default(uuid()) @db.Uuid
+  sourceKey      String    @unique
+  sourceHash     String
+  title          String
+  rooms          Json
+  entries        Json
   applicableDate DateTime? @db.Date
-  timezone String @default("America/Bogota")
-  revision Int @default(1)
-  updatedBy String? @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamptz
-  updatedAt DateTime @updatedAt @db.Timestamptz
+  timezone       String    @default("America/Bogota")
+  revision       Int       @default(1)
+  updatedBy      String?   @db.Uuid
+  createdAt      DateTime  @default(now()) @db.Timestamptz
+  updatedAt      DateTime  @updatedAt @db.Timestamptz
   @@schema("app_private")
 }
