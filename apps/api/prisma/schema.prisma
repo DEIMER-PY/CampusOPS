@@ -9,8 +9,16 @@ datasource db {
 }
 
 enum Role {
+  ADMIN
+  FORMACION
+  COWORKING
+  MARKETING
+  SOPORTE
+  FULL_SERVICE
+  CLONAI
   CLIENT
   OPERATOR
+<<<<<<< HEAD
   ADMIN
   SUPER_ADMIN
   CAMPUS_DIRECTOR
@@ -19,6 +27,8 @@ enum Role {
   CAMPER
   PARTNER_REPRESENTATIVE
   IT_OPERATOR
+=======
+>>>>>>> origin/feature/realtime-comms-websocket
   @@schema("app_private")
 }
 
@@ -29,6 +39,7 @@ enum AssetStatus {
   @@schema("app_private")
 }
 
+<<<<<<< HEAD
 enum OrganizationType {
   CAMPUS_HEADQUARTERS
   CAMPUS_BRANCH
@@ -142,6 +153,18 @@ model Profile {
   incidents    Incident[]
   memberships  OrganizationMembership[]
   consentLogs  ConsentLog[]
+=======
+model Profile {
+  id         String @id @db.Uuid
+  role       Role @default(FORMACION)
+  name       String?
+  email      String?
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  reservations Reservation[]
+  loans Loan[]
+  incidents Incident[]
+  channelMessages ChannelMessage[]
+>>>>>>> origin/feature/realtime-comms-websocket
   @@schema("app_private")
 }
 
@@ -261,3 +284,38 @@ model ScheduleBoard {
   updatedAt      DateTime  @updatedAt @db.Timestamptz
   @@schema("app_private")
 }
+
+enum MessagePriority {
+  NORMAL
+  URGENT
+  @@schema("app_private")
+}
+
+model CommunicationChannel {
+  id              String           @id @default(uuid()) @db.Uuid
+  slug            String           @unique
+  name            String
+  description     String
+  isBroadcastOnly Boolean          @default(false)
+  icon            String           @default("hash")
+  createdAt       DateTime         @default(now()) @db.Timestamptz
+  messages        ChannelMessage[]
+  @@schema("app_private")
+}
+
+model ChannelMessage {
+  id         String               @id @default(uuid()) @db.Uuid
+  channelId  String               @db.Uuid
+  authorId   String               @db.Uuid
+  authorName String               @default("Usuario")
+  authorRole Role                 @default(CLIENT)
+  content    String
+  priority   MessagePriority      @default(NORMAL)
+  mentions   Json?
+  createdAt  DateTime             @default(now()) @db.Timestamptz
+  channel    CommunicationChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  author     Profile              @relation(fields: [authorId], references: [id])
+  @@index([channelId, createdAt])
+  @@schema("app_private")
+}
+

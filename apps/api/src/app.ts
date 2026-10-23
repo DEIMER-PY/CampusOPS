@@ -10,7 +10,6 @@ import { hasCapacity } from "./domain/rules.js";
 import { evidenceRoutes } from "./evidence.js";
 import { Prisma } from "./generated/prisma/client.js";
 import { operations } from "./operations.js";
-import { saasRoutes } from "./saas/routes.js";
 import { scheduleRoutes } from "./schedule.js";
 
 export const app = express();
@@ -62,7 +61,6 @@ app.use("/api", (_req, res, next) => {
 app.use("/api", evidenceRoutes);
 app.use("/api", operations);
 app.use("/api", scheduleRoutes);
-app.use("/api/saas", saasRoutes);
 app.get("/api/me", (_req, res) => {
   res.json({ data: res.locals.actor });
 });

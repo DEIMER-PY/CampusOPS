@@ -99,7 +99,8 @@ Estas variables controlan el runner; no reconfiguran puertos ni proxy de una web
 | Fechas/participantes | Calendario por teclado, foco al cerrar, formulario limpio tras guardar, nombres sin corrupción |
 | Incidencias | Guardar antes de IA, clasificación real, explicación, fallo recuperable y seguimiento persistido |
 | Foto | MIME real, 1 MB/12 MP, código existente, privacidad, limitaciones y resultado visual real |
-| Comunicación | Mensaje guardado con rol del servidor; actualizar manualmente |
+| Comunicación Realtime | Conexión WebSocket autenticada por JWT; presencia en vivo; difusión inmediata sin recarga; menciones (@usuario) con toast flotante al destinatario; canales temáticos por área; restricción en #avisos-generales solo para ADMIN |
+| Gestión de Áreas (Admin) | Reasignación de rol/área de miembros en directorio; reflejo inmediato en el token/sesión y badges de área |
 | Horarios | 24 bloques fuente; advertencias; revisión obsoleta 409; solapes de sala/docente rechazados |
 | Plano | PDF fiel, zoom/giro y límites de desplazamiento; sin ubicaciones supuestas |
 | Correo | Pendiente/error visibles; destinatario fijo; aceptación distinta de entrega; no duplicar envío |
@@ -127,3 +128,32 @@ Cubre CLIENT/OPERATOR/ADMIN como presentación, listas/detalle y foco, filtros, 
 Se puede indicar un navegador Chromium instalado con `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` en las dos configuraciones Playwright; si no se indica, se usan los navegadores estándar de Playwright. No guardar sesiones ni cookies para estas pruebas. La suite pública amplía galería, robot/movimiento reducido, matrices responsive y lectura sin JavaScript.
 
 Segunda iteración de frontend (19/10): la suite aislada incluye búsqueda de módulos con filtrado por rol, inventario del resumen con búsqueda/vacío y alternancia lista/tarjetas; importa `console.css` junto con los estilos compartidos. Resultado: 21 aprobadas/3 omitidas. La suite pública verifica selección/reproducción/pausa de la explicación RAG y desactivación de reproducción con movimiento reducido, más teclado del carrusel; 17 aprobadas/3 omitidas. `npm run check` aprobado (20 unitarias, tipos, ambos builds; lint 130 advertencias/una observación, sin errores). Estos resultados no sustituyen pruebas multirrol reales con servicios ni una auditoría de accesibilidad asistida.
+
+## Pruebas de comunicaciones en tiempo real (WebSocket y Áreas)
+
+### 1. Pruebas Unitarias Automatizadas
+El suite de pruebas `apps/api/tests/realtime.test.ts` valida la lógica de negocio y seguridad sin dependencias externas:
+```bash
+npm run test -w @campusflow/api
+```
+Casos cubiertos:
+- Restricción estricta de `#avisos-generales` (solo `ADMIN` emite comunicados; usuarios de área son rechazados).
+- Capacidad transversal entre áreas operativas (`FORMACION`, `CLONAI`, `SOPORTE`, `FULL_SERVICE`, `COWORKING`, `MARKETING`).
+- Extractor de menciones con expresiones complejas (`@usuario:Nombre Apellido`, `@espacio:Nombre`, `@equipo:Código`).
+- Validación de esquemas y rechazo de mensajes vacíos o prioridades no autorizadas.
+
+### 2. Flujo de Prueba Manual Multiusuario (Simulación)
+Para probar la interacción en vivo entre dos áreas diferentes:
+1. Abrir una ventana normal y una ventana de incógnito en `http://localhost:3000/login`.
+2. **Ventana 1 (Formación):** Iniciar sesión con `carlos.formacion@campuslands.com` / `CampusFlow2026!`.
+3. **Ventana 2 (Soporte Técnico):** Iniciar sesión con `david.soporte@campuslands.com` / `CampusFlow2026!`.
+4. En ambas ventanas, ir a la pestaña **Comunicaciones**.
+5. Verificar que el canal activo muestre el indicador de presencia actualizado (`● 2 en línea`).
+6. Desde la Ventana 1 (Carlos), escribir en `#soporte-tecnico`:
+   `Hola @usuario:David Torres, necesitamos apoyo con @equipo:EQ-PRJ-01 en @espacio:Cosmos`
+7. Verificar que en la Ventana 2 (David) aparezca inmediatamente:
+   - El mensaje en el feed sin recargar la página.
+   - Un toast flotante con alerta `Has sido mencionado por Carlos Gómez en #soporte-tecnico`.
+8. En la Ventana 1, intentar publicar en `#avisos-generales` y confirmar que el botón o el servidor rechazan la acción al no tener rol `ADMIN`.
+9. Iniciar sesión con la cuenta `ADMIN` (`programador8903@gmail.com`), abrir el popover de miembros en el panel de comunicaciones y verificar que permite cambiar el área asignada de cualquier usuario mediante `/api/admin/users/:id/role`.
+
