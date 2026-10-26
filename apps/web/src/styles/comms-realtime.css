@@ -848,15 +848,50 @@
   color: var(--text, #f3f3f3);
 }
 
+.comms-urgent-toggle input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #f59e0b;
+  cursor: pointer;
+}
+
 @media (max-width: 768px) {
   .comms-workspace-container {
     flex-direction: column;
-    height: auto;
-    min-height: 600px;
+    height: 100%;
+    min-height: 0;
   }
   .comms-sidebar {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid var(--border, #353535);
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .comms-channel-section {
+    margin-bottom: 4px;
+  }
+  .comms-channel-list {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 6px;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .comms-channel-item {
+    flex-shrink: 0;
+    padding: 5px 10px;
+  }
+  .comms-presence-card {
+    display: none;
+  }
+  .comms-keyboard-tip {
+    display: none;
+  }
+  .comms-composer-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
   }
 }

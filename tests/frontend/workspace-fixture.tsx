@@ -18,3 +18,4 @@ import "../../apps/web/src/styles/agenda-feedback.css";
 import "../../apps/web/src/styles/schedule-feedback.css";
 import "../../apps/web/src/styles/audit-feedback.css";
 import "../../apps/web/src/styles/public-feedback.css";
+import "../../apps/web/src/styles/comms-realtime.css";

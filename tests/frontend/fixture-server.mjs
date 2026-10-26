@@ -84,6 +84,7 @@ const server = createServer(async (req, res) => {
     res.end("Not found");
   }
 });
-server.listen(3200, "127.0.0.1", () =>
-  console.log("Isolated frontend fixture on 127.0.0.1:3200"),
+const port = Number(process.env.PORT) || 3200;
+server.listen(port, "127.0.0.1", () =>
+  console.log(`Isolated frontend fixture on 127.0.0.1:${port}`),
 );
