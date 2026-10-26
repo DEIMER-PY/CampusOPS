@@ -4,12 +4,13 @@ import express, { type ErrorRequestHandler } from "express";
 import { rateLimit } from "express-rate-limit";
 import helmet from "helmet";
 import { z } from "zod";
-import { authenticate } from "./auth.js";
+import { authenticate, canViewAllReservations } from "./auth.js";
 import { database } from "./db.js";
 import { hasCapacity } from "./domain/rules.js";
 import { evidenceRoutes } from "./evidence.js";
 import { Prisma } from "./generated/prisma/client.js";
 import { operations } from "./operations.js";
+import { channelRoutes } from "./realtime/channel-routes.js";
 import { scheduleRoutes } from "./schedule.js";
 
 export const app = express();
@@ -61,6 +62,7 @@ app.use("/api", (_req, res, next) => {
 app.use("/api", evidenceRoutes);
 app.use("/api", operations);
 app.use("/api", scheduleRoutes);
+app.use("/api", channelRoutes);
 app.get("/api/me", (_req, res) => {
   res.json({ data: res.locals.actor });
 });
@@ -73,7 +75,7 @@ app.get("/api/reservations", async (_req, res) => {
   const actor = res.locals.actor;
   res.json({
     data: await database().reservation.findMany({
-      where: actor.role === "CLIENT" ? { userId: actor.id } : {},
+      where: canViewAllReservations(actor.role) ? {} : { userId: actor.id },
       take: 50,
       orderBy: { createdAt: "desc" },
       include: { space: true },

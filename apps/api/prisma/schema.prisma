@@ -9,9 +9,15 @@ datasource db {
 }
 
 enum Role {
+  ADMIN
+  FORMACION
+  COWORKING
+  MARKETING
+  SOPORTE
+  FULL_SERVICE
+  CLONAI
   CLIENT
   OPERATOR
-  ADMIN
   @@schema("app_private")
 }
 
@@ -24,11 +30,14 @@ enum AssetStatus {
 
 model Profile {
   id         String @id @db.Uuid
-  role       Role @default(CLIENT)
+  role       Role @default(FORMACION)
+  name       String?
+  email      String?
   createdAt  DateTime @default(now()) @db.Timestamptz
   reservations Reservation[]
   loans Loan[]
   incidents Incident[]
+  channelMessages ChannelMessage[]
   @@schema("app_private")
 }
 
@@ -130,5 +139,39 @@ model ScheduleBoard {
   updatedBy String? @db.Uuid
   createdAt DateTime @default(now()) @db.Timestamptz
   updatedAt DateTime @updatedAt @db.Timestamptz
+  @@schema("app_private")
+}
+
+enum MessagePriority {
+  NORMAL
+  URGENT
+  @@schema("app_private")
+}
+
+model CommunicationChannel {
+  id              String           @id @default(uuid()) @db.Uuid
+  slug            String           @unique
+  name            String
+  description     String
+  isBroadcastOnly Boolean          @default(false)
+  icon            String           @default("hash")
+  createdAt       DateTime         @default(now()) @db.Timestamptz
+  messages        ChannelMessage[]
+  @@schema("app_private")
+}
+
+model ChannelMessage {
+  id         String               @id @default(uuid()) @db.Uuid
+  channelId  String               @db.Uuid
+  authorId   String               @db.Uuid
+  authorName String               @default("Usuario")
+  authorRole Role                 @default(CLIENT)
+  content    String
+  priority   MessagePriority      @default(NORMAL)
+  mentions   Json?
+  createdAt  DateTime             @default(now()) @db.Timestamptz
+  channel    CommunicationChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  author     Profile              @relation(fields: [authorId], references: [id])
+  @@index([channelId, createdAt])
   @@schema("app_private")
 }

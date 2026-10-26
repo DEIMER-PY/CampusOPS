@@ -3,6 +3,12 @@ import { rateLimit } from "express-rate-limit";
 import { z } from "zod";
 import { campusContext } from "./ai/context.js";
 import { AIUnavailable, classifyIncident } from "./ai/triage.js";
+import {
+  canManageOperations,
+  canViewAllIncidents,
+  canViewAllLoans,
+  canViewAllReservations,
+} from "./auth.js";
 import { database } from "./db.js";
 import {
   agendaRequest,
@@ -23,9 +29,13 @@ const statusInput = z.strictObject({
 const assetInput = z.strictObject({
   status: z.enum(["AVAILABLE", "DISABLED", "MAINTENANCE"]),
 });
-const privileged = (role: string) => ["ADMIN", "OPERATOR"].includes(role);
-const scope = (actor: { id: string; role: string }) =>
-  actor.role === "CLIENT" ? { userId: actor.id } : {};
+const privileged = (role: string) => canManageOperations(role);
+const incidentScope = (actor: { id: string; role: string }) =>
+  canViewAllIncidents(actor.role) ? {} : { userId: actor.id };
+const loanScope = (actor: { id: string; role: string }) =>
+  canViewAllLoans(actor.role) ? {} : { userId: actor.id };
+const reservationScope = (actor: { id: string; role: string }) =>
+  canViewAllReservations(actor.role) ? {} : { userId: actor.id };
 const missing = {
   error: {
     code: "NOT_FOUND",
@@ -56,7 +66,7 @@ operations.get("/incidents", async (_req, res) => {
   res.json({
     data: await database().incident.findMany({
       omit: { evidence: true },
-      where: scope(res.locals.actor),
+      where: incidentScope(res.locals.actor),
       orderBy: { createdAt: "desc" },
       take: 50,
     }),
@@ -86,7 +96,7 @@ operations.post("/incidents/:id/triage", aiLimit, async (req, res) => {
   const actor = res.locals.actor;
   const db = database();
   const incident = await db.incident.findFirst({
-    where: { id: incidentId, ...scope(actor) },
+    where: { id: incidentId, ...incidentScope(actor) },
   });
   if (!incident) {
     res.status(404).json(missing);
@@ -284,7 +294,7 @@ operations.patch("/spaces/:id", async (req, res) => {
 operations.get("/loans", async (_req, res) => {
   res.json({
     data: await database().loan.findMany({
-      where: scope(res.locals.actor),
+      where: loanScope(res.locals.actor),
       include: { resource: true },
       orderBy: { createdAt: "desc" },
       take: 50,
@@ -356,7 +366,7 @@ operations.post("/reservations/:id/cancel", async (req, res) => {
   const actor = res.locals.actor;
   const result = await database().$transaction(async (tx) => {
     const record = await tx.reservation.findFirst({
-      where: { id: reservationId, ...scope(actor) },
+      where: { id: reservationId, ...reservationScope(actor) },
     });
     if (!record) return null;
     await tx.$queryRaw`SELECT id FROM app_private."Space" WHERE id = ${record.spaceId}::uuid FOR UPDATE`;

@@ -4,6 +4,7 @@ import { rateLimit } from "express-rate-limit";
 import sharp from "sharp";
 import { z } from "zod";
 import { inspectEquipment } from "./ai/vision.js";
+import { canViewAllIncidents } from "./auth.js";
 import { database } from "./db.js";
 import { notifyIncident } from "./integrations/email.js";
 
@@ -16,7 +17,7 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 const scope = (actor: { id: string; role: string }) =>
-  actor.role === "CLIENT" ? { userId: actor.id } : {};
+  canViewAllIncidents(actor.role) ? {} : { userId: actor.id };
 const missing = {
   error: {
     code: "NOT_FOUND",

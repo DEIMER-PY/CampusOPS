@@ -56,3 +56,73 @@ export async function authenticate(
   res.locals.actor = profile;
   next();
 }
+
+import type { Role } from "./generated/prisma/client.js";
+
+// Canonical representative profile IDs created for each campus area
+export const OFFICIAL_REPRESENTATIVE_IDS = new Set<string>([
+  "c4100000-0000-4000-8000-000000000001", // Carlos Gómez (Formación)
+  "00000000-0000-4000-8000-00000000cf01", // Carlos Gómez (Formación alt)
+  "c4100000-0000-4000-8000-000000000002", // Ana Martínez (Coworking)
+  "c4100000-0000-4000-8000-000000000003", // Laura Rincón (Marketing)
+  "c4100000-0000-4000-8000-000000000004", // David Torres (Soporte)
+  "c4100000-0000-4000-8000-000000000005", // Marta Sánchez (Full Service)
+  "c4100000-0000-4000-8000-000000000006", // Felipe Morales (ClonAI)
+]);
+
+export function isGeneralAdmin(role: Role | string): boolean {
+  return role === "ADMIN";
+}
+
+export function isChannelRepresentative(user: {
+  id: string;
+  role: Role | string;
+}): boolean {
+  return isGeneralAdmin(user.role) || OFFICIAL_REPRESENTATIVE_IDS.has(user.id);
+}
+
+export function canWriteInChannel(
+  role: Role | string,
+  channelSlug: string,
+): boolean {
+  if (channelSlug === "avisos-generales") {
+    return isGeneralAdmin(role);
+  }
+  return true;
+}
+
+export function canSendUrgentInChannel(
+  user: { id: string; role: Role | string },
+  channelSlug: string,
+): boolean {
+  if (isGeneralAdmin(user.role)) return true;
+  if (!isChannelRepresentative(user)) return false;
+
+  const areaChannelMap: Record<string, string[]> = {
+    formacion: ["FORMACION"],
+    "co-working": ["COWORKING"],
+    "marketing-alianzas": ["MARKETING"],
+    "soporte-tecnico": ["SOPORTE"],
+    "full-service": ["FULL_SERVICE"],
+    clonai: ["CLONAI"],
+  };
+
+  const allowedRoles = areaChannelMap[channelSlug];
+  return Boolean(allowedRoles?.includes(user.role));
+}
+
+export function canManageOperations(role: Role | string): boolean {
+  return ["ADMIN", "OPERATOR", "FULL_SERVICE", "SOPORTE"].includes(role);
+}
+
+export function canViewAllIncidents(role: Role | string): boolean {
+  return ["ADMIN", "OPERATOR", "SOPORTE"].includes(role);
+}
+
+export function canViewAllLoans(role: Role | string): boolean {
+  return ["ADMIN", "OPERATOR", "FULL_SERVICE", "SOPORTE"].includes(role);
+}
+
+export function canViewAllReservations(role: Role | string): boolean {
+  return ["ADMIN", "OPERATOR", "FULL_SERVICE"].includes(role);
+}
